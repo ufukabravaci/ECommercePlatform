@@ -1,0 +1,97 @@
+######################################################################
+# .NET Core & Visual Studio
+######################################################################
+## Build folders
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+## Visual Studio cache/options
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Publish output
+**/Properties/PublishProfiles/*.pubxml.user
+
+######################################################################
+# Secrets & Environments (Güvenlik)
+######################################################################
+## User Secrets
+Secrets/
+
+## Environment specific settings
+## Takım içi kolaylık olsun diye Development.json bazen commitlenir.
+## Eğer içinde gerçek şifreler varsa bu satırın başındaki # işaretini kaldır.
+# appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.local.json
+
+## Environment variables
+.env
+.env.local
+
+######################################################################
+# Database (SQL Server & LocalDB)
+######################################################################
+*.mdf
+*.ldf
+*.ndf
+*.db
+*.sqlite
+
+######################################################################
+## Angular (Frontend) - Düzeltilmiş Hali
+######################################################################
+## Dependencies
+node_modules/
+
+## Build output (Başındaki / işaretlerini kaldırdık)
+dist/
+tmp/
+out-tsc/
+
+## Angular cache
+.angular/
+
+## IDE specific for Frontend
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+## Logs & Misc
+yarn-error.log
+npm-debug.log*
+package-lock.json # (Tavsiye: Takım çalışması için bunu commitlemek daha iyidir, ama silmek istersen # kaldır)
+.sass-cache/
+connect.lock
+coverage/
+libpeerconnection.log
+
+######################################################################
+# Operating System Files
+######################################################################
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+######################################################################
+# Tests
+######################################################################
+TestResults/
+*.trx
+
+######################################################################
+# Project Specific
+######################################################################
+# Eğer "Uploads" klasörüne resim yüklenecekse onları yoksay:
+**/wwwroot/uploads/
+**/wwwroot/images/products/
