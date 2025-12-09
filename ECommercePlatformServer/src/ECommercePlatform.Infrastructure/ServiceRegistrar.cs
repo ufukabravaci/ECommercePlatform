@@ -1,5 +1,6 @@
-﻿using ECommercePlatform.Core.Domain.Users;
+﻿using ECommercePlatform.Domain.Users;
 using ECommercePlatform.Infrastructure.Context;
+using GenericRepository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,11 +13,13 @@ public static class ServiceRegistrar
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddHttpContextAccessor();
         services.AddDbContext<ApplicationDbContext>(opt =>
         {
             string con = configuration.GetConnectionString("SqlServer")!;
             opt.UseSqlServer(con);
         });
+        services.AddScoped<IUnitOfWork>(srv => srv.GetRequiredService<ApplicationDbContext>());
         //scrutor ile otomatik servis kaydı
         services.Scan(scan => scan
             .FromAssembliesOf(typeof(ServiceRegistrar))
@@ -37,8 +40,6 @@ public static class ServiceRegistrar
         })
         .AddRoles<AppRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>();
-
-        services.AddHttpContextAccessor();
         // 5. Generic Repository & UnitOfWork
         // services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         // services.AddScoped<IUnitOfWork, UnitOfWork>();

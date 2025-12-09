@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ECommercePlatform.Core\ECommercePlatform.Core.csproj" />
+    <ProjectReference Include="..\ECommercePlatform.Core\ECommercePlatform.Domain.csproj" />
   </ItemGroup>
 
 </Project>

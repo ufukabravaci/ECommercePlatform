@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.Xml.Linq;
 
-namespace ECommercePlatform.Core.Domain.Users;
+namespace ECommercePlatform.Domain.Users;
 
 public sealed class AppRole : IdentityRole<Guid>
 {

@@ -1,0 +1,71 @@
+﻿using ECommercePlatform.Domain.Abstractions;
+using ECommercePlatform.Domain.Users.ValueObjects;
+using Microsoft.AspNetCore.Identity;
+
+namespace ECommercePlatform.Domain.Users;
+
+public sealed class User : IdentityUser<Guid>, IAuditableEntity
+{
+    private User()
+    {
+        RefreshTokens = new List<UserRefreshToken>();
+    }
+
+    public User(string firstName, string lastName, string email, string userName) : this()
+    {
+        Id = Guid.CreateVersion7();
+        CreatedAt = DateTimeOffset.Now;
+        IsActive = true;
+        SecurityStamp = Guid.NewGuid().ToString();
+        FirstName = firstName;
+        LastName = lastName;
+        IsDeleted = false;
+        Email = email;
+        UserName = userName;
+        NormalizedEmail = email.ToUpperInvariant();
+        NormalizedUserName = userName.ToUpperInvariant();
+    }
+
+    public string FirstName { get; private set; } = default!;
+    public string LastName { get; private set; } = default!;
+    public string FullName => $"{FirstName} {LastName}";
+    public Address? Address { get; private set; }
+    public int? CompanyId { get; private set; } //boşsa süperadmin veya customer
+    public ICollection<UserRefreshToken> RefreshTokens { get; set; } = new List<UserRefreshToken>();
+
+    // Metodlar (Behavior)
+    #region Methods
+    public void SetAddress(Address address)
+    {
+        Address = address ?? throw new ArgumentNullException(nameof(address));
+    }
+    public void AssignCompany(int companyId)
+    {
+        if (companyId <= 0) throw new ArgumentException("Geçersiz şirket ID");
+        CompanyId = companyId;
+    }
+    public void SetStatus(bool isActive) => IsActive = isActive;
+
+    public void Delete()
+    {
+        if (IsDeleted) return;
+        IsDeleted = true;
+        DeletedAt = DateTimeOffset.Now;
+        EmailConfirmed = false;
+    }
+    #endregion
+
+    // --- Audits ---
+    #region Audit
+    public bool IsActive { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public Guid? CreatedBy { get; private set; }
+    public DateTimeOffset? UpdatedAt { get; private set; }
+    public Guid? UpdatedBy { get; private set; }
+    public bool IsDeleted { get; private set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public Guid? DeletedBy { get; private set; }
+    #endregion
+
+
+}

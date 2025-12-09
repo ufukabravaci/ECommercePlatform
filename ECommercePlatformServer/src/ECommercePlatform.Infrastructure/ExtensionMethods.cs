@@ -1,4 +1,4 @@
-﻿using ECommercePlatform.Core.Abstractions;
+﻿using ECommercePlatform.Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 

@@ -1,6 +1,6 @@
-﻿using ECommercePlatform.Core.Abstractions;
+﻿using ECommercePlatform.Domain.Abstractions;
 
-namespace ECommercePlatform.Core.Domain.Users;
+namespace ECommercePlatform.Domain.Users;
 
 public sealed class UserRefreshToken : Entity
 {

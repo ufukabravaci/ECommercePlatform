@@ -1,4 +1,4 @@
-﻿namespace ECommercePlatform.Core.Abstractions;
+﻿namespace ECommercePlatform.Domain.Abstractions;
 
 public abstract class Entity : IAuditableEntity
 {
@@ -9,6 +9,7 @@ public abstract class Entity : IAuditableEntity
         Id = Guid.CreateVersion7();
         CreatedAt = DateTimeOffset.Now;
         IsActive = true;
+        IsDeleted = false;
     }
 
     public Guid Id { get; private set; }

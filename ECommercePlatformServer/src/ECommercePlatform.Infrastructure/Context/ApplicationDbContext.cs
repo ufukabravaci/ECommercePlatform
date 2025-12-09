@@ -1,13 +1,15 @@
 ﻿using ECommercePlatform.Application.Services;
-using ECommercePlatform.Core.Abstractions;
-using ECommercePlatform.Core.Domain.Users;
+using ECommercePlatform.Domain.Abstractions;
+using ECommercePlatform.Domain.Users;
+using GenericRepository;
+
 //using ECommercePlatform.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure.Context;
 
-public sealed class ApplicationDbContext : IdentityDbContext<User, AppRole, Guid>
+public sealed class ApplicationDbContext : IdentityDbContext<User, AppRole, Guid>, IUnitOfWork
 {
     private readonly IUserContext _userContext;
 

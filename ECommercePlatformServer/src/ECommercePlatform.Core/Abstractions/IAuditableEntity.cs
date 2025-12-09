@@ -1,4 +1,4 @@
-﻿namespace ECommercePlatform.Core.Abstractions;
+﻿namespace ECommercePlatform.Domain.Abstractions;
 
 public interface IAuditableEntity
 {
