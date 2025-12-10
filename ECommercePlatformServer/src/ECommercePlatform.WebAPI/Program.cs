@@ -1,25 +1,29 @@
 using ECommercePlatform.Application;
 using ECommercePlatform.Infrastructure;
 using ECommercePlatform.WebAPI;
-using ECommercePlatform.WebAPI.Modules;
 using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
-using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
-builder.Services.AddRateLimiter(cfr =>
+builder.Services.AddRateLimiter(options =>
 {
-    cfr.AddFixedWindowLimiter("fixed", options =>
- {
-     options.PermitLimit = 5;
-     options.QueueLimit = 2;
-     options.Window = TimeSpan.FromSeconds(10);
-     options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
- });
+    // Standart Politika (Saniyede 3 istek)
+    options.AddFixedWindowLimiter("fixed", opt =>
+    {
+        opt.PermitLimit = 3;
+        opt.Window = TimeSpan.FromSeconds(10);
+        opt.QueueLimit = 0;
+    });
+
+    // Sýký Politika (Dakikada 3 istek)
+    options.AddFixedWindowLimiter("strict", opt =>
+    {
+        opt.PermitLimit = 3;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
 });
 builder.Services.AddCors();
 builder.Services.AddOpenApi();
@@ -40,6 +44,6 @@ app.UseCors(x => x
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
-app.RegisterAuthRoutes();
+app.MapAuthEndpoints();
 await app.CreateFirstUser();
 app.Run();

@@ -1,22 +1,80 @@
-﻿namespace ECommercePlatform.WebAPI.Modules;
+﻿using ECommercePlatform.Application.Auth;
+using ECommercePlatform.Application.Auth.Login;
+using ECommercePlatform.Application.Auth.RefreshToken;
+using ECommercePlatform.Application.Auth.Register;
+using ECommercePlatform.Application.Features.Auth.Register;
+using Microsoft.AspNetCore.Mvc;
+using TS.MediatR;
 
 public static class AuthModule
 {
-    public static void RegisterAuthRoutes(this IEndpointRouteBuilder app)
+    public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        // Grup Tanımı: /api/auth
-        var group = app.MapGroup("/api/auth").RequireRateLimiting("fixed"); // Rate Limit'i gruba uygula
+        var group = app.MapGroup("api/auth").WithTags("Authentication");
 
-        // 1. Login Endpoint (Şimdilik Dummy)
-        group.MapPost("/login", () =>
+        group.MapPost("register", async (ISender sender, [FromBody] RegisterCommand command) =>
         {
-            return Results.Ok(new { message = "Login endpoint çalışıyor" });
-        });
+            var result = await sender.Send(command);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireRateLimiting("fixed");
 
-        // 2. Register Endpoint (Şimdilik Dummy)
-        group.MapPost("/register", () =>
+        group.MapPost("confirm-email", async (ISender sender, [FromBody] ConfirmEmailCommand command) =>
         {
-            return Results.Ok(new { message = "Register endpoint çalışıyor" });
-        });
+            var result = await sender.Send(command);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireRateLimiting("strict");
+
+        group.MapPost("login", async (ISender sender, [FromBody] LoginCommand command) =>
+        {
+            var result = await sender.Send(command);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireRateLimiting("strict");
+
+        group.MapPost("login-2fa", async (ISender sender, [FromBody] LoginWithTwoFactorCommand command) =>
+        {
+            var result = await sender.Send(command);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireRateLimiting("strict");
+
+        group.MapPost("refresh-token", async (ISender sender, [FromBody] RefreshTokenCommand command) =>
+        {
+            var result = await sender.Send(command);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireRateLimiting("fixed");
+
+        group.MapPost("forgot-password", async (ISender sender, [FromBody] ForgotPasswordCommand command) =>
+        {
+            var result = await sender.Send(command);
+            return Results.Ok(result); // Güvenlik gereği her zaman 200 OK
+        })
+        .RequireRateLimiting("strict");
+
+        group.MapPost("reset-password", async (ISender sender, [FromBody] ResetPasswordCommand command) =>
+        {
+            var result = await sender.Send(command);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireRateLimiting("strict");
+
+        group.MapPost("revoke-all", async (ISender sender) =>
+        {
+            var result = await sender.Send(new RevokeAllCommand());
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireAuthorization()
+        .RequireRateLimiting("fixed");
+
+        group.MapPost("toggle-2fa", async (ISender sender, [FromBody] ToggleTwoFactorCommand command) =>
+        {
+            var result = await sender.Send(command);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireAuthorization()
+        .RequireRateLimiting("fixed");
     }
 }

@@ -19,7 +19,7 @@ public sealed class JwtProvider(IOptions<JwtOptions> _options) : IJwtProvider
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email ?? ""),
             new(ClaimTypes.Name, user.UserName ?? ""),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Unique identifier for the token
         };
         // claims.Add(new Claim("Role", "Admin"));
 
@@ -41,7 +41,7 @@ public sealed class JwtProvider(IOptions<JwtOptions> _options) : IJwtProvider
         return tokenHandler.WriteToken(securityToken);
     }
 
-    public string GenerateRefreshToken()
+    public string CreateRefreshToken()
     {
         var randomNumber = new byte[32];
         using var rng = RandomNumberGenerator.Create(); //unpredictable random number generator
