@@ -42,7 +42,9 @@ sequenceDiagram
             API-->>Angular: 400 Bad Request
             Angular->>User: Redirect to Login Page
         end
-    end```
+    end
+```
+
 
 B. 2FA Login Akışı (Senaryo B)
 
@@ -74,4 +76,5 @@ sequenceDiagram
         API-->>Angular: 200 OK { Tokens... }
     else Code Invalid
         API-->>Angular: 400 Bad Request ("Kod hatalı")
-    end```
+    end
+```
