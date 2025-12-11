@@ -33,11 +33,14 @@ public sealed class ForgotPasswordCommandHandler(
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
-        // Link oluşturma kısmı genelde Client URL'i ile birleştirilir.
-        // Basitlik için sadece token gönderiyorum.
-        string body = $"Şifrenizi sıfırlamak için kodunuz: <strong>{token}</strong>";
+        string subject = "Şifre Sıfırlama Kodu";
+        string body = $@"
+            <h3>Şifre Sıfırlama</h3>
+            <p>Hesabınızın şifresini sıfırlamak için onay kodunuz:</p>
+            <h2 style='background-color: #eee; display: inline-block; padding: 10px; letter-spacing: 5px;'>{token}</h2>
+            <p>Bu kod 3 dakika geçerlidir.</p>";
 
-        await mailService.SendAsync(user.Email!, "Şifre Sıfırlama Talebi", body, cancellationToken);
+        await mailService.SendAsync(user.Email!, subject, body, cancellationToken);
 
         return "Şifre sıfırlama maili gönderildi.";
     }

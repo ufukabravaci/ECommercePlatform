@@ -1,4 +1,5 @@
 ﻿using ECommercePlatform.Domain.Abstractions;
+using ECommercePlatform.Domain.Companies;
 using ECommercePlatform.Domain.Users.ValueObjects;
 using Microsoft.AspNetCore.Identity;
 
@@ -30,7 +31,8 @@ public sealed class User : IdentityUser<Guid>, IAuditableEntity
     public string LastName { get; private set; } = default!;
     public string FullName => $"{FirstName} {LastName}";
     public Address? Address { get; private set; }
-    public int? CompanyId { get; private set; } //boşsa süperadmin veya customer
+    public Guid? CompanyId { get; private set; } //boşsa süperadmin veya customer
+    public Company? Company { get; private set; }
     public ICollection<UserRefreshToken> RefreshTokens { get; set; } = new List<UserRefreshToken>();
 
     // Metodlar (Behavior)
@@ -39,9 +41,10 @@ public sealed class User : IdentityUser<Guid>, IAuditableEntity
     {
         Address = address ?? throw new ArgumentNullException(nameof(address));
     }
-    public void AssignCompany(int companyId)
+    public void AssignCompany(Guid companyId)
     {
-        if (companyId <= 0) throw new ArgumentException("Geçersiz şirket ID");
+        if (companyId == Guid.Empty)
+            throw new ArgumentException("Geçersiz şirket ID. ID boş olamaz.");
         CompanyId = companyId;
     }
     public void SetStatus(bool isActive) => IsActive = isActive;

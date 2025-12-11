@@ -27,7 +27,7 @@ public sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPassw
 }
 
 public sealed class ResetPasswordCommandHandler(UserManager<User> userManager,
-    IUserRepository userRepository, // Refresh tokenlara erişmek için
+    IUserRefreshTokenRepository refreshTokenRepository,
     IUnitOfWork unitOfWork)
     : IRequestHandler<ResetPasswordCommand, Result<string>>
 {
@@ -44,25 +44,19 @@ public sealed class ResetPasswordCommandHandler(UserManager<User> userManager,
             return Result<string>.Failure(result.Errors.Select(e => e.Description).ToList());
         }
 
-        // Güvenlik için SecurityStamp güncellenir ki eski tokenlar geçersiz kalsın.
-        // Uygulama yapımızda çok bir işlevi yok ama iyi bir uygulama.
-        await userManager.UpdateSecurityStampAsync(user);
-        var userWithTokens = await userRepository.GetAll()
-            .Include(u => u.RefreshTokens)
-            .FirstOrDefaultAsync(u => u.Id == user.Id, cancellationToken);
+        var activeTokens = await refreshTokenRepository
+            .WhereWithTracking(t => t.UserId == user.Id && t.RevokedAt == null &&
+            t.Expiration > DateTimeOffset.Now)
+            .ToListAsync(cancellationToken);
 
-        if (userWithTokens != null)
+        foreach (var token in activeTokens)
         {
-            foreach (var token in userWithTokens.RefreshTokens.Where(rt => rt.IsValid))
-            {
-                token.RevokedAt = DateTimeOffset.Now;
-                token.RevokedByIp = "PasswordReset";
-                token.ReplacedByToken = null;
-            }
-
-            // EF Core değişiklikleri izlediği için UnitOfWork.SaveChanges yeterli
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            token.RevokedAt = DateTimeOffset.Now;
+            token.RevokedByIp = "PasswordReset";
+            token.ReplacedByToken = null;
         }
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return "Şifreniz başarıyla güncellendi. Yeni şifrenizle giriş yapabilirsiniz.";
     }

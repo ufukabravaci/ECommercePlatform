@@ -2,6 +2,7 @@
 using ECommercePlatform.Infrastructure.BackgroundJobs;
 using ECommercePlatform.Infrastructure.Context;
 using ECommercePlatform.Infrastructure.Options;
+using ECommercePlatform.Infrastructure.Tokens;
 using GenericRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +20,7 @@ public static class ServiceRegistrar
     {
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         services.ConfigureOptions<JwtSetupOptions>();
+        services.ConfigureOptions<IdentitySetupOptions>();
         services.Configure<MailSettingOptions>(configuration.GetSection("MailSettings"));
         services.AddAuthentication(options =>
         {
@@ -56,21 +58,17 @@ public static class ServiceRegistrar
             .AsImplementedInterfaces()
             .WithScopedLifetime());
         //Identity config
-        services.AddIdentityCore<User>(options =>
+        services.AddIdentityCore<User>()
+       .AddRoles<AppRole>()
+       .AddEntityFrameworkStores<ApplicationDbContext>()
+       .AddDefaultTokenProviders()
+       .AddTokenProvider<SixDigitTokenProvider<User>>("SixDigit"); //custom provider
+        // Token Ömürlerini Ayarla
+        services.Configure<IdentityOptions>(options =>
         {
-            options.Password.RequireDigit = false;
-            options.Password.RequiredLength = 6;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireLowercase = false;
-            options.User.RequireUniqueEmail = true;
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-            options.Lockout.MaxFailedAccessAttempts = 5;
-            options.Lockout.AllowedForNewUsers = true;
-        })
-        .AddRoles<AppRole>()
-        .AddEntityFrameworkStores<ApplicationDbContext>()
-        .AddDefaultTokenProviders();
+            // SixDigit provider'ı 3 dakika geçerli olsun
+            options.Tokens.ProviderMap["SixDigit"] = new TokenProviderDescriptor(typeof(SixDigitTokenProvider<User>));
+        });
         services.AddHostedService<TokenCleanupService>();
         return services;
     }

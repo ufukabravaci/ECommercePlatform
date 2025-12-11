@@ -48,8 +48,7 @@ public sealed class RegisterCommandHandler(
 
         // Token'ı linkleyebilirsin veya kod olarak gönderebilirsin.
         string subject = "E-Ticaret Platformu - Email Onayı";
-        string body = $"<h3>Hoşgeldiniz!</h3><p>Kaydınızı tamamlamak için onay kodunuz: <strong>{token}</strong></p>";
-
+        string body = $"<h3>Hoşgeldiniz!</h3><p>Kaydınızı tamamlamak için onay kodunuz: <h2 style='color:blue;'>{token}</h2></p><p>Bu kod 3 dakika geçerlidir.</p>";
         await mailService.SendAsync(user.Email!, subject, body, cancellationToken);
 
         return "Kayıt başarılı. Lütfen email adresinize gönderilen kod ile hesabınızı doğrulayın.";

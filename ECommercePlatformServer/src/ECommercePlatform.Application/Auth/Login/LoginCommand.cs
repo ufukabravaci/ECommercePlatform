@@ -14,6 +14,7 @@ public sealed record LoginResponse(
     string? AccessToken,
     string? RefreshToken,
     bool RequiresTwoFactor,
+    bool RequiresEmailConfirmation,
     string? Message);
 
 public sealed class LoginCommandValidator : AbstractValidator<LoginCommand>
@@ -29,6 +30,7 @@ public sealed class LoginCommandHandler(
     UserManager<User> userManager,
     IJwtProvider jwtProvider,
     IEmailService mailService,
+    IUserRefreshTokenRepository refreshTokenRepository,
     IUnitOfWork unitOfWork)
     : IRequestHandler<LoginCommand, Result<LoginResponse>>
 {
@@ -45,9 +47,10 @@ public sealed class LoginCommandHandler(
         // 1. Check Lockout
         if (await userManager.IsLockedOutAsync(user))
         {
+            // ... (Lockout kodu aynı) ...
             var endPoint = await userManager.GetLockoutEndDateAsync(user);
             var remaining = endPoint.Value - DateTimeOffset.Now;
-            return Result<LoginResponse>.Failure($"Hesabınız çok fazla başarısız giriş denemesi nedeniyle kilitlendi. Lütfen {Math.Ceiling(remaining.TotalMinutes)} dakika sonra tekrar deneyin.");
+            return Result<LoginResponse>.Failure($"Hesabınız kilitlendi. Lütfen {Math.Ceiling(remaining.TotalMinutes)} dakika sonra tekrar deneyin.");
         }
 
         // 2. Check Password
@@ -66,41 +69,58 @@ public sealed class LoginCommandHandler(
 
             return Result<LoginResponse>.Failure("Kullanıcı adı veya şifre hatalı.");
         }
-        // Başarılı girişte başarısız sayacını sıfırla
+        // 3. Reset Access Failed Count
         await userManager.ResetAccessFailedCountAsync(user);
 
-        // 3. Check Email Confirmation
-        if (!await userManager.IsEmailConfirmedAsync(user))
-            return Result<LoginResponse>.Failure("Lütfen önce email adresinizi doğrulayın.");
-
-        // 4. Check 2FA
-        if (user.TwoFactorEnabled)
+        // 4. Check Email Confirmation
+        if (!user.EmailConfirmed) // DB'ye gitmeye gerek yok, user nesnesinde zaten var
         {
-            // Identity'nin Email provider'ı üzerinden kod üret
-            var code = await userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-            await mailService.SendAsync(
-                user.Email!,
-                "2FA Doğrulama Kodu",
-                $"Giriş kodunuz: <strong>{code}</strong>",
-                cancellationToken);
+            string body = $@"
+                <h3>Email Onayı Gerekli</h3>
+                <p>Giriş yapabilmek için lütfen email adresinizi doğrulayın. Onay kodunuz:</p>
+                <h2 style='letter-spacing: 5px; background-color: #eee; display: inline-block; padding: 5px;'>{code}</h2>
+                <p>3 dakika geçerlidir.</p>";
 
-            return new LoginResponse(null, null, true, "Doğrulama kodu email adresinize gönderildi.");
+            await mailService.SendAsync(user.Email!, "Email Doğrulama", body, cancellationToken);
+
+            return new LoginResponse(null, null, false, true, "Email onayı gerekli. Doğrulama kodu gönderildi.");
         }
 
-        // 5. Generate Tokens (Normal Login)
+        // 5. Check 2FA
+        if (user.TwoFactorEnabled)
+        {
+            var code = await userManager.GenerateTwoFactorTokenAsync(user, "SixDigit");
+
+            string body = $@"
+                <h3>Giriş Doğrulama</h3>
+                <p>Giriş kodunuz:</p>
+                <h2 style='letter-spacing: 5px; background-color: #eee; display: inline-block; padding: 5px;'>{code}</h2>
+                <p>3 dakika geçerlidir.</p>";
+
+            await mailService.SendAsync(user.Email!, "2FA Doğrulama Kodu", body, cancellationToken);
+
+            return new LoginResponse(null, null, true, false, "Doğrulama kodu email adresinize gönderildi.");
+        }
+
+        // 6. Generate Tokens (Normal Login)
         string accessToken = await jwtProvider.CreateTokenAsync(user, cancellationToken);
         string refreshToken = jwtProvider.CreateRefreshToken();
 
-        user.RefreshTokens.Add(new UserRefreshToken
+        var refreshTokenEntity = new UserRefreshToken
         {
             Code = refreshToken,
             Expiration = DateTimeOffset.Now.AddDays(7),
-            UserId = user.Id
-        });
+            UserId = user.Id // Foreign Key ile bağlıyoruz
+        };
 
+        refreshTokenRepository.Add(refreshTokenEntity);
+
+        // Bu SaveChanges sadece UserRefreshToken tablosuna insert atar.
+        // User tablosuna update atmaz, dolayısıyla Concurrency hatası olmaz.
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new LoginResponse(accessToken, refreshToken, false, "Giriş başarılı.");
+        return new LoginResponse(accessToken, refreshToken, false, false, "Giriş başarılı.");
     }
 }

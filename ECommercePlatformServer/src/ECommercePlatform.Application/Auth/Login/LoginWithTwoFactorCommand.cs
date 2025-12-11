@@ -24,6 +24,7 @@ public sealed class LoginWithTwoFactorCommandValidator : AbstractValidator<Login
 public sealed class LoginWithTwoFactorCommandHandler(
     UserManager<User> userManager,
     IJwtProvider jwtProvider,
+    IUserRefreshTokenRepository refreshTokenRepository,
     IUnitOfWork unitOfWork)
     : IRequestHandler<LoginWithTwoFactorCommand, Result<LoginWithTwoFactorResponse>>
 {
@@ -31,8 +32,8 @@ public sealed class LoginWithTwoFactorCommandHandler(
     {
         var user = await userManager.FindByEmailAsync(request.Email);
         if (user is null) return Result<LoginWithTwoFactorResponse>.Failure("Kullanıcı bulunamadı.");
-
-        var isValid = await userManager.VerifyTwoFactorTokenAsync(user, "Email", request.Code);
+        // Code provider olarak custom "SixDigit" kullanıyoruz
+        var isValid = await userManager.VerifyTwoFactorTokenAsync(user, "SixDigit", request.Code);
         if (!isValid)
             return Result<LoginWithTwoFactorResponse>.Failure("Geçersiz doğrulama kodu.");
 
@@ -40,12 +41,14 @@ public sealed class LoginWithTwoFactorCommandHandler(
         string accessToken = await jwtProvider.CreateTokenAsync(user, cancellationToken);
         string refreshToken = jwtProvider.CreateRefreshToken();
 
-        user.RefreshTokens.Add(new UserRefreshToken
+        var refreshTokenEntity = new UserRefreshToken
         {
             Code = refreshToken,
             Expiration = DateTimeOffset.Now.AddDays(7),
             UserId = user.Id
-        });
+        };
+
+        refreshTokenRepository.Add(refreshTokenEntity);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

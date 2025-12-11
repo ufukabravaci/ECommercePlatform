@@ -22,12 +22,13 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.OwnsOne(u => u.Address, addressBuilder =>
         {
-            addressBuilder.Property(a => a.City).HasColumnName("City").HasMaxLength(100).IsRequired();
-            addressBuilder.Property(a => a.District).HasColumnName("District").HasMaxLength(100).IsRequired();
-            addressBuilder.Property(a => a.Street).HasColumnName("Street").HasMaxLength(200).IsRequired();
+            addressBuilder.Property(a => a.City).HasColumnName("City").HasMaxLength(100);
+            addressBuilder.Property(a => a.District).HasColumnName("District").HasMaxLength(100);
+            addressBuilder.Property(a => a.Street).HasColumnName("Street").HasMaxLength(200);
             addressBuilder.Property(a => a.ZipCode).HasColumnName("ZipCode").HasMaxLength(20);
             addressBuilder.Property(a => a.FullAddress).HasColumnName("FullAddress").HasMaxLength(500);
         });
+        builder.Navigation(u => u.Address).IsRequired(false);
 
         // İlişkiler
 
@@ -36,6 +37,11 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
                .WithOne(rt => rt.User)
                .HasForeignKey(rt => rt.UserId)
                .OnDelete(DeleteBehavior.Cascade); // Kullanıcı silinirse tokenlar da silinsin.
+
+        builder.HasOne(u => u.Company)          // User'ın bir Company'si var
+               .WithMany(c => c.Users)          // Company'nin çok User'ı var
+               .HasForeignKey(u => u.CompanyId) // Bağlantı anahtarı bu
+               .OnDelete(DeleteBehavior.SetNull); // Şirket silinirse User boşa düşsün (veya Restrict diyerek engellenebilir)
 
         // Indexler
         // Email ve UserName zaten Identity tarafından indexli
