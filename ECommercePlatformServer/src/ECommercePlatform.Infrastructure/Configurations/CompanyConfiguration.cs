@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ECommercePlatform.Infrastructure.Configurations;
 
-public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
+internal sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
 {
     public void Configure(EntityTypeBuilder<Company> builder)
     {

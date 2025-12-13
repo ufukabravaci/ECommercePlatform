@@ -29,11 +29,9 @@ public sealed class PermissionBehavior<TRequest, TResponse>(
             throw new AuthorizationException("Bu işlemi yapmak için giriş yapmalısınız.");
         }
 
-        // 3. Kullanıcının gerekli yetkisi var mı? (Authorization Kontrolü)
-        // Not: Permission string'i boş ise sadece giriş yapmış olması yeterlidir mantığı güdüldü.
+        // Not: Permission string'i boş ise sadece giriş yapmış olması yeterli
         if (!string.IsNullOrEmpty(permissionAttr.Permission))
         {
-            // Veritabanına gitmek yerine, UserContext üzerinden (genelde Memory veya Token'dan) kontrol ediyoruz.
             bool hasPermission = await userContext.HasPermissionAsync(permissionAttr.Permission);
 
             if (!hasPermission)
@@ -42,7 +40,6 @@ public sealed class PermissionBehavior<TRequest, TResponse>(
             }
         }
 
-        // Her şey yolunda, Handler'a geç.
         return await next();
     }
 }

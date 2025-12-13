@@ -63,12 +63,8 @@ public static class ServiceRegistrar
        .AddEntityFrameworkStores<ApplicationDbContext>()
        .AddDefaultTokenProviders()
        .AddTokenProvider<SixDigitTokenProvider<User>>("SixDigit"); //custom provider
-        // Token Ömürlerini Ayarla
-        services.Configure<IdentityOptions>(options =>
-        {
-            // SixDigit provider'ı 3 dakika geçerli olsun
-            options.Tokens.ProviderMap["SixDigit"] = new TokenProviderDescriptor(typeof(SixDigitTokenProvider<User>));
-        });
+
+        //Background services
         services.AddHostedService<TokenCleanupService>();
         return services;
     }

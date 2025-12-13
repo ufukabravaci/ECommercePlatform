@@ -1,6 +1,7 @@
 using ECommercePlatform.Application;
 using ECommercePlatform.Infrastructure;
 using ECommercePlatform.WebAPI;
+using ECommercePlatform.WebAPI.Modules;
 using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
 
@@ -44,6 +45,8 @@ app.UseCors(x => x
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+//Endpoint Mapping
 app.MapAuthEndpoints();
+app.MapCompanyEndpoints();
 await app.CreateFirstUser();
 app.Run();

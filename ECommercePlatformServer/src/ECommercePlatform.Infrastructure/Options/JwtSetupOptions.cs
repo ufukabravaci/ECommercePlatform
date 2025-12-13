@@ -18,5 +18,6 @@ internal sealed class JwtSetupOptions(IOptions<JwtOptions> jwtOptions) : IPostCo
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Value.SecretKey));
         options.TokenValidationParameters.IssuerSigningKey = signingKey;
         options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
+
     }
 }

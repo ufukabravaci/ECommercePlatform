@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using ECommercePlatform.Domain.Users;
+using ECommercePlatform.Infrastructure.Tokens;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
 namespace ECommercePlatform.Infrastructure.Options;
@@ -24,8 +26,11 @@ public sealed class IdentitySetupOptions : IConfigureOptions<IdentityOptions>
 
         // 4. Token Provider Ayarları
         // Email Onayı için bizim yazdığımız "SixDigit" provider'ı kullan.
+        options.Tokens.ProviderMap["SixDigit"] =
+            new TokenProviderDescriptor(typeof(SixDigitTokenProvider<User>));
         options.Tokens.EmailConfirmationTokenProvider = "SixDigit";
         options.Tokens.ChangeEmailTokenProvider = "SixDigit";
         options.Tokens.PasswordResetTokenProvider = "SixDigit";
+
     }
 }

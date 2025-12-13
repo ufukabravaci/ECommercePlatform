@@ -15,35 +15,35 @@ public static class AuthModule
         group.MapPost("register", async (ISender sender, [FromBody] RegisterCommand command) =>
         {
             var result = await sender.Send(command);
-            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireRateLimiting("fixed");
 
         group.MapPost("confirm-email", async (ISender sender, [FromBody] ConfirmEmailCommand command) =>
         {
             var result = await sender.Send(command);
-            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireRateLimiting("strict");
 
         group.MapPost("login", async (ISender sender, [FromBody] LoginCommand command) =>
         {
             var result = await sender.Send(command);
-            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireRateLimiting("strict");
 
         group.MapPost("login-2fa", async (ISender sender, [FromBody] LoginWithTwoFactorCommand command) =>
         {
             var result = await sender.Send(command);
-            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireRateLimiting("strict");
 
         group.MapPost("refresh-token", async (ISender sender, [FromBody] RefreshTokenCommand command) =>
         {
             var result = await sender.Send(command);
-            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireRateLimiting("fixed");
 
@@ -57,14 +57,14 @@ public static class AuthModule
         group.MapPost("reset-password", async (ISender sender, [FromBody] ResetPasswordCommand command) =>
         {
             var result = await sender.Send(command);
-            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireRateLimiting("strict");
 
         group.MapPost("revoke-all", async (ISender sender) =>
         {
             var result = await sender.Send(new RevokeAllCommand());
-            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireAuthorization()
         .RequireRateLimiting("fixed");
@@ -72,7 +72,7 @@ public static class AuthModule
         group.MapPost("toggle-2fa", async (ISender sender, [FromBody] ToggleTwoFactorCommand command) =>
         {
             var result = await sender.Send(command);
-            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireAuthorization()
         .RequireRateLimiting("fixed");
