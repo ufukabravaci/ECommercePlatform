@@ -21,6 +21,10 @@ public sealed class JwtProvider(IOptions<JwtOptions> _options) : IJwtProvider
             new(ClaimTypes.Name, user.UserName ?? ""),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Unique identifier for the token
         };
+        if (user.CompanyId.HasValue)
+        {
+            claims.Add(new Claim("CompanyId", user.CompanyId.Value.ToString()));
+        }
         // claims.Add(new Claim("Role", "Admin"));
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Value.SecretKey));

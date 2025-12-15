@@ -5,7 +5,7 @@ using ECommercePlatform.Domain.Shared;
 
 namespace ECommercePlatform.Domain.Products;
 
-public sealed class Product : Entity
+public sealed class Product : Entity, IMultiTenantEntity
 {
     private Product() { }
 

@@ -1,8 +1,30 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    Layout = "_Layout"; // Shared/_Layout.cshtml oluşturulmalı veya null
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+    <div class="alert alert-success">
+        <h4>Hoşgeldiniz!</h4>
+        <p>Giriş Yapan Kullanıcı: <strong>@ViewBag.UserName</strong></p>
+        <p>Bağlı Olduğu Şirket ID: <strong>@ViewBag.CompanyId</strong></p>
+    </div>
+
+    @if (ViewBag.CompanyId == "Yok (Admin)")
+    {
+        <div class="card">
+            <div class="card-body">
+                Süper Admin Modundasınız. Tüm şirketleri yönetebilirsiniz.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                Şirket Paneline Hoşgeldiniz. Sadece kendi ürünlerinizi görebilirsiniz.
+            </div>
+        </div>
+    }
+
+    <a href="/Auth/Logout" class="btn btn-danger mt-3">Çıkış Yap</a>
 </div>

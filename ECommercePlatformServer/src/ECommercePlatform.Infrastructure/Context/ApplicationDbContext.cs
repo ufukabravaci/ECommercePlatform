@@ -12,13 +12,16 @@ namespace ECommercePlatform.Infrastructure.Context;
 public sealed class ApplicationDbContext : IdentityDbContext<User, AppRole, Guid>, IUnitOfWork
 {
     private readonly IUserContext _userContext;
+    private readonly ITenantContext _tenantContext;
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        IUserContext userContext)
+        IUserContext userContext,
+        ITenantContext tenantContext)
         : base(options)
     {
         _userContext = userContext;
+        _tenantContext = tenantContext;
     }
 
     public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
@@ -30,6 +33,10 @@ public sealed class ApplicationDbContext : IdentityDbContext<User, AppRole, Guid
 
         // 2. Global Filters (Soft Delete Otomatik Filtreleme)
         builder.ApplyGlobalFilters();
+        // 2. Tenant Filtresi
+        // Expression olarak tenantContext'in metodunu veriyoruz.
+        // Bu sayede Extension method içindeki Expression Tree, bu metodu her sorguda çalıştıracak.
+        builder.ApplyTenantFilters(() => _tenantContext.GetCompanyId());
 
         base.OnModelCreating(builder);
 

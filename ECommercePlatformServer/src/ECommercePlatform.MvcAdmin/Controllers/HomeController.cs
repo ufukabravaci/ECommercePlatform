@@ -1,6 +1,4 @@
-using ECommercePlatform.MvcAdmin.Models;
-using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ECommercePlatform.MvcAdmin.Controllers;
 
@@ -8,17 +6,15 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
-        return View();
-    }
+        var token = HttpContext.Session.GetString("AccessToken");
+        if (string.IsNullOrEmpty(token))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+        ViewBag.UserName = HttpContext.Session.GetString("UserName");
+        ViewBag.CompanyId = HttpContext.Session.GetString("CompanyId") ?? "Yok (Admin)";
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        return View();
     }
 }

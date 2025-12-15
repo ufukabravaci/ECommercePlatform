@@ -26,4 +26,55 @@ public static class ExtensionMethods
             }
         }
     }
+
+
+    //e => _tenantContext.GetCompanyId() == null || (Guid?) e.CompanyId == _tenantContext.GetCompanyId()
+    //    SELECT* FROM Products
+    //      WHERE IsDeleted = 0  -- Soft Delete Filtresi
+    //      AND(
+    //    (@__tenantId_0 IS NULL) -- Eğer Token'da ID yoksa (Admin) burası TRUE olur, hepsini getirir.
+    //    OR
+    //    (CompanyId = @__tenantId_0) -- Token'da ID varsa, sadece o şirketin verisi gelir.
+    //)
+    public static void ApplyTenantFilters(this ModelBuilder modelBuilder, Expression<Func<Guid?>> tenantIdExpression)
+    {
+        // 1. Tenant ID'yi veren expression'ın gövdesini alıyoruz (Run-time'da çalışacak kısım)
+        // Bu gövde şuna denk gelir: "_tenantContext.GetCompanyId()"
+        var tenantIdBody = tenantIdExpression.Body;
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            // 2. Sadece IMultiTenantEntity implemente edenleri bul
+            if (typeof(IMultiTenantEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                // Parametre: "e" => Product e
+                var entityParam = Expression.Parameter(entityType.ClrType, "e");
+
+                // Property: "e.CompanyId"
+                var companyIdProp = Expression.Property(entityParam, nameof(IMultiTenantEntity.CompanyId));
+
+                // DİKKAT: CompanyId (Guid) ile GetCompanyId (Guid?) karşılaştırması için tür dönüşümü lazım.
+                // SQL karşılığı: (Guid?)e.CompanyId
+                var companyIdNullable = Expression.Convert(companyIdProp, typeof(Guid?));
+
+                // ŞART 1: TenantID null mu? (Admin durumu)
+                // Expression: _tenantContext.GetCompanyId() == null
+                var isTenantIdNull = Expression.Equal(tenantIdBody, Expression.Constant(null, typeof(Guid?)));
+
+                // ŞART 2: ID'ler eşit mi?
+                // Expression: (Guid?)e.CompanyId == _tenantContext.GetCompanyId()
+                var idsEqual = Expression.Equal(companyIdNullable, tenantIdBody);
+
+                // OR işlemi: (TenantId == null) OR (IdsEqual)
+                var finalCondition = Expression.OrElse(isTenantIdNull, idsEqual);
+
+                // Lambda'yı derle: e => ...
+                var lambda = Expression.Lambda(finalCondition, entityParam);
+
+                // Filtreyi uygula
+                entityType.SetQueryFilter(lambda);
+            }
+        }
+    }
+
 }

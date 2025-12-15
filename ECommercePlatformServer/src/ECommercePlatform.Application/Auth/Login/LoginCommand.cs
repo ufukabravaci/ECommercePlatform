@@ -21,8 +21,8 @@ public sealed class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
     public LoginCommandValidator()
     {
-        RuleFor(x => x.EmailOrUserName).NotEmpty();
-        RuleFor(x => x.Password).NotEmpty();
+        RuleFor(x => x.EmailOrUserName).NotEmpty().WithMessage("Email veya Kullanıcı adı boş olamaz.");
+        RuleFor(x => x.Password).NotEmpty().WithMessage("Şifre boş olamaz."); ;
     }
 }
 
@@ -47,7 +47,6 @@ public sealed class LoginCommandHandler(
         // 1. Check Lockout
         if (await userManager.IsLockedOutAsync(user))
         {
-            // ... (Lockout kodu aynı) ...
             var endPoint = await userManager.GetLockoutEndDateAsync(user);
             var remaining = endPoint.Value - DateTimeOffset.Now;
             return Result<LoginResponse>.Failure($"Hesabınız kilitlendi. Lütfen {Math.Ceiling(remaining.TotalMinutes)} dakika sonra tekrar deneyin.");
