@@ -1,0 +1,122 @@
+﻿@using ECommercePlatform.MvcAdmin.Models
+@model RegisterCompanyViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Şirket Kaydı | E-Ticaret</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@fontsource/source-sans-3@5.0.12/index.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="~/css/adminlte.min.css">
+    <style>
+        body {
+            background: #e9ecef;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .register-box {
+            width: 800px;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-box">
+        <div class="card card-outline card-success shadow">
+            <div class="card-header text-center">
+                <a href="#" class="h1"><b>E-Ticaret</b> Kayıt</a>
+            </div>
+            <div class="card-body">
+                <p class="login-box-msg">Yeni bir şirket hesabı oluşturun</p>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger">@ViewBag.Error</div>
+                }
+
+                <form asp-action="Register" method="post">
+                    <div class="row">
+                        <!-- SOL TARAF: Kullanıcı Bilgileri -->
+                        <div class="col-md-6 border-end">
+                            <h5 class="text-success mb-3"><i class="bi bi-person-circle"></i> Yetkili Bilgileri</h5>
+
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <input asp-for="FirstName" class="form-control" placeholder="Ad" required>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <input asp-for="LastName" class="form-control" placeholder="Soyad" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <input asp-for="Email" class="form-control" placeholder="Email" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Şifre" required>
+                            </div>
+                            <div class="mb-3">
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Şifre Tekrar" required>
+                            </div>
+                        </div>
+
+                        <!-- SAĞ TARAF: Şirket Bilgileri -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3"><i class="bi bi-building"></i> Şirket Bilgileri</h5>
+
+                            <div class="mb-3">
+                                <input asp-for="CompanyName" class="form-control" placeholder="Şirket Adı" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <input asp-for="TaxNumber" class="form-control" placeholder="Vergi No" required>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <input asp-for="TaxOffice" class="form-control" placeholder="Vergi Dairesi">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <textarea asp-for="FullAddress" class="form-control" placeholder="Açık Adres" rows="2"></textarea>
+                            </div>
+
+                            <!-- Şehir/İlçe detayları hidden veya basit input geçilebilir şimdilik -->
+                            <input type="hidden" asp-for="City" value="Istanbul">
+                            <input type="hidden" asp-for="District" value="Merkez">
+                            <input type="hidden" asp-for="Street" value="Cadde">
+                            <input type="hidden" asp-for="ZipCode" value="34000">
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-8">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    <a href="#">Kullanım şartlarını</a> kabul ediyorum.
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <button type="submit" class="btn btn-success w-100">Kayıt Ol</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="/Auth/Login" class="text-center">Zaten üyeyim, giriş yap</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

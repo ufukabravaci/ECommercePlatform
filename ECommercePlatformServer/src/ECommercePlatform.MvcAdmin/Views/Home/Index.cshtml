@@ -1,30 +1,73 @@
 ﻿@{
-    Layout = "_Layout"; // Shared/_Layout.cshtml oluşturulmalı veya null
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="container mt-5">
-    <div class="alert alert-success">
-        <h4>Hoşgeldiniz!</h4>
-        <p>Giriş Yapan Kullanıcı: <strong>@ViewBag.UserName</strong></p>
-        <p>Bağlı Olduğu Şirket ID: <strong>@ViewBag.CompanyId</strong></p>
+<!-- Info Boxes -->
+<div class="row">
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon text-bg-primary shadow-sm">
+                <i class="bi bi-gear-fill"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text">CPU Kullanımı</span>
+                <span class="info-box-number">10<small>%</small></span>
+            </div>
+        </div>
     </div>
 
-    @if (ViewBag.CompanyId == "Yok (Admin)")
-    {
-        <div class="card">
-            <div class="card-body">
-                Süper Admin Modundasınız. Tüm şirketleri yönetebilirsiniz.
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon text-bg-danger shadow-sm">
+                <i class="bi bi-heart-fill"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text">Beğeniler</span>
+                <span class="info-box-number">41,410</span>
             </div>
         </div>
-    }
-    else
-    {
-        <div class="card">
-            <div class="card-body">
-                Şirket Paneline Hoşgeldiniz. Sadece kendi ürünlerinizi görebilirsiniz.
-            </div>
-        </div>
-    }
+    </div>
 
-    <a href="/Auth/Logout" class="btn btn-danger mt-3">Çıkış Yap</a>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon text-bg-success shadow-sm">
+                <i class="bi bi-cart-fill"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text">Satışlar</span>
+                <span class="info-box-number">760</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon text-bg-warning shadow-sm">
+                <i class="bi bi-people-fill"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text">Şirket ID</span>
+                <!-- Session'dan gelen ID -->
+                <span class="info-box-number">@ViewBag.CompanyId</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title">Hoşgeldiniz</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
+                <i class="bi bi-dash-lg"></i>
+            </button>
+            <button type="button" class="btn btn-tool" data-lte-toggle="card-remove">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        Merhaba <strong>@ViewBag.UserName</strong>. AdminLTE v4 entegrasyonu başarıyla tamamlandı.
+        Artık menüler üzerinden Ürün ve Kategori yönetimi yapabilirsin.
+    </div>
 </div>

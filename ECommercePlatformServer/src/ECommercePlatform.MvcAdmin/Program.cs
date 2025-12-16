@@ -1,4 +1,5 @@
 using ECommercePlatform.MvcAdmin.Services;
+using Mapster;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,7 @@ builder.Services.AddSession(opt =>
     opt.Cookie.IsEssential = true;
 });
 
-
+builder.Services.AddMapster();
 //===============================================================//
 var app = builder.Build();
 

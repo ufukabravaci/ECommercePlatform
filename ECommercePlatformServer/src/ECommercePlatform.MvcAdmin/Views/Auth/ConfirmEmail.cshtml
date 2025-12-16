@@ -1,0 +1,32 @@
+﻿@model ConfirmEmailViewModel
+@{
+    Layout = null;
+}
+<!-- Login sayfasına benzer tasarım -->
+<div class="login-box">
+    <div class="card card-outline card-success">
+        <div class="card-header text-center">
+            <span class="h1">Email Doğrulama</span>
+        </div>
+        <div class="card-body">
+            <p class="login-box-msg">@Model.Email adresine gönderilen kodu giriniz.</p>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">@ViewBag.Error</div>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+            }
+
+            <form asp-action="ConfirmEmail" method="post">
+                <input type="hidden" asp-for="Email" />
+                <div class="input-group mb-3">
+                    <input asp-for="Code" class="form-control" placeholder="Onay Kodu">
+                    <button type="submit" class="btn btn-success">Onayla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,5 @@
 ﻿using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Users;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
@@ -42,6 +43,7 @@ public sealed class RegisterCommandHandler(
         {
             return Result<string>.Failure(result.Errors.Select(e => e.Description).ToList());
         }
+        await userManager.AddToRoleAsync(user, RoleConsts.Customer);
 
         // Email Onay Kodu Gönderimi
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
