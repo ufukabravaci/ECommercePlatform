@@ -27,7 +27,10 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 builder.Services.AddCors();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 builder.Services.AddExceptionHandler<ExceptionHandler>().AddProblemDetails();
 
 //========================================================================================//

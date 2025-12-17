@@ -23,7 +23,6 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
-        // API'deki "LoginCommand" property ismine uyum sağlama (EmailOrUserName)
         var apiRequest = new { model.EmailOrUserName, model.Password };
 
         var result = await _apiService.PostAsync<LoginResponseDto>("api/auth/login", apiRequest);

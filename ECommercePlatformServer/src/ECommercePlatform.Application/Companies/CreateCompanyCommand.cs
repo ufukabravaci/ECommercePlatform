@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Application.Services;
+﻿//Burası sadece superadmin yeni bir şirket oluşturduğunda çalışacak
+
+using ECommercePlatform.Application.Services;
 using ECommercePlatform.Domain.Companies;
 using ECommercePlatform.Domain.Users;
 using ECommercePlatform.Domain.Users.ValueObjects;

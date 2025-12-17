@@ -53,6 +53,7 @@ public sealed class User : IdentityUser<Guid>, IAuditableEntity
     {
         if (IsDeleted) return;
         IsDeleted = true;
+        IsActive = false;
         DeletedAt = DateTimeOffset.Now;
         EmailConfirmed = false;
     }

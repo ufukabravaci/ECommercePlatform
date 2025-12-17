@@ -36,7 +36,7 @@ public sealed class RegisterTenantCommandValidator : AbstractValidator<RegisterT
         RuleFor(p => p.Password).NotEmpty().MinimumLength(6);
         RuleFor(p => p.ConfirmPassword).Equal(p => p.Password).WithMessage("Şifreler uyuşmuyor.");
         RuleFor(p => p.CompanyName).NotEmpty();
-        RuleFor(p => p.TaxNumber).NotEmpty().Length(10, 11);
+        RuleFor(p => p.TaxNumber).NotEmpty().Length(10, 11).WithMessage("Vergi numarası 10-11 haneli olmalıdır.");
     }
 }
 
@@ -120,11 +120,14 @@ ILogger<RegisterTenantCommandHandler> logger
 
             // CLEANUP
             if (user is not null)
-                await userManager.DeleteAsync(user);
+            {
+                user.Delete();
+                await userManager.UpdateAsync(user);
+            }
 
             if (company is not null)
             {
-                companyRepository.Delete(company);
+                company.Delete(); // IsDeleted = true
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
@@ -132,7 +135,3 @@ ILogger<RegisterTenantCommandHandler> logger
         }
     }
 }
-
-
-
-
