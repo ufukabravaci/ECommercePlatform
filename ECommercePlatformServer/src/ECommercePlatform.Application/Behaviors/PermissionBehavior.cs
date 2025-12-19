@@ -1,12 +1,12 @@
-﻿using ECommercePlatform.Application.Services;
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Application.Exceptions;
+using ECommercePlatform.Application.Services;
 using System.Reflection;
 using TS.MediatR;
 
 namespace ECommercePlatform.Application.Behaviors;
 
-// 1. BEHAVIOR (Davranış)
-public sealed class PermissionBehavior<TRequest, TResponse>(
-    IUserContext userContext)
+public sealed class PermissionBehavior<TRequest, TResponse>(IUserContext userContext)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
@@ -15,58 +15,30 @@ public sealed class PermissionBehavior<TRequest, TResponse>(
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        // 1. İsteğin (Command/Query) üzerindeki Permission attribute'ünü bul
-        var permissionAttr = request.GetType().GetCustomAttribute<PermissionAttribute>(inherit: true);
+        // 1. Request üzerindeki [Permission("...")] attribute'unu bul
+        var permissionAttr = request.GetType().GetCustomAttribute<PermissionAttribute>();
 
-        // Eğer attribute yoksa, yetki kontrolüne gerek yoktur. Devam et.
+        // Eğer attribute yoksa herkese açıktır, devam et.
         if (permissionAttr is null)
-            return await next();
-
-        // 2. Kullanıcı giriş yapmış mı? (Authentication Kontrolü)
-        var userId = userContext.GetUserId();
-        if (userId == Guid.Empty) // Veya null kontrolü
         {
-            throw new AuthorizationException("Bu işlemi yapmak için giriş yapmalısınız.");
+            return await next();
         }
 
-        // Not: Permission string'i boş ise sadece giriş yapmış olması yeterli
-        if (!string.IsNullOrEmpty(permissionAttr.Permission))
+        // 2. Kullanıcıyı kontrol et
+        var userId = userContext.GetUserId();
+        if (userId == Guid.Empty)
         {
-            bool hasPermission = await userContext.HasPermissionAsync(permissionAttr.Permission);
+            // Giriş yapmamış ama yetki isteyen biri
+            throw new UnauthorizedAccessException("Bu işlemi yapmak için giriş yapmalısınız.");
+        }
 
-            if (!hasPermission)
-            {
-                throw new AuthorizationException($"Bu işlem için yetkiniz bulunmamaktadır.");
-            }
+        // 3. Yetkiyi kontrol et
+        if (!await userContext.HasPermissionAsync(permissionAttr.Permission))
+        {
+            throw new ForbiddenAccessException(
+                $"'{permissionAttr.Permission}' yetkiniz yok.");
         }
 
         return await next();
-    }
-}
-
-// 2. ATTRIBUTE (Etiket)
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-public sealed class PermissionAttribute : Attribute
-{
-    public string? Permission { get; }
-
-    // Kullanım: [Permission("Users.Create")]
-    public PermissionAttribute(string permission)
-    {
-        Permission = permission;
-    }
-
-    // Kullanım: [Permission] -> Sadece giriş yapmış olması yeterli
-    public PermissionAttribute()
-    {
-        Permission = null;
-    }
-}
-
-// 3. EXCEPTION (Hata Sınıfı)
-public sealed class AuthorizationException : Exception
-{
-    public AuthorizationException(string message) : base(message)
-    {
     }
 }

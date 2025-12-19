@@ -1,4 +1,4 @@
-﻿using ECommercePlatform.Application.Behaviors;
+﻿using ECommercePlatform.Application.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Text.Json;
@@ -48,7 +48,7 @@ public sealed class ExceptionHandler : IExceptionHandler
                 );
                 break;
 
-            case AuthorizationException:
+            case ForbiddenAccessException:
                 httpContext.Response.StatusCode = 403;
                 responseResult = Result<string>.Failure("Bu işlem için yetkiniz bulunmamaktadır.");
                 break;

@@ -1,6 +1,8 @@
 ﻿using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Users;
 using ECommercePlatform.Infrastructure.Options;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,7 +12,7 @@ using System.Text;
 
 namespace ECommercePlatform.Infrastructure.Services;
 
-public sealed class JwtProvider(IOptions<JwtOptions> _options) : IJwtProvider
+public sealed class JwtProvider(IOptions<JwtOptions> _options, UserManager<User> _userManager) : IJwtProvider
 {
     public async Task<string> CreateTokenAsync(User user, CancellationToken cancellationToken)
     {
@@ -23,9 +25,16 @@ public sealed class JwtProvider(IOptions<JwtOptions> _options) : IJwtProvider
         };
         if (user.CompanyId.HasValue)
         {
-            claims.Add(new Claim("CompanyId", user.CompanyId.Value.ToString()));
+            claims.Add(new Claim(ClaimTypesConst.CompanyId, user.CompanyId.Value.ToString()));
         }
-        // claims.Add(new Claim("Role", "Admin"));
+
+        var roles = await _userManager.GetRolesAsync(user);
+        foreach (var role in roles)
+        {
+            //Sadece rolleri ekliyoruz. Permissionları AuthorizationBehavior içinde kontrol edeceğiz.
+            //Böylece token boyutu küçülmüş olur.
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Value.SecretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);

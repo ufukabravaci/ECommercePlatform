@@ -49,6 +49,17 @@ public static class ServiceRegistrar
             string con = configuration.GetConnectionString("SqlServer")!;
             opt.UseSqlServer(con);
         });
+
+        var redisCon = configuration.GetConnectionString("Redis");
+
+        if (!string.IsNullOrWhiteSpace(redisCon))
+        {
+            services.AddStackExchangeRedisCache(opt =>
+            {
+                opt.Configuration = redisCon;
+                opt.InstanceName = "EComAPI_";
+            });
+        }
         services.AddScoped<IUnitOfWork>(srv => srv.GetRequiredService<ApplicationDbContext>());
         //scrutor ile otomatik servis kaydı
         services.Scan(scan => scan

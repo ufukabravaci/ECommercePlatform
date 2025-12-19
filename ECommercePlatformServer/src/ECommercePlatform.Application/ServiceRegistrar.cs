@@ -1,5 +1,6 @@
 ﻿using ECommercePlatform.Application.Behaviors;
 using FluentValidation;
+using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using TS.MediatR;
 
@@ -16,7 +17,7 @@ public static class ServiceRegistrar
             cfr.AddOpenBehavior(typeof(PermissionBehavior<,>));
         });
         services.AddValidatorsFromAssembly(typeof(ServiceRegistrar).Assembly);
-
+        services.AddMapster();
         return services;
     }
 }
