@@ -12,8 +12,9 @@ public sealed class ConfirmEmailCommandValidator : AbstractValidator<ConfirmEmai
 {
     public ConfirmEmailCommandValidator()
     {
-        RuleFor(p => p.Email).EmailAddress().NotEmpty();
-        RuleFor(p => p.Token).NotEmpty();
+        RuleFor(x => x.Email).EmailAddress().WithMessage("Geçersiz e-mail adresi.")
+            .NotEmpty().WithMessage("E-mail adresi boş olamaz.");
+        RuleFor(p => p.Token).NotEmpty().WithMessage("Token alanı boş olamaz.");
     }
 }
 

@@ -9,7 +9,6 @@ public sealed class User : IdentityUser<Guid>, IAuditableEntity
 {
     private User()
     {
-        RefreshTokens = new List<UserRefreshToken>();
     }
 
     public User(string firstName, string lastName, string email, string userName) : this()
@@ -31,21 +30,18 @@ public sealed class User : IdentityUser<Guid>, IAuditableEntity
     public string LastName { get; private set; } = default!;
     public string FullName => $"{FirstName} {LastName}";
     public Address? Address { get; private set; }
-    public Guid? CompanyId { get; private set; } //boşsa süperadmin veya customer
-    public Company? Company { get; private set; }
-    public ICollection<UserRefreshToken> RefreshTokens { get; set; } = new List<UserRefreshToken>();
+
+    private readonly List<UserRefreshToken> _refreshTokens = new();
+    public IReadOnlyCollection<UserRefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+
+    public IReadOnlyCollection<CompanyUser> CompanyUsers => _companyUsers.AsReadOnly();
+    private readonly List<CompanyUser> _companyUsers = new();
 
     // Metodlar (Behavior)
     #region Methods
     public void SetAddress(Address address)
     {
         Address = address ?? throw new ArgumentNullException(nameof(address));
-    }
-    public void AssignCompany(Guid companyId)
-    {
-        if (companyId == Guid.Empty)
-            throw new ArgumentException("Geçersiz şirket ID. ID boş olamaz.");
-        CompanyId = companyId;
     }
     public void SetStatus(bool isActive) => IsActive = isActive;
 
@@ -56,6 +52,23 @@ public sealed class User : IdentityUser<Guid>, IAuditableEntity
         IsActive = false;
         DeletedAt = DateTimeOffset.Now;
         EmailConfirmed = false;
+    }
+
+    public void AddRefreshToken(UserRefreshToken token)
+    {
+        if (token is null)
+            throw new ArgumentNullException(nameof(token));
+
+        _refreshTokens.Add(token);
+    }
+
+    public void RevokeAllRefreshTokens()
+    {
+        foreach (var token in _refreshTokens
+            .Where(t => t.RevokedAt == null && !t.IsExpired))
+        {
+            token.RevokedAt = DateTimeOffset.Now;
+        }
     }
     #endregion
 
@@ -70,6 +83,4 @@ public sealed class User : IdentityUser<Guid>, IAuditableEntity
     public DateTimeOffset? DeletedAt { get; private set; }
     public Guid? DeletedBy { get; private set; }
     #endregion
-
-
 }

@@ -2,7 +2,6 @@
 using ECommercePlatform.Application.Auth.Login;
 using ECommercePlatform.Application.Auth.RefreshToken;
 using ECommercePlatform.Application.Auth.Register;
-using ECommercePlatform.Application.Features.Auth.Register;
 using Microsoft.AspNetCore.Mvc;
 using TS.MediatR;
 
@@ -12,12 +11,6 @@ public static class AuthModule
     {
         var group = app.MapGroup("api/auth").WithTags("Authentication");
 
-        group.MapPost("register", async (ISender sender, [FromBody] RegisterCommand command) =>
-        {
-            var result = await sender.Send(command);
-            return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
-        })
-        .RequireRateLimiting("fixed");
 
         group.MapPost("register-tenant", async (ISender sender, [FromBody] RegisterTenantCommand command) =>
         {
@@ -33,14 +26,14 @@ public static class AuthModule
         })
         .RequireRateLimiting("strict");
 
-        group.MapPost("login", async (ISender sender, [FromBody] LoginCommand command) =>
+        group.MapPost("login", async (ISender sender, [FromBody] TenantLoginCommand command) =>
         {
             var result = await sender.Send(command);
             return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);
         })
         .RequireRateLimiting("strict");
 
-        group.MapPost("login-2fa", async (ISender sender, [FromBody] LoginWithTwoFactorCommand command) =>
+        group.MapPost("login-2fa", async (ISender sender, [FromBody] TenantLoginWithTwoFactorCommand command) =>
         {
             var result = await sender.Send(command);
             return result.IsSuccessful ? Results.Ok(result) : Results.InternalServerError(result);

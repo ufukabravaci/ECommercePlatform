@@ -25,7 +25,7 @@ public class AuthController : Controller
     {
         var apiRequest = new { model.EmailOrUserName, model.Password };
 
-        var result = await _apiService.PostAsync<LoginResponseDto>("api/auth/login", apiRequest);
+        var result = await _apiService.PostAsync<LoginResponseDto>("api/auth/login/tenant", apiRequest);
 
         if (!result.IsSuccessful || result.Data is null)
         {

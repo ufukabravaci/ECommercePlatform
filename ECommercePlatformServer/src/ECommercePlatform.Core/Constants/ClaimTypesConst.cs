@@ -4,4 +4,5 @@ public static class ClaimTypesConst
 {
     public const string Permission = "Permission";
     public const string CompanyId = "CompanyId";
+    public const string TenantIdHeader = "X-Tenant-ID";
 }

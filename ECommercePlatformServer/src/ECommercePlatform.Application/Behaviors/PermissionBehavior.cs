@@ -4,9 +4,9 @@ using ECommercePlatform.Application.Services;
 using System.Reflection;
 using TS.MediatR;
 
-namespace ECommercePlatform.Application.Behaviors;
-
-public sealed class PermissionBehavior<TRequest, TResponse>(IUserContext userContext)
+public sealed class PermissionBehavior<TRequest, TResponse>(
+    IUserContext userContext,
+    ITenantContext tenantContext)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
@@ -15,28 +15,31 @@ public sealed class PermissionBehavior<TRequest, TResponse>(IUserContext userCon
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        // 1. Request üzerindeki [Permission("...")] attribute'unu bul
-        var permissionAttr = request.GetType().GetCustomAttribute<PermissionAttribute>();
+        var permissionAttr = request
+            .GetType()
+            .GetCustomAttribute<PermissionAttribute>();
 
-        // Eğer attribute yoksa herkese açıktır, devam et.
+        // Permission yoksa serbest
         if (permissionAttr is null)
-        {
             return await next();
-        }
 
-        // 2. Kullanıcıyı kontrol et
         var userId = userContext.GetUserId();
         if (userId == Guid.Empty)
+            throw new UnauthorizedAccessException("Giriş yapmalısınız.");
+
+        // 3. Tenant (Şirket) Context'i var mı?
+        // Header'dan (X-Tenant-ID) veya Token'dan (CompanyId claim) gelmeli.
+        if (tenantContext.CompanyId is null)
         {
-            // Giriş yapmamış ama yetki isteyen biri
-            throw new UnauthorizedAccessException("Bu işlemi yapmak için giriş yapmalısınız.");
+            // Kullanıcı login, ama hangi şirkette işlem yaptığını bilmiyoruz.
+            throw new ForbiddenAccessException("İşlem yapmak için bir şirket bağlamı (Tenant) gereklidir.");
         }
 
-        // 3. Yetkiyi kontrol et
+        // 4. Yetki Kontrolü
+        // UserContext, token içindeki rolleri okur. Token üretilirken o şirkete ait roller gömüldü.
         if (!await userContext.HasPermissionAsync(permissionAttr.Permission))
         {
-            throw new ForbiddenAccessException(
-                $"'{permissionAttr.Permission}' yetkiniz yok.");
+            throw new ForbiddenAccessException("Bu işlem için yetkiniz bulunmamaktadır.");
         }
 
         return await next();

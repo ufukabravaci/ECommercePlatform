@@ -25,8 +25,8 @@ public sealed class UpdateCompanyCommandValidator : AbstractValidator<UpdateComp
 {
     public UpdateCompanyCommandValidator()
     {
-        RuleFor(p => p.Name).NotEmpty().WithMessage("Şirket adı boş olamaz."); ;
-        RuleFor(p => p.TaxNumber).NotEmpty().WithMessage("Vergi numarası boş olamaz.")
+        RuleFor(p => p.Name).MinimumLength(3).WithMessage("Şirket en az 3 karakterden oluşmalıdır."); ;
+        RuleFor(p => p.TaxNumber)
             .Length(10, 11).WithMessage("Vergi numarası 10 veya 11 hane olmalıdır."); ;
     }
 }
@@ -39,7 +39,7 @@ public sealed class UpdateCompanyCommandHandler(
 {
     public async Task<Result<string>> Handle(UpdateCompanyCommand request, CancellationToken cancellationToken)
     {
-        var companyId = tenantContext.GetCompanyId();
+        var companyId = tenantContext.CompanyId;
         if (companyId is null) return Result<string>.Failure("Şirket bulunamadı.");
 
         var company = await companyRepository.FirstOrDefaultAsync(c => c.Id == companyId, cancellationToken);

@@ -1,28 +1,30 @@
 ﻿using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Constants;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace ECommercePlatform.Infrastructure.Services;
 
-internal sealed class TenantContext : ITenantContext
+internal sealed class TenantContext(IHttpContextAccessor _httpContextAccessor) : ITenantContext
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private ClaimsPrincipal? User => _httpContextAccessor.HttpContext?.User;
 
-    public TenantContext(IHttpContextAccessor httpContextAccessor)
+    public Guid? CompanyId
     {
-        _httpContextAccessor = httpContextAccessor;
-    }
+        get
+        {
+            // 1. Token'da var mı? (Giriş yapmış kullanıcı)
+            var claimValue = User?.FindFirst(ClaimTypesConst.CompanyId)?.Value;
+            if (Guid.TryParse(claimValue, out var tokenId)) return tokenId;
 
-    public Guid? GetCompanyId()
-    {
-        // HttpContext yoksa (örneğin Background Job çalışıyorsa) null dön
-        var context = _httpContextAccessor.HttpContext;
-        if (context is null) return null;
+            // 2. Header'da var mı? (Login isteği atan kullanıcı)
+            var headerValue = _httpContextAccessor.HttpContext?
+                .Request.Headers[ClaimTypesConst.TenantIdHeader]
+                .FirstOrDefault();
 
-        // Token içindeki "CompanyId" claim'ini oku
-        var companyIdClaim = context.User?.FindFirst("CompanyId")?.Value;
+            if (Guid.TryParse(headerValue, out var headerId)) return headerId;
 
-        if (string.IsNullOrEmpty(companyIdClaim)) return null;
-
-        return Guid.TryParse(companyIdClaim, out var companyId) ? companyId : null;
+            return null;
+        }
     }
 }

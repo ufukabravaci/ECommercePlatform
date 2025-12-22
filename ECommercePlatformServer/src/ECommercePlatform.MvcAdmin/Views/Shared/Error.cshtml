@@ -1,25 +1,60 @@
-﻿@model ErrorViewModel
+﻿
+
+
+@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Hata";
+    Layout = "_AuthLayout";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="auth-card" style="max-width: 500px;">
+    <div class="auth-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+        <div class="logo">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h1>Bir Hata Oluştu</h1>
+        <p>İsteğiniz işlenirken bir sorun oluştu</p>
+    </div>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+    <div class="auth-body text-center">
+        <div class="mb-4">
+            <div style="font-size: 5rem; color: #fee2e2;">
+                <i class="fas fa-bug"></i>
+            </div>
+        </div>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+        <h5 class="mb-3">Üzgünüz!</h5>
+        <p class="text-muted mb-4">
+            İsteğiniz sırasında beklenmeyen bir hata oluştu.
+            Lütfen daha sonra tekrar deneyiniz.
+        </p>
+
+        @if (Model?.ShowRequestId ?? false)
+        {
+            <div class="alert alert-secondary text-start">
+                <small>
+                    <strong>Hata Kodu:</strong> @Model?.RequestId
+                </small>
+            </div>
+        }
+
+        <div class="d-grid gap-2">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary-gradient">
+                <i class="fas fa-home me-2"></i>Ana Sayfaya Dön
+            </a>
+            <button type="button" onclick="history.back()" class="btn btn-outline-secondary" style="border-radius: 12px;">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </button>
+        </div>
+
+        <div class="mt-4 pt-3 border-top">
+            <p class="text-muted small mb-0">
+                Sorun devam ederse
+                <a href="mailto:support@example.com" class="text-decoration-none" style="color: #667eea;">
+                    destek ekibimize
+                </a>
+                ulaşabilirsiniz.
+            </p>
+        </div>
+    </div>
+</div>

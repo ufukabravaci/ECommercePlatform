@@ -1,5 +1,4 @@
 ﻿using ECommercePlatform.Domain.Abstractions;
-using ECommercePlatform.Domain.Users; // User referansı için (Collection)
 using ECommercePlatform.Domain.Users.ValueObjects; // Address Value Object
 
 namespace ECommercePlatform.Domain.Companies;
@@ -9,7 +8,7 @@ public sealed class Company : Entity
     // EF Core için boş constructor
     private Company()
     {
-        Users = new List<User>();
+        CompanyUsers = new List<CompanyUser>();
     }
 
     public Company(string name, string taxNumber) : this()
@@ -26,7 +25,7 @@ public sealed class Company : Entity
     public string Name { get; private set; } = default!;
     public string TaxNumber { get; private set; } = default!;
     public Address? Address { get; private set; } = default!;
-    public ICollection<User> Users { get; set; }
+    public ICollection<CompanyUser> CompanyUsers { get; set; }
 
     #region Methods
     public void UpdateAddress(Address address)

@@ -18,10 +18,27 @@ public class ApiService : IApiService
     // Her istekte Token'ı Header'a ekle
     private void AddAuthorizationHeader()
     {
-        var token = _httpContextAccessor.HttpContext?.Session.GetString("AccessToken");
+        var context = _httpContextAccessor.HttpContext;
+        if (context == null) return;
+
+        // 1. Bearer Token Ekle
+        var token = context.Session.GetString("AccessToken");
         if (!string.IsNullOrEmpty(token))
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+
+        // 2. Tenant ID Header Ekle (YENİ)
+        // Login olmuş kullanıcının Session'ında CompanyId varsa bunu Header'a bas.
+        // Bu sayede API'deki TenantContext bunu okuyabilir.
+        var companyId = context.Session.GetString("CompanyId");
+        if (!string.IsNullOrEmpty(companyId))
+        {
+            // Eski header varsa sil ki çakışmasın
+            if (_httpClient.DefaultRequestHeaders.Contains("X-Tenant-ID"))
+                _httpClient.DefaultRequestHeaders.Remove("X-Tenant-ID");
+
+            _httpClient.DefaultRequestHeaders.Add("X-Tenant-ID", companyId);
         }
     }
 
@@ -61,4 +78,5 @@ public class ApiService : IApiService
             return Result<T>.Failure($"Sunucu hatası: {response.StatusCode}");
         }
     }
+
 }

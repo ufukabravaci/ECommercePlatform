@@ -31,7 +31,7 @@ public sealed class GetCompanyQueryHandler(
     public async Task<Result<CompanyDto>> Handle(GetCompanyQuery request, CancellationToken cancellationToken)
     {
         // 1. Token'dan Şirket ID'sini al
-        var companyId = tenantContext.GetCompanyId();
+        var companyId = tenantContext.CompanyId;
         if (companyId is null) return Result<CompanyDto>.Failure("Herhangi bir şirkete bağlı değilsiniz.");
 
         // 2. Veriyi çek
@@ -39,7 +39,6 @@ public sealed class GetCompanyQueryHandler(
 
         if (company is null) return Result<CompanyDto>.Failure("Şirket bilgisi bulunamadı.");
 
-        // 3. DTO'ya çevir (Mapster burada kullanılabilir ama manuel yapıyorum)
         var dto = mapper.Map<CompanyDto>(company);
 
         return dto;

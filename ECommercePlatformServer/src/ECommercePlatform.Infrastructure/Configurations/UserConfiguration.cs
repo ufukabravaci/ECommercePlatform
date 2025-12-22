@@ -32,19 +32,25 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         // İlişkiler
 
-        // RefreshToken İlişkisi (1-N)
         builder.HasMany(u => u.RefreshTokens)
                .WithOne(rt => rt.User)
                .HasForeignKey(rt => rt.UserId)
-               .OnDelete(DeleteBehavior.Cascade); // Kullanıcı silinirse tokenlar da silinsin.
+               .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(u => u.Company)          // User'ın bir Company'si var
-               .WithMany(c => c.Users)          // Company'nin çok User'ı var
-               .HasForeignKey(u => u.CompanyId) // Bağlantı anahtarı bu
-               .OnDelete(DeleteBehavior.SetNull); // Şirket silinirse User boşa düşsün (veya Restrict diyerek engellenebilir)
+        // 2. CompanyUsers (1-N)
+        builder.HasMany(u => u.CompanyUsers)
+               .WithOne(cu => cu.User)
+               .HasForeignKey(cu => cu.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
 
-        // Indexler
-        // Email ve UserName zaten Identity tarafından indexli
-        builder.HasIndex(x => x.CompanyId);
+        // --- BACKING FIELD AYARLARI ---
+
+        // RefreshTokens için field kullanımı
+        builder.Metadata.FindNavigation(nameof(User.RefreshTokens))!
+               .SetPropertyAccessMode(PropertyAccessMode.Field); // _refreshTokens fieldını otomatik bulur
+
+        // CompanyUsers için field kullanımı
+        builder.Metadata.FindNavigation(nameof(User.CompanyUsers))!
+               .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

@@ -1,5 +1,7 @@
 ﻿using ECommercePlatform.Application.Services;
 using ECommercePlatform.Domain.Abstractions;
+using ECommercePlatform.Domain.Categories;
+using ECommercePlatform.Domain.Companies;
 using ECommercePlatform.Domain.Users;
 using GenericRepository;
 
@@ -24,84 +26,107 @@ public sealed class ApplicationDbContext : IdentityDbContext<User, AppRole, Guid
         _tenantContext = tenantContext;
     }
 
-    public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
+    #region DbSets
+
+    public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<CompanyUser> CompanyUsers => Set<CompanyUser>();
+
+    #endregion
+
+    #region Model Configuration
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        // fluentapi configlerini otomatik olarak uygular
+        // Fluent API Configurations
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-
-        // 2. Global Filters (Soft Delete Otomatik Filtreleme)
         builder.ApplyGlobalFilters();
-        // 2. Tenant Filtresi
-        // Expression olarak tenantContext'in metodunu veriyoruz.
-        // Bu sayede Extension method içindeki Expression Tree, bu metodu her sorguda çalıştıracak.
-        builder.ApplyTenantFilters(() => _tenantContext.GetCompanyId());
+        builder.ApplyTenantFilters(() => _tenantContext.CompanyId);
 
         base.OnModelCreating(builder);
 
-        // 4. Tablo İsimlendirmeleri
-        builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<Guid>>().ToTable("UserClaims");
-        builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<Guid>>().ToTable("UserLogins");
-        builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<Guid>>().ToTable("UserTokens");
-        builder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
-        builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>>().ToTable("UserRoles");
+        // 4️⃣ Identity Table Names
+        builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<Guid>>()
+               .ToTable("UserClaims");
+
+        builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<Guid>>()
+               .ToTable("UserLogins");
+
+        builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<Guid>>()
+               .ToTable("UserTokens");
+
+        builder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<Guid>>()
+               .ToTable("RoleClaims");
+
+        builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>>()
+               .ToTable("UserRoles");
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        //dbde verilerin saklanma biçimini ayarlıyoruz
-        configurationBuilder.Properties<decimal>().HaveColumnType("decimal(18,2)");
-        configurationBuilder.Properties<Enum>().HaveConversion<string>();
+        configurationBuilder.Properties<decimal>()
+            .HaveColumnType("decimal(18,2)");
+
+        configurationBuilder.Properties<Enum>()
+            .HaveConversion<string>();
 
         base.ConfigureConventions(configurationBuilder);
     }
+
+    #endregion
+
+    #region SaveChanges (Auditing + Soft Delete)
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries<IAuditableEntity>();
 
-        // Giriş yapan kullanıcının ID'sini alıyoruz
         Guid userId = _userContext.GetUserId();
 
         foreach (var entry in entries)
         {
-            if (entry.State == EntityState.Added)
+            switch (entry.State)
             {
-                if (entry.Entity.CreatedAt == default)
-                    entry.Property(x => x.CreatedAt).CurrentValue = DateTimeOffset.Now;
+                case EntityState.Added:
+                    if (entry.Entity.CreatedAt == default)
+                        entry.Property(x => x.CreatedAt).CurrentValue = DateTimeOffset.Now;
 
-                entry.Property(x => x.IsActive).CurrentValue = true;
-
-                if (userId != Guid.Empty)
-                    entry.Property(x => x.CreatedBy).CurrentValue = userId;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                // Soft Delete Kontrolü
-                var isDeletedProperty = entry.Property(x => x.IsDeleted);
-
-                if (isDeletedProperty.CurrentValue == true && isDeletedProperty.OriginalValue == false)
-                {
-                    entry.Property(x => x.DeletedAt).CurrentValue = DateTimeOffset.Now;
+                    entry.Property(x => x.IsActive).CurrentValue = true;
 
                     if (userId != Guid.Empty)
-                        entry.Property(x => x.DeletedBy).CurrentValue = userId;
-                }
-                else
-                {
-                    entry.Property(x => x.UpdatedAt).CurrentValue = DateTimeOffset.Now;
+                        entry.Property(x => x.CreatedBy).CurrentValue = userId;
 
-                    if (userId != Guid.Empty)
-                        entry.Property(x => x.UpdatedBy).CurrentValue = userId;
-                }
-            }
-            else if (entry.State == EntityState.Deleted)
-            {
-                throw new ArgumentException("Db'den direkt silme işlemi yapamazsınız (Soft Delete Kullanın)");
+                    break;
+
+                case EntityState.Modified:
+                    var isDeleted = entry.Property(x => x.IsDeleted);
+
+                    if (isDeleted.CurrentValue == true &&
+                        isDeleted.OriginalValue == false)
+                    {
+                        entry.Property(x => x.DeletedAt).CurrentValue = DateTimeOffset.Now;
+
+                        if (userId != Guid.Empty)
+                            entry.Property(x => x.DeletedBy).CurrentValue = userId;
+                    }
+                    else
+                    {
+                        entry.Property(x => x.UpdatedAt).CurrentValue = DateTimeOffset.Now;
+
+                        if (userId != Guid.Empty)
+                            entry.Property(x => x.UpdatedBy).CurrentValue = userId;
+                    }
+                    break;
+
+                case EntityState.Deleted:
+                    throw new InvalidOperationException(
+                        "Hard delete yasak. Soft delete kullanmalısınız.");
             }
         }
 
         return base.SaveChangesAsync(cancellationToken);
     }
+
+    #endregion
 }

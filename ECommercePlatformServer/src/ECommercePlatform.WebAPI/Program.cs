@@ -53,9 +53,6 @@ app.UseAuthorization();
 //Endpoint Mapping
 app.MapAuthEndpoints();
 app.MapCompanyEndpoints();
-using (var scope = app.Services.CreateScope())
-{
-    await RoleSeeder.SeedAsync(scope.ServiceProvider);
-}
-await app.CreateFirstUser();
+app.MapCategoryEndpoints();
+await app.ApplySeedDataAsync();
 app.Run();

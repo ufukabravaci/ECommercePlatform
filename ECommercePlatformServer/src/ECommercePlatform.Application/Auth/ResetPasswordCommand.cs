@@ -19,10 +19,12 @@ public sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPassw
 {
     public ResetPasswordCommandValidator()
     {
-        RuleFor(p => p.Email).EmailAddress().NotEmpty();
-        RuleFor(p => p.Token).NotEmpty();
-        RuleFor(p => p.NewPassword).NotEmpty().MinimumLength(6);
-        RuleFor(p => p.ConfirmNewPassword).Equal(p => p.NewPassword).WithMessage("Şifreler uyuşmuyor.");
+        RuleFor(x => x.Email).EmailAddress()
+            .WithMessage("Geçersiz e-mail adresi.")
+            .NotEmpty().WithMessage("E-mail adresi boş olamaz.");
+        RuleFor(p => p.Token).NotEmpty().WithMessage("Token boş olamaz."); ;
+        RuleFor(p => p.NewPassword).NotEmpty().MinimumLength(6).WithMessage("Şifre alanı en az 6 karakterden oluşmalıdır.");
+        RuleFor(p => p.ConfirmNewPassword).Equal(p => p.NewPassword).WithMessage("Şifreler eşleşmiyor.");
     }
 }
 
@@ -52,7 +54,6 @@ public sealed class ResetPasswordCommandHandler(UserManager<User> userManager,
         foreach (var token in activeTokens)
         {
             token.RevokedAt = DateTimeOffset.Now;
-            token.RevokedByIp = "PasswordReset";
             token.ReplacedByToken = null;
         }
 

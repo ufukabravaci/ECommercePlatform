@@ -19,7 +19,7 @@ public sealed class DeleteCompanyCommandHandler(
 {
     public async Task<Result<string>> Handle(DeleteCompanyCommand request, CancellationToken cancellationToken)
     {
-        var companyId = tenantContext.GetCompanyId();
+        var companyId = tenantContext.CompanyId;
         if (companyId is null) return Result<string>.Failure("Şirket bulunamadı.");
 
         var company = await companyRepository.FirstOrDefaultAsync(c => c.Id == companyId, cancellationToken);

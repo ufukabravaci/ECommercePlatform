@@ -1,8 +1,8 @@
 ﻿using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Companies;
 using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Users;
 using ECommercePlatform.Infrastructure.Options;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,53 +12,49 @@ using System.Text;
 
 namespace ECommercePlatform.Infrastructure.Services;
 
-public sealed class JwtProvider(IOptions<JwtOptions> _options, UserManager<User> _userManager) : IJwtProvider
+public sealed class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
 {
-    public async Task<string> CreateTokenAsync(User user, CancellationToken cancellationToken)
+    public async Task<string> CreateTenantTokenAsync(
+        User user,
+        CompanyUser companyUser,
+        CancellationToken cancellationToken)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email ?? ""),
             new(ClaimTypes.Name, user.UserName ?? ""),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Unique identifier for the token
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(ClaimTypesConst.CompanyId, companyUser.CompanyId.ToString()),
         };
-        if (user.CompanyId.HasValue)
-        {
-            claims.Add(new Claim(ClaimTypesConst.CompanyId, user.CompanyId.Value.ToString()));
-        }
 
-        var roles = await _userManager.GetRolesAsync(user);
-        foreach (var role in roles)
+        // Sadece o şirketteki rolleri ekle. Diğer şirketlerde başka rolleri varsa onlarla ilgilenmiyoruz.
+        foreach (var role in companyUser.Roles)
         {
-            //Sadece rolleri ekliyoruz. Permissionları AuthorizationBehavior içinde kontrol edeceğiz.
-            //Böylece token boyutu küçülmüş olur.
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Value.SecretKey));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        return CreateToken(claims, options.Value);
+    }
 
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(_options.Value.AccessTokenExpirationMinutes),
-            Issuer = _options.Value.Issuer,
-            Audience = _options.Value.Audience,
-            SigningCredentials = credentials
-        };
+    private static string CreateToken(IEnumerable<Claim> claims, JwtOptions options)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SecretKey));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+        var token = new JwtSecurityToken(
+            issuer: options.Issuer,
+            audience: options.Audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(options.AccessTokenExpirationMinutes),
+            signingCredentials: credentials);
 
-        return tokenHandler.WriteToken(securityToken);
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public string CreateRefreshToken()
     {
-        var randomNumber = new byte[32];
-        using var rng = RandomNumberGenerator.Create(); //unpredictable random number generator
-        rng.GetBytes(randomNumber);
-        return Convert.ToBase64String(randomNumber);
+        var bytes = RandomNumberGenerator.GetBytes(32);
+        return Convert.ToBase64String(bytes);
     }
 }

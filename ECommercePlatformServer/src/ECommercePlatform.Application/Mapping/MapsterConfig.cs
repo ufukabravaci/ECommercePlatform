@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Application.Companies;
+﻿using ECommercePlatform.Application.Categories;
+using ECommercePlatform.Application.Companies;
+using ECommercePlatform.Domain.Categories;
 using ECommercePlatform.Domain.Companies;
 using Mapster;
 
@@ -17,5 +19,9 @@ public sealed class MapsterConfig : IRegister
             // Diğer alanlar (Id, Name, TaxNumber) isimleri aynı olduğu için otomatik eşleşir.
             .RequireDestinationMemberSource(true); // Hata yaparsak derleme anında uyarsın
 
+        config.NewConfig<Category, CategoryDto>()
+            .Map(dest => dest.ParentName, src => src.Parent != null ? src.Parent.Name : "-")
+            // Entity içinde Id, Name, Slug, ParentId zaten public property olduğu için otomatik eşleşir.
+            .RequireDestinationMemberSource(true);
     }
 }

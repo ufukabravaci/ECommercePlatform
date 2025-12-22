@@ -4,6 +4,7 @@ using ECommercePlatform.Domain.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -11,7 +12,7 @@ namespace ECommercePlatform.Infrastructure.Services;
 
 internal sealed class UserContext(
     IHttpContextAccessor _httpContextAccessor,
-    RoleManager<AppRole> _roleManager,
+    IServiceProvider _serviceProvider,
     IDistributedCache _cache
     ) : IUserContext
 {
@@ -31,41 +32,49 @@ internal sealed class UserContext(
         var context = _httpContextAccessor.HttpContext;
         if (context is null) return false;
 
+        // 1. Token'dan Rolleri Oku
+        // (JwtProvider bu rolleri CompanyUser tablosundan alıp token'a koymuştu)
         var userRoles = context.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+
         if (!userRoles.Any()) return false;
+
+        // SuperAdmin her şeye yetkilidir
         if (userRoles.Contains(RoleConsts.SuperAdmin)) return true;
+
+        // Lazy Loading ile RoleManager'ı al (Circular Dependency önlemek için)
+        // ctordan alsaydık uygulama ayağa kalkarken döngüye girerdi.Onun yerine servis kutusu istedik onun içinden manuel çektik.
+        var roleManager = _serviceProvider.GetRequiredService<RoleManager<AppRole>>();
 
         foreach (var roleName in userRoles)
         {
-            // 1. Cache Key Oluştur (Örn: Role_CompanyOwner_Permissions)
+            // 2. Cache Key Oluştur
             string cacheKey = $"Role_{roleName}_Permissions";
 
-            // 2. Cache'e Bak
+            // 3. Cache Kontrol
             List<string>? permissions;
             var cachedData = await _cache.GetStringAsync(cacheKey);
 
             if (!string.IsNullOrEmpty(cachedData))
             {
-                // Cache'de var, deserialize et
                 permissions = JsonSerializer.Deserialize<List<string>>(cachedData);
             }
             else
             {
-                // 3. Cache'de yok, DB'ye git
-                var role = await _roleManager.FindByNameAsync(roleName);
+                // 4. DB'den Yetkileri Çek (AspNetRoleClaims)
+                var role = await roleManager.FindByNameAsync(roleName);
                 if (role == null) continue;
 
-                var claims = await _roleManager.GetClaimsAsync(role);
-                permissions = claims.Where(c => c.Type == "Permission").Select(c => c.Value).ToList();
+                var claims = await roleManager.GetClaimsAsync(role);
+                permissions = claims.Where(c => c.Type == ClaimTypesConst.Permission).Select(c => c.Value).ToList();
 
-                // 4. Cache'e Yaz (Ömür: 1 Saat)
+                // 5. Cache'e Yaz (1 Saat)
                 var options = new DistributedCacheEntryOptions()
                     .SetAbsoluteExpiration(TimeSpan.FromHours(1));
 
                 await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(permissions), options);
             }
 
-            // 5. Kontrol Et
+            // 6. Yetki Var mı?
             if (permissions != null && permissions.Contains(permissionCode))
             {
                 return true;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 namespace ECommercePlatform.Infrastructure.Options;
@@ -18,6 +19,8 @@ internal sealed class JwtSetupOptions(IOptions<JwtOptions> jwtOptions) : IPostCo
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Value.SecretKey));
         options.TokenValidationParameters.IssuerSigningKey = signingKey;
         options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
+        options.TokenValidationParameters.NameClaimType = ClaimTypes.Name;
+        options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
 
     }
 }

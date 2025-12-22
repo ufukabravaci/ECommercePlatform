@@ -15,55 +15,59 @@ public sealed class RefreshTokenCommandValidator : AbstractValidator<RefreshToke
 {
     public RefreshTokenCommandValidator()
     {
-        RuleFor(x => x.RefreshToken).NotEmpty();
+        RuleFor(x => x.RefreshToken).NotEmpty().WithMessage("RefreshToken alanı boş olamaz.");
     }
 }
 
 public sealed class RefreshTokenCommandHandler(
     IJwtProvider jwtProvider,
     IUnitOfWork unitOfWork,
-    IUserRepository userRepository) // RefreshTokenlar user üzerinde
+    IUserRepository userRepository)
     : IRequestHandler<RefreshTokenCommand, Result<RefreshTokenResponse>>
 {
     public async Task<Result<RefreshTokenResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        // Token'a sahip kullanıcıyı bul (User.RefreshTokens koleksiyonundan)
-        // IUserRepository üzerinden Include yaparak çekmemiz lazım
+        // 1. Token'a sahip kullanıcıyı ve CompanyUser bağını getir
         var user = await userRepository.GetAll()
             .Include(u => u.RefreshTokens)
-            .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Code == request.RefreshToken), cancellationToken);
+                .ThenInclude(t => t.CompanyUser) // Tenant bilgisi şart
+            .FirstOrDefaultAsync(
+                u => u.RefreshTokens.Any(t => t.Code == request.RefreshToken),
+                cancellationToken);
 
-        if (user is null) return Result<RefreshTokenResponse>.Failure("Token geçersiz.");
+        if (user is null)
+            return Result<RefreshTokenResponse>.Failure("Token geçersiz.");
 
-        var existingToken = user.RefreshTokens.Single(t => t.Code == request.RefreshToken);
+        var existingToken = user.RefreshTokens
+            .Single(t => t.Code == request.RefreshToken);
 
-        // Validasyonlar
-        if (existingToken.RevokedAt is not null)
+        // 2. Validasyonlar
+        if (!existingToken.IsActive)
+            return Result<RefreshTokenResponse>.Failure("Token geçersiz veya süresi dolmuş.");
+
+        // --- DÜZELTME: Sadece CompanyUser kontrolü yapıyoruz ---
+        if (existingToken.CompanyUser is null)
         {
-            // Token çalınmış olabilir. Ekstra güvenlik önlemleri alınabilir.
-            // Fakat bu örnekte sadece hata döndürüyoruz.
-            return Result<RefreshTokenResponse>.Failure("Bu token daha önce kullanılmış (Revoked).");
+            return Result<RefreshTokenResponse>.Failure("Oturum bilgisi (Tenant) bulunamadı. Lütfen tekrar giriş yapın.");
         }
 
-        if (existingToken.IsExpired)
-        {
-            return Result<RefreshTokenResponse>.Failure("Oturum süresi dolmuş. Tekrar giriş yapın.");
-        }
+        // 3. Yeni Tenant Token Üret (AccessToken)
+        string newAccessToken = await jwtProvider.CreateTenantTokenAsync(
+            user,
+            existingToken.CompanyUser, // Rolleri buradan alacak
+            cancellationToken);
 
-        // Token Rotation
-        string newRefreshToken = jwtProvider.CreateRefreshToken();
-        string newAccessToken = await jwtProvider.CreateTokenAsync(user, cancellationToken);
+        // 4. Token Rotation (RefreshToken)
+        var newRefreshToken = jwtProvider.CreateRefreshToken();
 
-        // Eskiyi revoke et
         existingToken.RevokedAt = DateTimeOffset.Now;
         existingToken.ReplacedByToken = newRefreshToken;
-        // Ip bilgisi HttpContextAccessor'dan alınabilir ama şimdilik gerek yok.
 
-        // Yeniyi ekle
-        user.RefreshTokens.Add(new UserRefreshToken
+        user.AddRefreshToken(new UserRefreshToken
         {
             Code = newRefreshToken,
             Expiration = DateTimeOffset.Now.AddDays(7),
+            CompanyUserId = existingToken.CompanyUserId, // Aynı şirketten devam
             UserId = user.Id
         });
 

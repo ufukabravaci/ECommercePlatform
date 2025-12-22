@@ -2,72 +2,492 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<!-- Info Boxes -->
-<div class="row">
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box">
-            <span class="info-box-icon text-bg-primary shadow-sm">
-                <i class="bi bi-gear-fill"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">CPU Kullanımı</span>
-                <span class="info-box-number">10<small>%</small></span>
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle mb-0">Hoş geldiniz, @ViewBag.UserName! İşte bugünkü özet.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;">
+            <i class="fas fa-download me-2"></i>Rapor İndir
+        </button>
+        <button type="button" class="btn btn-primary-gradient">
+            <i class="fas fa-plus me-2"></i>Yeni Ürün
+        </button>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up me-1"></i>12.5%
+                    </span>
+                </div>
+                <div class="stat-value">1,284</div>
+                <div class="stat-label">Toplam Sipariş</div>
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box">
-            <span class="info-box-icon text-bg-danger shadow-sm">
-                <i class="bi bi-heart-fill"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">Beğeniler</span>
-                <span class="info-box-number">41,410</span>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon success">
+                        <i class="fas fa-lira-sign"></i>
+                    </div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up me-1"></i>8.2%
+                    </span>
+                </div>
+                <div class="stat-value">₺245,680</div>
+                <div class="stat-label">Toplam Gelir</div>
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box">
-            <span class="info-box-icon text-bg-success shadow-sm">
-                <i class="bi bi-cart-fill"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">Satışlar</span>
-                <span class="info-box-number">760</span>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <span class="stat-change negative">
+                        <i class="fas fa-arrow-down me-1"></i>3.1%
+                    </span>
+                </div>
+                <div class="stat-value">456</div>
+                <div class="stat-label">Toplam Ürün</div>
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box">
-            <span class="info-box-icon text-bg-warning shadow-sm">
-                <i class="bi bi-people-fill"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">Şirket ID</span>
-                <!-- Session'dan gelen ID -->
-                <span class="info-box-number">@ViewBag.CompanyId</span>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon danger">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up me-1"></i>15.3%
+                    </span>
+                </div>
+                <div class="stat-value">2,845</div>
+                <div class="stat-label">Toplam Müşteri</div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header">
-        <h3 class="card-title">Hoşgeldiniz</h3>
-        <div class="card-tools">
-            <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
-                <i class="bi bi-dash-lg"></i>
-            </button>
-            <button type="button" class="btn btn-tool" data-lte-toggle="card-remove">
-                <i class="bi bi-x-lg"></i>
-            </button>
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Sales Chart -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Satış Grafiği</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Son 7 Gün
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">Son 7 Gün</a></li>
+                        <li><a class="dropdown-item" href="#">Son 30 Gün</a></li>
+                        <li><a class="dropdown-item" href="#">Son 3 Ay</a></li>
+                        <li><a class="dropdown-item" href="#">Bu Yıl</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="card-body">
-        Merhaba <strong>@ViewBag.UserName</strong>. AdminLTE v4 entegrasyonu başarıyla tamamlandı.
-        Artık menüler üzerinden Ürün ve Kategori yönetimi yapabilirsin.
+
+    <!-- Category Distribution -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Kategori Dağılımı</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="fas fa-circle text-primary me-2" style="font-size: 0.5rem;"></i>Elektronik</span>
+                        <span class="fw-semibold">35%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="fas fa-circle text-success me-2" style="font-size: 0.5rem;"></i>Giyim</span>
+                        <span class="fw-semibold">28%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="fas fa-circle text-warning me-2" style="font-size: 0.5rem;"></i>Ev & Yaşam</span>
+                        <span class="fw-semibold">22%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-circle text-danger me-2" style="font-size: 0.5rem;"></i>Diğer</span>
+                        <span class="fw-semibold">15%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Recent Orders & Top Products -->
+<div class="row g-4">
+    <!-- Recent Orders -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Son Siparişler</h5>
+                <a href="#" class="btn btn-sm btn-outline-primary">Tümünü Gör</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Sipariş No</th>
+                                <th>Müşteri</th>
+                                <th>Ürün</th>
+                                <th>Tutar</th>
+                                <th>Durum</th>
+                                <th>Tarih</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="fw-medium">#ORD-2024001</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="text-primary fw-medium" style="font-size: 0.75rem;">AY</span>
+                                        </div>
+                                        <span>Ahmet Yılmaz</span>
+                                    </div>
+                                </td>
+                                <td>iPhone 15 Pro</td>
+                                <td class="fw-semibold">₺64,999</td>
+                                <td><span class="badge-status active">Tamamlandı</span></td>
+                                <td class="text-muted">2 saat önce</td>
+                            </tr>
+                            <tr>
+                                <td><span class="fw-medium">#ORD-2024002</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-sm bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="text-success fw-medium" style="font-size: 0.75rem;">MK</span>
+                                        </div>
+                                        <span>Mehmet Kaya</span>
+                                    </div>
+                                </td>
+                                <td>Samsung Galaxy S24</td>
+                                <td class="fw-semibold">₺49,999</td>
+                                <td><span class="badge-status pending">Beklemede</span></td>
+                                <td class="text-muted">3 saat önce</td>
+                            </tr>
+                            <tr>
+                                <td><span class="fw-medium">#ORD-2024003</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-sm bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="text-warning fw-medium" style="font-size: 0.75rem;">ZD</span>
+                                        </div>
+                                        <span>Zeynep Demir</span>
+                                    </div>
+                                </td>
+                                <td>MacBook Air M3</td>
+                                <td class="fw-semibold">₺54,999</td>
+                                <td><span class="badge-status active">Tamamlandı</span></td>
+                                <td class="text-muted">5 saat önce</td>
+                            </tr>
+                            <tr>
+                                <td><span class="fw-medium">#ORD-2024004</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-sm bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="text-danger fw-medium" style="font-size: 0.75rem;">EÖ</span>
+                                        </div>
+                                        <span>Elif Özkan</span>
+                                    </div>
+                                </td>
+                                <td>iPad Pro 12.9"</td>
+                                <td class="fw-semibold">₺42,999</td>
+                                <td><span class="badge-status inactive">İptal</span></td>
+                                <td class="text-muted">1 gün önce</td>
+                            </tr>
+                            <tr>
+                                <td><span class="fw-medium">#ORD-2024005</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-sm bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="text-info fw-medium" style="font-size: 0.75rem;">CA</span>
+                                        </div>
+                                        <span>Can Arslan</span>
+                                    </div>
+                                </td>
+                                <td>AirPods Pro 2</td>
+                                <td class="fw-semibold">₺8,999</td>
+                                <td><span class="badge-status pending">Kargoda</span></td>
+                                <td class="text-muted">1 gün önce</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">En Çok Satanlar</h5>
+                <a href="#" class="btn btn-sm btn-outline-primary">Tümü</a>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fas fa-mobile-alt text-muted"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">iPhone 15 Pro</h6>
+                        <small class="text-muted">Elektronik</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-semibold">₺64,999</div>
+                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>245 satış</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fas fa-laptop text-muted"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">MacBook Air M3</h6>
+                        <small class="text-muted">Elektronik</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-semibold">₺54,999</div>
+                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>189 satış</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fas fa-headphones text-muted"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">AirPods Pro 2</h6>
+                        <small class="text-muted">Aksesuar</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-semibold">₺8,999</div>
+                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>156 satış</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fas fa-tablet-alt text-muted"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">iPad Pro 12.9"</h6>
+                        <small class="text-muted">Elektronik</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-semibold">₺42,999</div>
+                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>134 satış</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fas fa-tv text-muted"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">Samsung QLED 65"</h6>
+                        <small class="text-muted">Elektronik</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-semibold">₺34,999</div>
+                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>98 satış</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sales Chart
+            const salesCtx = document.getElementById('salesChart');
+            if (salesCtx) {
+                new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'],
+                        datasets: [{
+                            label: 'Satış (₺)',
+                            data: [32000, 45000, 38000, 52000, 48000, 61000, 55000],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }, {
+                            label: 'Sipariş',
+                            data: [120, 165, 142, 198, 175, 225, 205],
+                            borderColor: '#10b981',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                align: 'end',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                                padding: 12,
+                                cornerRadius: 8,
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                callbacks: {
+                                    label: function(context) {
+                                        if (context.datasetIndex === 0) {
+                                            return '  Satış: ₺' + context.raw.toLocaleString('tr-TR');
+                                        }
+                                        return '  Sipariş: ' + context.raw;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₺' + (value / 1000) + 'K';
+                                    }
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                beginAtZero: true,
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + ' adet';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Category Chart
+            const categoryCtx = document.getElementById('categoryChart');
+            if (categoryCtx) {
+                new Chart(categoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Elektronik', 'Giyim', 'Ev & Yaşam', 'Diğer'],
+                        datasets: [{
+                            data: [35, 28, 22, 15],
+                            backgroundColor: [
+                                '#667eea',
+                                '#10b981',
+                                '#f59e0b',
+                                '#ef4444'
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        return ' ' + context.label + ': %' + context.raw;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

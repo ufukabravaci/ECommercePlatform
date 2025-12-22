@@ -1,22 +1,31 @@
 ﻿using ECommercePlatform.Domain.Abstractions;
+using ECommercePlatform.Infrastructure.Seeding;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Linq.Expressions;
 
 namespace ECommercePlatform.Infrastructure;
 
 public static class ExtensionMethods
 {
+    public static async Task ApplySeedDataAsync(this IApplicationBuilder app)
+    {
+        using var scope = app.ApplicationServices.CreateScope();
+        await RoleSeeder.SeedAsync(scope.ServiceProvider);
+        await FirstUserSeeder.SeedAsync(scope.ServiceProvider);
+    }
+
     public static void ApplyGlobalFilters(this ModelBuilder modelBuilder)
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            //Clr => Common Language Runtime. Her tabloya karşılık gelen entitiynin c#taki sınıf karşılığı.
             var clrType = entityType.ClrType;
-            //Eğer bir class entity tipinden türemişse onun için filtre uygulanır. Yani tüm entityler için.
-            if (typeof(Entity).IsAssignableFrom(clrType))
+
+            // Eğer entity sadece soft delete ise (Tenant değilse) burası çalışsın.
+            // Tenant ise aşağıda ApplyTenantFilters ezeceği için orada ikisini birleştireceğiz.
+            if (typeof(Entity).IsAssignableFrom(clrType) && !typeof(IMultiTenantEntity).IsAssignableFrom(clrType))
             {
-                //e => e.IsDeleted == false Ama bu User,Car gibi her tip için runtime'da otomatik oluşturulur.
-                //yani isdeleted == true olanlar dönmeyecek filtrelenecek. Her sorguya IsDeleted == false diye eklemeyeceğiz.
                 var parameter = Expression.Parameter(clrType, "e");
                 var property = Expression.Property(parameter, nameof(Entity.IsDeleted));
                 var condition = Expression.Equal(property, Expression.Constant(false));
@@ -27,54 +36,43 @@ public static class ExtensionMethods
         }
     }
 
-
-    //e => _tenantContext.GetCompanyId() == null || (Guid?) e.CompanyId == _tenantContext.GetCompanyId()
-    //    SELECT* FROM Products
-    //      WHERE IsDeleted = 0  -- Soft Delete Filtresi
-    //      AND(
-    //    (@__tenantId_0 IS NULL) -- Eğer Token'da ID yoksa (Admin) burası TRUE olur, hepsini getirir.
-    //    OR
-    //    (CompanyId = @__tenantId_0) -- Token'da ID varsa, sadece o şirketin verisi gelir.
-    //)
     public static void ApplyTenantFilters(this ModelBuilder modelBuilder, Expression<Func<Guid?>> tenantIdExpression)
     {
-        // 1. Tenant ID'yi veren expression'ın gövdesini alıyoruz (Run-time'da çalışacak kısım)
-        // Bu gövde şuna denk gelir: "_tenantContext.GetCompanyId()"
         var tenantIdBody = tenantIdExpression.Body;
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            // 2. Sadece IMultiTenantEntity implemente edenleri bul
+            // 1. Sadece IMultiTenantEntity implemente edenleri bul
             if (typeof(IMultiTenantEntity).IsAssignableFrom(entityType.ClrType))
             {
-                // Parametre: "e" => Product e
                 var entityParam = Expression.Parameter(entityType.ClrType, "e");
 
-                // Property: "e.CompanyId"
+                // --- A. TENANT FILTRESI OLUŞTURMA ---
                 var companyIdProp = Expression.Property(entityParam, nameof(IMultiTenantEntity.CompanyId));
-
-                // DİKKAT: CompanyId (Guid) ile GetCompanyId (Guid?) karşılaştırması için tür dönüşümü lazım.
-                // SQL karşılığı: (Guid?)e.CompanyId
                 var companyIdNullable = Expression.Convert(companyIdProp, typeof(Guid?));
 
-                // ŞART 1: TenantID null mu? (Admin durumu)
-                // Expression: _tenantContext.GetCompanyId() == null
                 var isTenantIdNull = Expression.Equal(tenantIdBody, Expression.Constant(null, typeof(Guid?)));
-
-                // ŞART 2: ID'ler eşit mi?
-                // Expression: (Guid?)e.CompanyId == _tenantContext.GetCompanyId()
                 var idsEqual = Expression.Equal(companyIdNullable, tenantIdBody);
 
-                // OR işlemi: (TenantId == null) OR (IdsEqual)
-                var finalCondition = Expression.OrElse(isTenantIdNull, idsEqual);
+                // (TenantId == null || CompanyId == TenantId)
+                Expression finalExpression = Expression.OrElse(isTenantIdNull, idsEqual);
 
-                // Lambda'yı derle: e => ...
-                var lambda = Expression.Lambda(finalCondition, entityParam);
+                // --- B. SOFT DELETE KONTROLÜ VE BİRLEŞTİRME ---
+                // Eğer bu entity AYNI ZAMANDA Soft Delete (Entity) ise, filtreye AND ekle.
+                if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
+                {
+                    var isDeletedProp = Expression.Property(entityParam, nameof(Entity.IsDeleted));
+                    var isDeletedCondition = Expression.Equal(isDeletedProp, Expression.Constant(false));
 
-                // Filtreyi uygula
+                    // (TenantLogic) AND (IsDeleted == false)
+                    finalExpression = Expression.AndAlso(finalExpression, isDeletedCondition);
+                }
+
+                var lambda = Expression.Lambda(finalExpression, entityParam);
+
+                // Bu işlem önceki filtreyi ezer ama sorun yok çünkü Soft Delete'i içine dahil ettik.
                 entityType.SetQueryFilter(lambda);
             }
         }
     }
-
 }

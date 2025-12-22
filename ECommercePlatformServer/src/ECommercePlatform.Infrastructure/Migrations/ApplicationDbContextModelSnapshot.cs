@@ -54,6 +54,9 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -69,8 +72,11 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("ParentId");
+
                     b.HasIndex("Slug", "CompanyId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Categories", (string)null);
                 });
@@ -120,6 +126,57 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Companies", (string)null);
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Companies.CompanyUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Roles")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Roles");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("UserId", "CompanyId")
+                        .IsUnique();
+
+                    b.ToTable("CompanyUsers", (string)null);
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Products.Product", b =>
@@ -212,9 +269,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("CompanyId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -295,8 +349,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -316,8 +368,11 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("CompanyUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -341,15 +396,11 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("ReplacedByToken")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTimeOffset?>("RevokedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("RevokedByIp")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -362,7 +413,10 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code");
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("CompanyUserId");
 
                     b.HasIndex("UserId");
 
@@ -480,7 +534,14 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ECommercePlatform.Domain.Categories.Category", "Parent")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Company");
+
+                    b.Navigation("Parent");
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Companies.Company", b =>
@@ -531,6 +592,25 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Navigation("Address");
                 });
 
+            modelBuilder.Entity("ECommercePlatform.Domain.Companies.CompanyUser", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Companies.Company", "Company")
+                        .WithMany("CompanyUsers")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ECommercePlatform.Domain.Users.User", "User")
+                        .WithMany("CompanyUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ECommercePlatform.Domain.Products.Product", b =>
                 {
                     b.HasOne("ECommercePlatform.Domain.Categories.Category", "Category")
@@ -578,11 +658,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
             modelBuilder.Entity("ECommercePlatform.Domain.Users.User", b =>
                 {
-                    b.HasOne("ECommercePlatform.Domain.Companies.Company", "Company")
-                        .WithMany("Users")
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.OwnsOne("ECommercePlatform.Domain.Users.ValueObjects.Address", "Address", b1 =>
                         {
                             b1.Property<Guid>("UserId")
@@ -627,17 +702,23 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         });
 
                     b.Navigation("Address");
-
-                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Users.UserRefreshToken", b =>
                 {
+                    b.HasOne("ECommercePlatform.Domain.Companies.CompanyUser", "CompanyUser")
+                        .WithMany()
+                        .HasForeignKey("CompanyUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ECommercePlatform.Domain.Users.User", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CompanyUser");
 
                     b.Navigation("User");
                 });
@@ -693,13 +774,20 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ECommercePlatform.Domain.Categories.Category", b =>
+                {
+                    b.Navigation("SubCategories");
+                });
+
             modelBuilder.Entity("ECommercePlatform.Domain.Companies.Company", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("CompanyUsers");
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Users.User", b =>
                 {
+                    b.Navigation("CompanyUsers");
+
                     b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618

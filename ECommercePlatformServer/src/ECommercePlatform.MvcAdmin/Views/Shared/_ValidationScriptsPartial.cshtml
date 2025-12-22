@@ -1,2 +1,32 @@
-﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+﻿<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.21.0/dist/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    // Turkish Validation Messages
+    $.extend($.validator.messages, {
+        required: "Bu alan zorunludur.",
+        email: "Geçerli bir email adresi giriniz.",
+        url: "Geçerli bir URL giriniz.",
+        date: "Geçerli bir tarih giriniz.",
+        number: "Geçerli bir sayı giriniz.",
+        digits: "Sadece rakam giriniz.",
+        equalTo: "Lütfen aynı değeri tekrar giriniz.",
+        maxlength: $.validator.format("En fazla {0} karakter girebilirsiniz."),
+        minlength: $.validator.format("En az {0} karakter girmelisiniz."),
+        range: $.validator.format("{0} ile {1} arasında bir değer giriniz."),
+        max: $.validator.format("{0} değerinden küçük veya eşit bir değer giriniz."),
+        min: $.validator.format("{0} değerinden büyük veya eşit bir değer giriniz.")
+    });
+
+    // Validation Styling
+    $.validator.setDefaults({
+        highlight: function(element) {
+            $(element).addClass('input-validation-error');
+        },
+        unhighlight: function(element) {
+            $(element).removeClass('input-validation-error');
+        },
+        errorClass: 'field-validation-error',
+        errorElement: 'span'
+    });
+</script>

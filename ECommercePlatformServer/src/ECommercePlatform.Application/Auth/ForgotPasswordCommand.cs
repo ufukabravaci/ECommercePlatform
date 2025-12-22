@@ -13,7 +13,9 @@ public sealed class ForgotPasswordCommandValidator : AbstractValidator<ForgotPas
 {
     public ForgotPasswordCommandValidator()
     {
-        RuleFor(p => p.Email).EmailAddress().NotEmpty();
+        RuleFor(x => x.Email).EmailAddress()
+            .WithMessage("Geçersiz e-mail adresi.")
+            .NotEmpty().WithMessage("E-mail adresi boş olamaz.");
     }
 }
 

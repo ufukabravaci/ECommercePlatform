@@ -1,3 +1,20 @@
-﻿@{
+﻿@* @{
     Layout = "_Layout";
+}
+ *@
+
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+    var authActions = new[] { "Login", "Register", "TwoFactorLogin", "ConfirmEmail" };
+
+    if (controller == "Auth" && authActions.Contains(action))
+    {
+        Layout = "_AuthLayout";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
 }

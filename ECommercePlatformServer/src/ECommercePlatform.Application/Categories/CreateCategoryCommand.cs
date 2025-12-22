@@ -1,0 +1,98 @@
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Categories;
+using ECommercePlatform.Domain.Constants;
+using FluentValidation;
+using GenericRepository;
+using TS.MediatR;
+using TS.Result;
+
+namespace ECommercePlatform.Application.Categories;
+
+[Permission(PermissionConsts.CreateCategory)]
+public sealed record CreateCategoryCommand(
+    string Name,
+    Guid? ParentId
+) : IRequest<Result<string>>;
+
+public sealed class CreateCategoryCommandValidator
+    : AbstractValidator<CreateCategoryCommand>
+{
+    public CreateCategoryCommandValidator()
+    {
+        RuleFor(x => x.Name)
+            .MinimumLength(2).WithMessage("Kategori adı en az 2 karakter olmalıdır.")
+            .MaximumLength(100).WithMessage("Kategori adı en fazla 100 karakter olabilir.");
+
+        RuleFor(x => x.ParentId)
+            .Must(id => id == null || id != Guid.Empty) //null olabilir ama null değilse boş olamaz
+            .WithMessage("Geçersiz üst kategori bilgisi.");
+    }
+}
+
+public sealed class CreateCategoryCommandHandler(
+    IRepository<Category> categoryRepository,
+    IUnitOfWork unitOfWork,
+    ITenantContext tenantContext
+) : IRequestHandler<CreateCategoryCommand, Result<string>>
+{
+    public async Task<Result<string>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    {
+        Guid? companyId = tenantContext.CompanyId;
+        if (!companyId.HasValue)
+        {
+            // Token'da CompanyId yoksa (veya Admin panelinden bağlam dışı bir işlemse)
+            return Result<string>.Failure(500, "Şirket bilgisi tespit edilemedi. Lütfen tekrar giriş yapın.");
+        }
+
+        // İsim Kontrolü (Aynı şirkette aynı isimli kategori olamaz)
+        bool isNameExists = await categoryRepository.AnyAsync(
+            p => p.Name == request.Name && p.CompanyId == companyId.Value,
+            cancellationToken);
+        if (isNameExists)
+        {
+            return Result<string>.Failure("Bu isimde bir kategori zaten mevcut.");
+        }
+
+        Category category = new(request.Name, companyId.Value);
+
+        // Parent Ataması
+        if (request.ParentId.HasValue)
+        {
+            // SetParent metodu parametre olarak Category nesnesi istiyor.
+            // Bu yüzden Parent'ı DB'den çekmek zorundayız.
+            var parent = await categoryRepository.GetByExpressionWithTrackingAsync(
+                p => p.Id == request.ParentId.Value,
+                cancellationToken
+            );
+
+            if (parent is null)
+            {
+                return Result<string>.Failure("Seçilen üst kategori bulunamadı.");
+            }
+            if (CategoryTreeHelper.GetDepth(parent) >= CategoryRules.MaxDepth)
+            {
+                return Result<string>.Failure(
+                    $"Kategori en fazla {CategoryRules.MaxDepth} seviye olabilir."
+                );
+            }
+
+            try
+            {
+                category.SetParent(parent);
+            }
+            catch (Exception ex)
+            {
+                return Result<string>.Failure(ex.Message);
+            }
+
+        }
+
+        // 4. Kayıt
+        await categoryRepository.AddAsync(category, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return "Kategori başarıyla oluşturuldu.";
+    }
+
+}
