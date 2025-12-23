@@ -1,0 +1,170 @@
+﻿@using ECommercePlatform.MvcAdmin.DTOs.Category
+@model CategoryDto
+@{
+    ViewData["Title"] = Model.Name + " - Kategori Detayı";
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Kategoriler</a></li>
+                <li class="breadcrumb-item active">@Model.Name</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">@Model.Name</h1>
+        <p class="page-subtitle mb-0">Kategori detayları ve istatistikleri</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary-gradient">
+            <i class="fas fa-edit me-2"></i>Düzenle
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Kategori Bilgileri -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>Kategori Bilgileri
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center gap-3 info-box">
+                            <div class="stat-icon primary">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Kategori Adı</small>
+                                <h5 class="mb-0">@Model.Name</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="d-flex align-items-center gap-3 info-box">
+                            <div class="stat-icon success">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">URL Slug</small>
+                                <code class="code-badge">@Model.Slug</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="d-flex align-items-center gap-3 info-box">
+                            <div class="stat-icon warning">
+                                <i class="fas fa-folder-tree"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Üst Kategori</small>
+                                @if (string.IsNullOrEmpty(Model.ParentName))
+                                {
+                                    <span class="badge-status active">Ana Kategori</span>
+                                }
+                                else
+                                {
+                                    <span class="fs-6 fw-medium">@Model.ParentName</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ID ve Teknik Bilgiler -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog me-2 text-primary"></i>Teknik Bilgiler
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4 pb-4 border-bottom">
+                    <small class="text-muted d-block mb-2">Kategori ID</small>
+                    <div class="d-flex align-items-center gap-2">
+                        <code class="code-badge flex-grow-1" id="categoryId">@Model.Id</code>
+                        <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('categoryId')"
+                                style="border-radius: 8px;" data-bs-toggle="tooltip" title="Kopyala">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (Model.ParentId.HasValue)
+                {
+                    <div>
+                        <small class="text-muted d-block mb-2">Üst Kategori ID</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <code class="code-badge flex-grow-1" id="parentId">@Model.ParentId</code>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('parentId')"
+                                    style="border-radius: 8px;" data-bs-toggle="tooltip" title="Kopyala">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .info-box {
+            background: rgba(102, 126, 234, 0.08);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        [data-bs-theme="dark"] .info-box {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .code-badge {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        [data-bs-theme="dark"] .code-badge {
+            background: rgba(102, 126, 234, 0.3);
+            color: #a5b4fc;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function copyToClipboard(elementId) {
+            var text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(function() {
+                toastr.success('Panoya kopyalandı!');
+            });
+        }
+
+        // Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    </script>
+}

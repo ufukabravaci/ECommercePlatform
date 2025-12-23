@@ -1,0 +1,845 @@
+﻿@using ECommercePlatform.MvcAdmin.Models
+@using ECommercePlatform.MvcAdmin.Models.Category
+@using ECommercePlatform.MvcAdmin.DTOs.Category
+@model PaginatedList<CategoryDto>
+@{
+    ViewData["Title"] = "Kategoriler";
+
+    var totalCategories = Model?.TotalCount ?? 0;
+    var mainCategories = Model?.Items?.Count(c => c.ParentId == null) ?? 0;
+    var subCategories = Model?.Items?.Count(c => c.ParentId != null) ?? 0;
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active">Kategoriler</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Kategori Yönetimi</h1>
+        <p class="page-subtitle mb-0">Ürün kategorilerinizi buradan yönetebilirsiniz.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-primary" style="border-radius: 10px;"
+                data-bs-toggle="modal" data-bs-target="#categoryTreeModal">
+            <i class="fas fa-sitemap me-2"></i>Ağaç Görünümü
+        </button>
+        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;" onclick="location.reload()">
+            <i class="fas fa-sync-alt me-2"></i>Yenile
+        </button>
+        <a asp-action="Create" class="btn btn-primary-gradient">
+            <i class="fas fa-plus me-2"></i>Yeni Kategori
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-4">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary" style="border-radius: 8px;">
+                        <i class="fas fa-chart-line me-1"></i>Toplam
+                    </span>
+                </div>
+                <div class="stat-value">@totalCategories</div>
+                <div class="stat-label">Toplam Kategori</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-4">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon success">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success" style="border-radius: 8px;">
+                        <i class="fas fa-check me-1"></i>Ana
+                    </span>
+                </div>
+                <div class="stat-value">@mainCategories</div>
+                <div class="stat-label">Ana Kategori</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-4">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-folder-tree"></i>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning" style="border-radius: 8px;">
+                        <i class="fas fa-sitemap me-1"></i>Alt
+                    </span>
+                </div>
+                <div class="stat-value">@subCategories</div>
+                <div class="stat-label">Alt Kategori</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Table Card -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Kategori Listesi
+        </h5>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <!-- Sayfa Boyutu Seçici -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="text-muted small mb-0 d-none d-sm-inline">Göster:</label>
+                <select class="form-select form-select-sm" id="pageSizeSelect" style="width: auto; border-radius: 8px;">
+                    @{
+                        var pageSizes = new[] { 10, 25, 50, 100 };
+                    }
+                    @foreach (var size in pageSizes)
+                    {
+                        if (Model?.PageSize == size)
+                        {
+                            <option value="@size" selected>@size</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Arama -->
+            <div class="input-group" style="width: 220px;">
+                <span class="input-group-text bg-transparent border-end-0" style="border-radius: 10px 0 0 10px;">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" id="searchInput"
+                       placeholder="Kategori ara..." style="border-radius: 0 10px 10px 0;">
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        @if (Model == null || !Model.Items.Any())
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light"
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-folder-open fa-2x text-muted"></i>
+                    </div>
+                </div>
+                <h5 class="text-muted mb-2">Henüz kategori bulunmuyor</h5>
+                <p class="text-muted mb-4">İlk kategorinizi ekleyerek başlayın.</p>
+                <a asp-action="Create" class="btn btn-primary-gradient">
+                    <i class="fas fa-plus me-2"></i>İlk Kategoriyi Ekle
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="categoriesTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Kategori Adı</th>
+                            <th>Slug</th>
+                            <th>Üst Kategori</th>
+                            <th style="width: 120px;" class="text-center">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var index = (Model.PageIndex - 1) * Model.PageSize + 1;
+                        }
+                        @foreach (var category in Model.Items)
+                        {
+                            <tr data-category-id="@category.Id" data-href="@Url.Action("Details", "Category", new { id = category.Id })" class="clickable-row">
+                                <td>
+                                    <span class="text-muted fw-medium">@index</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="category-icon @(category.ParentId == null ? "bg-primary" : "bg-warning") bg-opacity-15 rounded d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px; flex-shrink: 0;">
+                                            <i class="fas @(category.ParentId == null ? "fa-folder" : "fa-folder-tree") @(category.ParentId == null ? "text-primary" : "text-warning")"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold">@category.Name</h6>
+                                            <small class="text-muted">ID: @category.Id.ToString()[..8]...</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <code class="code-badge">@category.Slug</code>
+                                </td>
+                                <td>
+                                    @if (string.IsNullOrEmpty(category.ParentName))
+                                    {
+                                        <span class="badge-status active">
+                                            <i class="fas fa-crown me-1"></i>Ana Kategori
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status pending">
+                                            <i class="fas fa-arrow-right me-1"></i>@category.ParentName
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="Edit" asp-route-id="@category.Id"
+                                           class="btn btn-sm btn-outline-primary action-btn"
+                                           data-bs-toggle="tooltip" title="Düzenle"
+                                           style="border-radius: 8px; width: 36px; height: 36px;">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger action-btn delete-btn"
+                                                data-id="@category.Id"
+                                                data-name="@category.Name"
+                                                data-bs-toggle="tooltip" title="Sil"
+                                                style="border-radius: 8px; width: 36px; height: 36px;">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            index++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+    @if (Model != null && Model.Items.Any())
+    {
+        <div class="card-footer bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted" id="categoryCount">
+                Toplam <strong>@Model.TotalCount</strong> kategoriden
+                <strong>@(((Model.PageIndex - 1) * Model.PageSize) + 1)-@(Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount))</strong>
+                arası gösteriliyor
+            </span>
+
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Kategori sayfalama">
+                    <ul class="pagination pagination-sm mb-0">
+                        @* İlk Sayfa *@
+                        <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="1" asp-route-pageSize="@Model.PageSize"
+                               data-bs-toggle="tooltip" title="İlk Sayfa">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+
+                        @* Önceki Sayfa *@
+                        <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex - 1)" asp-route-pageSize="@Model.PageSize"
+                               data-bs-toggle="tooltip" title="Önceki">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+
+                        @* Sayfa Numaraları *@
+                        @{
+                            var startPage = Math.Max(1, Model.PageIndex - 2);
+                            var endPage = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+
+                            // En az 5 sayfa göster (mümkünse)
+                            if (endPage - startPage < 4)
+                            {
+                                if (startPage == 1)
+                                {
+                                    endPage = Math.Min(Model.TotalPages, startPage + 4);
+                                }
+                                else if (endPage == Model.TotalPages)
+                                {
+                                    startPage = Math.Max(1, endPage - 4);
+                                }
+                            }
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+
+                        @for (var i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-pageSize="@Model.PageSize">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+
+                        @* Sonraki Sayfa *@
+                        <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex + 1)" asp-route-pageSize="@Model.PageSize"
+                               data-bs-toggle="tooltip" title="Sonraki">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+
+                        @* Son Sayfa *@
+                        <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@Model.TotalPages" asp-route-pageSize="@Model.PageSize"
+                               data-bs-toggle="tooltip" title="Son Sayfa">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    }
+</div>
+
+<!-- Delete Confirmation Form (Hidden) -->
+<form id="deleteForm" asp-action="Delete" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+<!-- Category Tree Modal -->
+<div class="modal fade" id="categoryTreeModal" tabindex="-1" aria-labelledby="categoryTreeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold" id="categoryTreeModalLabel">
+                        <i class="fas fa-sitemap me-2 text-primary"></i>Kategori Ağacı
+                    </h5>
+                    <p class="text-muted small mb-0">Tüm kategorilerin hiyerarşik görünümü</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body pt-3">
+                @{
+                    var categoryTree = ViewBag.CategoryTree as List<CategoryTreeItem>;
+                }
+
+                @if (categoryTree == null || !categoryTree.Any())
+                {
+                    <div class="text-center py-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3"
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-folder-open fa-lg text-muted"></i>
+                        </div>
+                        <p class="text-muted mb-0">Henüz kategori bulunmuyor</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="category-tree">
+                        @foreach (var item in categoryTree)
+                        {
+                            var paddingLeft = item.Level * 24;
+                            var isRoot = item.Level == 0;
+
+                            <div class="tree-item" style="padding-left: @(paddingLeft)px;">
+                                <div class="tree-item-content @(isRoot ? "root-item" : "child-item")">
+                                    @if (!isRoot)
+                                    {
+                                        <span class="tree-line"></span>
+                                    }
+                                    <div class="tree-icon @(isRoot ? "root" : "child")">
+                                        <i class="fas @(isRoot ? "fa-folder" : "fa-folder-tree")"></i>
+                                    </div>
+                                    <span class="tree-label">@item.Name</span>
+                                    <div class="tree-actions">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="tree-action detail"
+                                           data-bs-toggle="tooltip" title="Detay">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="tree-action edit"
+                                           data-bs-toggle="tooltip" title="Düzenle">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="tree-action delete tree-delete-btn"
+                                                data-id="@item.Id" data-name="@item.Name"
+                                                data-bs-toggle="tooltip" title="Sil">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    <i class="fas fa-times me-2"></i>Kapat
+                </button>
+                <a asp-action="Create" class="btn btn-primary-gradient">
+                    <i class="fas fa-plus me-2"></i>Yeni Kategori
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .clickable-row {
+            cursor: pointer;
+        }
+
+            .clickable-row:hover {
+                background-color: rgba(102, 126, 234, 0.08) !important;
+            }
+
+        .code-badge {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        [data-bs-theme="dark"] .code-badge {
+            background: rgba(102, 126, 234, 0.3);
+            color: #a5b4fc;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+            .action-btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .category-icon {
+            transition: all 0.2s ease;
+        }
+
+        tr:hover .category-icon {
+            transform: scale(1.1);
+        }
+
+        #categoriesTable tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            #categoriesTable tbody tr:hover {
+                background-color: rgba(102, 126, 234, 0.05);
+            }
+
+        .pagination .page-link {
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--primary-gradient);
+            border-color: transparent;
+        }
+        /* Category Tree Modal Styles */
+        .category-tree {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .tree-item {
+            position: relative;
+        }
+
+        .tree-item-content {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem 0.75rem;
+            margin-bottom: 0.35rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            gap: 0.75rem;
+        }
+
+            .tree-item-content:hover {
+                background: rgba(102, 126, 234, 0.1);
+            }
+
+            .tree-item-content.root-item {
+                background: rgba(102, 126, 234, 0.08);
+            }
+
+                .tree-item-content.root-item:hover {
+                    background: rgba(102, 126, 234, 0.15);
+                }
+
+        .tree-line {
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            width: 12px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--border-color) 0%, rgba(102, 126, 234, 0.5) 100%);
+            border-radius: 2px;
+        }
+
+        .tree-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.85rem;
+        }
+
+            .tree-icon.root {
+                background: rgba(102, 126, 234, 0.2);
+                color: #667eea;
+            }
+
+            .tree-icon.child {
+                background: rgba(245, 158, 11, 0.2);
+                color: #f59e0b;
+            }
+
+        .tree-label {
+            flex-grow: 1;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .tree-action {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .tree-item-content:hover .tree-action {
+            opacity: 1;
+        }
+
+        .tree-action:hover {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        /* Dark Mode */
+        [data-bs-theme="dark"] .tree-item-content.root-item {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        [data-bs-theme="dark"] .tree-item-content:hover {
+            background: rgba(102, 126, 234, 0.25);
+        }
+
+        [data-bs-theme="dark"] .tree-icon.root {
+            background: rgba(102, 126, 234, 0.3);
+            color: #a5b4fc;
+        }
+
+        [data-bs-theme="dark"] .tree-icon.child {
+            background: rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+
+        /* Modal Dark Mode */
+        [data-bs-theme="dark"] .modal-content {
+            background: var(--card-bg);
+        }
+
+        /* Scrollbar styling */
+        .category-tree::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .category-tree::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .category-tree::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
+        }
+
+            .category-tree::-webkit-scrollbar-thumb:hover {
+                background: rgba(102, 126, 234, 0.5);
+            }
+
+        .tree-actions {
+            display: flex;
+            gap: 0.25rem;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .tree-item-content:hover .tree-actions {
+            opacity: 1;
+        }
+
+        .tree-action {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+            .tree-action.detail:hover {
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
+            }
+
+            .tree-action.edit:hover {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .tree-action.delete:hover {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+        /* Dark Mode */
+        [data-bs-theme="dark"] .tree-action.detail:hover {
+            background: rgba(59, 130, 246, 0.25);
+            color: #60a5fa;
+        }
+
+        [data-bs-theme="dark"] .tree-action.edit:hover {
+            background: rgba(16, 185, 129, 0.25);
+            color: #34d399;
+        }
+
+        [data-bs-theme="dark"] .tree-action.delete:hover {
+            background: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+        }
+        /* Pagination Styles */
+        .pagination {
+            gap: 0.25rem;
+        }
+
+            .pagination .page-link {
+                border-radius: 8px !important;
+                border: 1px solid var(--border-color);
+                color: var(--text-secondary);
+                padding: 0.4rem 0.75rem;
+                font-size: 0.85rem;
+                transition: all 0.2s ease;
+                min-width: 36px;
+                text-align: center;
+            }
+
+                .pagination .page-link:hover {
+                    background: rgba(102, 126, 234, 0.1);
+                    border-color: rgba(102, 126, 234, 0.3);
+                    color: #667eea;
+                }
+
+            .pagination .page-item.active .page-link {
+                background: var(--primary-gradient);
+                border-color: transparent;
+                color: white;
+            }
+
+            .pagination .page-item.disabled .page-link {
+                background: transparent;
+                border-color: var(--border-color);
+                color: var(--text-muted);
+                opacity: 0.5;
+            }
+
+        /* Dark Mode */
+        [data-bs-theme="dark"] .pagination .page-link {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+        }
+
+            [data-bs-theme="dark"] .pagination .page-link:hover {
+                background: rgba(102, 126, 234, 0.2);
+            }
+
+        [data-bs-theme="dark"] .pagination .page-item.disabled .page-link {
+            background: transparent;
+        }
+    </style>
+}
+
+
+
+@section Scripts {
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Tooltips başlat
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Arama fonksiyonu
+                            $('#searchInput').on('keyup', function() {
+            var value = $(this).val().toLowerCase().trim();
+            var totalCount = $('#categoriesTable tbody tr').length;
+
+            if (value === '') {
+                // Boşsa tüm satırları göster
+                $('#categoriesTable tbody tr').show();
+                updateCategoryCount(totalCount, totalCount);
+                return;
+            }
+
+            var visibleCount = 0;
+            $('#categoriesTable tbody tr').each(function() {
+                // Sadece kategori adı sütunundaki h6 elementini kontrol et
+                var categoryName = $(this).find('td:nth-child(2) h6').text().toLowerCase();
+
+                if (categoryName.indexOf(value) > -1) {
+                    $(this).show();
+                    visibleCount++;
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            updateCategoryCount(visibleCount, totalCount);
+        });
+
+        // Sayı güncelleme fonksiyonu
+                        function updateCategoryCount(visible, total) {
+            var totalCount = @(Model?.TotalCount ?? 0);
+            if (visible === total) {
+                $('#categoryCount').html('Toplam <strong>' + totalCount + '</strong> kategoriden <strong>' + total + '</strong> gösteriliyor');
+            } else {
+                $('#categoryCount').html('Toplam <strong>' + totalCount + '</strong> kategoriden <strong>' + visible + '</strong> / <strong>' + total + '</strong> gösteriliyor (filtrelenmiş)');
+            }
+        }
+            // Silme işlemi
+            $('.delete-btn').on('click', function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    html: `<strong>"${name}"</strong> kategorisini silmek istediğinize emin misiniz?<br><small class="text-muted">Bu işlem geri alınamaz.</small>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>Evet, Sil',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>İptal',
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'rounded-4',
+                        confirmButton: 'btn btn-danger px-4',
+                        cancelButton: 'btn btn-secondary px-4'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#deleteId').val(id);
+                        $('#deleteForm').submit();
+                    }
+                });
+            });
+        });
+
+                // Satıra tıklayınca Details'e git (butonlar hariç)
+        $('.clickable-row').on('click', function(e) {
+            // Eğer tıklanan element buton veya buton içindeki icon ise yönlendirme yapma
+            if ($(e.target).closest('.action-btn, button, a').length === 0) {
+                window.location.href = $(this).data('href');
+            }
+        });
+                $('#categoryTreeModal').on('shown.bs.modal', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('#categoryTreeModal [data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+                $('#categoryTreeModal').on('shown.bs.modal', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('#categoryTreeModal [data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // Tree Modal içindeki silme butonu
+        $(document).on('click', '.tree-delete-btn', function() {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+
+            // Modal'ı geçici olarak gizle (SweetAlert'ın önünde kalmaması için)
+            $('#categoryTreeModal').css('z-index', '1040');
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                html: `<strong>"${name}"</strong> kategorisini silmek istediğinize emin misiniz?<br><small class="text-muted">Bu işlem geri alınamaz.</small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>Evet, Sil',
+                cancelButtonText: '<i class="fas fa-times me-2"></i>İptal',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-danger px-4',
+                    cancelButton: 'btn btn-secondary px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                // Modal z-index'ini geri al
+                $('#categoryTreeModal').css('z-index', '');
+
+                if (result.isConfirmed) {
+                    $('#deleteId').val(id);
+                    $('#deleteForm').submit();
+                }
+            });
+        });
+                $('#pageSizeSelect').on('change', function() {
+            window.location.href = '@Url.Action("Index")?page=1&pageSize=' + this.value;
+        });
+    </script>
+}

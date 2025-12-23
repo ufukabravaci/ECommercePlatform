@@ -59,33 +59,62 @@ public sealed class CreateCategoryCommandHandler(
         // Parent Ataması
         if (request.ParentId.HasValue)
         {
-            // SetParent metodu parametre olarak Category nesnesi istiyor.
-            // Bu yüzden Parent'ı DB'den çekmek zorundayız.
-            var parent = await categoryRepository.GetByExpressionWithTrackingAsync(
+            // 1. Önce seçilen Parent'ı getir (İlişki kurmak için buna ihtiyacımız var)
+            var parentCategory = await categoryRepository.GetByExpressionWithTrackingAsync(
                 p => p.Id == request.ParentId.Value,
                 cancellationToken
             );
 
-            if (parent is null)
-            {
+            if (parentCategory is null)
                 return Result<string>.Failure("Seçilen üst kategori bulunamadı.");
-            }
-            if (CategoryTreeHelper.GetDepth(parent) >= CategoryRules.MaxDepth)
+
+            // 2. Derinliği Hesapla (While Döngüsü ile)
+            // Yeni eklenecek kategori 1. seviye, Parent 2. seviye... diye sayacağız.
+            // Eğer Parent varsa, derinlik en az 2'dir (Ben + Babam).
+            int currentDepth = 1;
+            Guid? currentParentId = parentCategory.Id;
+
+            // Tepeye kadar tırman
+            while (currentParentId.HasValue)
             {
-                return Result<string>.Failure(
-                    $"Kategori en fazla {CategoryRules.MaxDepth} seviye olabilir."
-                );
+                currentDepth++; // Bir kat daha çıktık
+
+                if (currentDepth > CategoryRules.MaxDepth)
+                {
+                    return Result<string>.Failure($"Kategori en fazla {CategoryRules.MaxDepth} seviye olabilir.");
+                }
+
+                // Bir üstteki babayı bulmamız lazım.
+                // parentCategory zaten elimizde, onun ParentId'sine bakıyoruz.
+                // Ancak döngü 2. tura girdiğinde, babanın babasını DB'den çekmemiz lazım.
+
+                if (currentDepth == 2)
+                {
+                    // İlk turda zaten elimizde 'parentCategory' var, tekrar DB'ye gitme.
+                    currentParentId = parentCategory.ParentId;
+                }
+                else
+                {
+                    // Daha yukarı çıkıyorsak DB'den babanın babasını çek.
+                    // Sadece ParentId'yi okumak için 'AsNoTracking' veya basit bir Select atabilirsin ama
+                    // Repository yapısı gereği entity çekiyoruz.
+                    var upperCategory = await categoryRepository.GetByExpressionAsync(
+                        x => x.Id == currentParentId.Value,
+                        cancellationToken);
+
+                    currentParentId = upperCategory?.ParentId;
+                }
             }
 
+            // 3. Kontrol geçtiyse atamayı yap
             try
             {
-                category.SetParent(parent);
+                category.SetParent(parentCategory);
             }
             catch (Exception ex)
             {
                 return Result<string>.Failure(ex.Message);
             }
-
         }
 
         // 4. Kayıt

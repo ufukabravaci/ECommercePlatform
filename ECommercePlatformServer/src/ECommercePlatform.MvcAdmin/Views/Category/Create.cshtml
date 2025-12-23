@@ -1,0 +1,242 @@
+﻿@using ECommercePlatform.MvcAdmin.Models.Category
+@model CreateCategoryViewModel
+@{
+    ViewData["Title"] = "Yeni Kategori";
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Kategoriler</a></li>
+                <li class="breadcrumb-item active">Yeni Kategori</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Yeni Kategori Oluştur</h1>
+        <p class="page-subtitle mb-0">Ürünleriniz için yeni bir kategori ekleyin.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+        <i class="fas fa-arrow-left me-2"></i>Geri Dön
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Form Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-folder-plus me-2 text-primary"></i>Kategori Bilgileri
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <div>@ViewBag.Error</div>
+                    </div>
+                }
+
+                <form asp-action="Create" method="post" id="createCategoryForm">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Kategori Adı -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-tag me-2 text-primary"></i>Kategori Adı
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group-icon">
+                            <i class="fas fa-layer-group input-icon"></i>
+                            <input type="text"
+                                   asp-for="Name"
+                                   class="form-control form-control-lg"
+                                   placeholder="Örn: Elektronik, Giyim, Ev & Yaşam..."
+                                   style="padding-left: 3rem; border-radius: 12px; border: 2px solid #e2e8f0;">
+                        </div>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>Kategori adı 2-100 karakter arasında olmalıdır.
+                        </small>
+                    </div>
+
+                    <!-- Üst Kategori -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-sitemap me-2 text-warning"></i>Üst Kategori
+                            <span class="text-muted fw-normal">(Opsiyonel)</span>
+                        </label>
+                        <div class="input-group-icon">
+                            <i class="fas fa-folder-tree input-icon"></i>
+                            <select asp-for="ParentId"
+                                    class="form-select form-select-lg"
+                                    style="padding-left: 3rem; border-radius: 12px; border: 2px solid #e2e8f0;">
+                                <option value="">-- Ana Kategori (Üst kategori yok) --</option>
+                                @if (Model.CategoryTree != null)
+                                {
+                                    @foreach (var item in Model.CategoryTree)
+                                    {
+                                        var indent = new string('\u00A0', item.Level * 4);
+                                        var prefix = item.Level > 0 ? "↳ " : "";
+                                        <!option value="@item.Id">@Html.Raw(indent)@prefix@item.Name</!option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <span asp-validation-for="ParentId" class="text-danger small"></span>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>Boş bırakırsanız ana kategori olarak oluşturulur.
+                        </small>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg" style="border-radius: 12px;">
+                            <i class="fas fa-times me-2"></i>İptal
+                        </a>
+                        <button type="submit" class="btn btn-primary-gradient btn-lg" id="submitBtn">
+                            <span class="btn-text">
+                                <i class="fas fa-check me-2"></i>Kategori Oluştur
+                            </span>
+                            <span class="btn-loading d-none">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div class="col-lg-4">
+        <!-- Help Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary bg-opacity-10">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="fas fa-lightbulb me-2"></i>İpuçları
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex align-items-start mb-3">
+                        <div class="bg-success bg-opacity-15 rounded-circle p-2 me-3" style="width: 32px; height: 32px;">
+                            <i class="fas fa-check text-success" style="font-size: 0.75rem;"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block">Anlaşılır isimler kullanın</strong>
+                            <small class="text-muted">Müşterilerinizin kolayca bulabilmesi için açık ve net isimler tercih edin.</small>
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start mb-3">
+                        <div class="bg-warning bg-opacity-15 rounded-circle p-2 me-3" style="width: 32px; height: 32px;">
+                            <i class="fas fa-folder-tree text-warning" style="font-size: 0.75rem;"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block">Hiyerarşi oluşturun</strong>
+                            <small class="text-muted">Alt kategoriler ile ürünlerinizi daha iyi organize edin.</small>
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start">
+                        <div class="bg-info bg-opacity-15 rounded-circle p-2 me-3" style="width: 32px; height: 32px;">
+                            <i class="fas fa-link text-info" style="font-size: 0.75rem;"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block">SEO dostu slug</strong>
+                            <small class="text-muted">Kategori adından otomatik olarak URL-dostu slug oluşturulur.</small>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Stats Preview Card -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2 text-primary"></i>Mevcut Durum
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <span class="text-muted">Toplam Kategori</span>
+                    <span class="badge bg-primary" style="border-radius: 8px;">
+                        @(Model.AvailableCategories?.Count ?? 0)
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <span class="text-muted">Ana Kategoriler</span>
+                    <span class="badge bg-success" style="border-radius: 8px;">
+                        @(Model.AvailableCategories?.Count(c => c.ParentId == null) ?? 0)
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Alt Kategoriler</span>
+                    <span class="badge bg-warning" style="border-radius: 8px;">
+                        @(Model.AvailableCategories?.Count(c => c.ParentId != null) ?? 0)
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .input-group-icon {
+            position: relative;
+        }
+
+            .input-group-icon .input-icon {
+                position: absolute;
+                left: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94a3b8;
+                z-index: 5;
+            }
+
+            .input-group-icon .form-control:focus,
+            .input-group-icon .form-select:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+            }
+
+        .form-control, .form-select {
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary-gradient:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Form submit handling
+            $('#createCategoryForm').on('submit', function() {
+                if ($(this).valid()) {
+                    var $btn = $('#submitBtn');
+                    $btn.prop('disabled', true);
+                    $btn.find('.btn-text').addClass('d-none');
+                    $btn.find('.btn-loading').removeClass('d-none');
+                }
+            });
+
+            // Input focus effects
+            $('.form-control, .form-select').on('focus', function() {
+                $(this).parent().find('.input-icon').css('color', '#667eea');
+            }).on('blur', function() {
+                $(this).parent().find('.input-icon').css('color', '#94a3b8');
+            });
+        });
+    </script>
+}

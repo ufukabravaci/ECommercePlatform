@@ -16,16 +16,18 @@ public class ApiService : IApiService
     }
 
     // Her istekte Token'ı Header'a ekle
-    private void AddAuthorizationHeader()
+    private async Task AddAuthorizationHeaderAsync()
     {
         var context = _httpContextAccessor.HttpContext;
         if (context == null) return;
 
-        // 1. Bearer Token Ekle
+        await context.Session.LoadAsync();
         var token = context.Session.GetString("AccessToken");
+        // 1. Bearer Token Ekle
         if (!string.IsNullOrEmpty(token))
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
         }
 
         // 2. Tenant ID Header Ekle (YENİ)
@@ -44,15 +46,29 @@ public class ApiService : IApiService
 
     public async Task<Result<T>> GetAsync<T>(string endpoint)
     {
-        AddAuthorizationHeader();
+        await AddAuthorizationHeaderAsync();
         var response = await _httpClient.GetAsync(endpoint);
         return await HandleResponse<T>(response);
     }
 
     public async Task<Result<T>> PostAsync<T>(string endpoint, object data)
     {
-        AddAuthorizationHeader();
+        await AddAuthorizationHeaderAsync();
         var response = await _httpClient.PostAsJsonAsync(endpoint, data);
+        return await HandleResponse<T>(response);
+    }
+
+    public async Task<Result<T>> PutAsync<T>(string endpoint, object data)
+    {
+        await AddAuthorizationHeaderAsync();
+        var response = await _httpClient.PutAsJsonAsync(endpoint, data); // System.Net.Http.Json extension
+        return await HandleResponse<T>(response);
+    }
+
+    public async Task<Result<T>> DeleteAsync<T>(string endpoint)
+    {
+        await AddAuthorizationHeaderAsync();
+        var response = await _httpClient.DeleteAsync(endpoint);
         return await HandleResponse<T>(response);
     }
 

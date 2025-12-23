@@ -1,0 +1,320 @@
+﻿@using ECommercePlatform.MvcAdmin.Models.Category
+@model UpdateCategoryViewModel
+@{
+    ViewData["Title"] = "Kategori Düzenle";
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Kategoriler</a></li>
+                <li class="breadcrumb-item active">Düzenle</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Kategori Düzenle</h1>
+        <p class="page-subtitle mb-0">
+            <span class="badge bg-primary bg-opacity-15 text-primary me-2" style="border-radius: 8px;">
+                @Model.Name
+            </span>
+            kategorisini düzenliyorsunuz.
+        </p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+        <i class="fas fa-arrow-left me-2"></i>Geri Dön
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Form Card -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2 text-primary"></i>Kategori Bilgileri
+                </h5>
+                <span class="id-badge">
+                    <i class="fas fa-fingerprint me-1"></i>ID: @Model.Id.ToString()[..8]...
+                </span>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <div>@ViewBag.Error</div>
+                    </div>
+                }
+
+                <form asp-action="Edit" method="post" id="editCategoryForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <!-- Kategori Adı -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-tag me-2 text-primary"></i>Kategori Adı
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group-icon">
+                            <i class="fas fa-layer-group input-icon"></i>
+                            <input type="text"
+                                   asp-for="Name"
+                                   class="form-control form-control-lg"
+                                   placeholder="Kategori adını girin..."
+                                   style="padding-left: 3rem; border-radius: 12px; border: 2px solid #e2e8f0;">
+                        </div>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Üst Kategori -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-sitemap me-2 text-warning"></i>Üst Kategori
+                            <span class="text-muted fw-normal">(Opsiyonel)</span>
+                        </label>
+                        <div class="input-group-icon">
+                            <i class="fas fa-folder-tree input-icon"></i>
+                            <select asp-for="ParentId"
+                                    class="form-select form-select-lg"
+                                    style="padding-left: 3rem; border-radius: 12px; border: 2px solid #e2e8f0;">
+                                <option value="">-- Ana Kategori (Üst kategori yok) --</option>
+                                @if (Model.CategoryTree != null)
+                                {
+                                    @foreach (var item in Model.CategoryTree)
+                                    {
+                                        var indent = new string('\u00A0', item.Level * 4);
+                                        var prefix = item.Level > 0 ? "↳ " : "";
+                                        <!option value="@item.Id">@Html.Raw(indent)@prefix@item.Name</!option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <span asp-validation-for="ParentId" class="text-danger small"></span>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-exclamation-triangle me-1 text-warning"></i>
+                            Dikkat: Kategorinin kendisi veya alt kategorileri bu listede gösterilmez.
+                        </small>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary-gradient btn-lg" id="submitBtn">
+                            <span class="btn-text">
+                                <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                            </span>
+                            <span class="btn-loading d-none">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...
+                            </span>
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg" style="border-radius: 12px;">
+                            <i class="fas fa-times me-2"></i>İptal
+                        </a>
+                        <button type="button" class="btn btn-outline-danger btn-lg ms-auto delete-btn"
+                                data-id="@Model.Id" data-name="@Model.Name" style="border-radius: 12px;">
+                            <i class="fas fa-trash-alt me-2"></i>Sil
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div class="col-lg-4">
+        <!-- Current Info Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-info bg-opacity-10">
+                <h6 class="card-title mb-0 text-info">
+                    <i class="fas fa-info-circle me-2"></i>Mevcut Bilgiler
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 pb-3 border-bottom">
+                    <small class="text-muted d-block mb-1">Kategori ID</small>
+                    <code class="code-badge flex-grow-1" id="categoryId">@Model.Id</code>
+                </div>
+                <div class="mb-3 pb-3 border-bottom">
+                    <small class="text-muted d-block mb-1">Kategori Tipi</small>
+                    @if (Model.ParentId == null)
+                    {
+                        <span class="badge-status active">
+                            <i class="fas fa-crown me-1"></i>Ana Kategori
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge-status pending">
+                            <i class="fas fa-level-down-alt me-1"></i>Alt Kategori
+                        </span>
+                    }
+                </div>
+                <div>
+                    <small class="text-muted d-block mb-1">Mevcut Üst Kategori</small>
+                    @if (Model.ParentId == null)
+                    {
+                        <span class="text-muted">—</span>
+                    }
+                    else
+                    {
+                        var parentCategory = Model.AvailableCategories?.FirstOrDefault(c => c.Id == Model.ParentId);
+                        <span class="fw-medium">@(parentCategory?.Name ?? "Bilinmiyor")</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Warning Card -->
+        <div class="card border-warning">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h6 class="card-title mb-0 text-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Dikkat
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="fas fa-circle text-warning me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                        Kategori adını değiştirmek URL'yi (slug) de değiştirebilir.
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-circle text-warning me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                        Alt kategorileri olan bir kategoriyi silmek, alt kategorileri de etkileyebilir.
+                    </li>
+                    <li>
+                        <i class="fas fa-circle text-warning me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                        Ürünler bu kategoriye bağlıysa dikkatli olun.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Form (Hidden) -->
+<form id="deleteForm" asp-action="Delete" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+@section Styles {
+    <style>
+        .id-badge {
+            background: rgba(100, 116, 139, 0.15);
+            color: #64748b;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        [data-bs-theme="dark"] .id-badge {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+        }
+
+        .code-badge {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        [data-bs-theme="dark"] .code-badge {
+            background: rgba(102, 126, 234, 0.3);
+            color: #a5b4fc;
+        }
+
+        .input-group-icon {
+            position: relative;
+        }
+
+            .input-group-icon .input-icon {
+                position: absolute;
+                left: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94a3b8;
+                z-index: 5;
+            }
+
+            .input-group-icon .form-control:focus,
+            .input-group-icon .form-select:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+            }
+
+        .form-control, .form-select {
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .border-warning {
+            border-color: rgba(245, 158, 11, 0.3) !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Form submit handling
+            $('#editCategoryForm').on('submit', function() {
+                if ($(this).valid()) {
+                    var $btn = $('#submitBtn');
+                    $btn.prop('disabled', true);
+                    $btn.find('.btn-text').addClass('d-none');
+                    $btn.find('.btn-loading').removeClass('d-none');
+                }
+            });
+
+            // Input focus effects
+            $('.form-control, .form-select').on('focus', function() {
+                $(this).parent().find('.input-icon').css('color', '#667eea');
+            }).on('blur', function() {
+                $(this).parent().find('.input-icon').css('color', '#94a3b8');
+            });
+
+            // Delete button handling
+            $('.delete-btn').on('click', function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    html: `<strong>"${name}"</strong> kategorisini silmek istediğinize emin misiniz?<br><small class="text-muted">Bu işlem geri alınamaz.</small>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>Evet, Sil',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>İptal',
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'rounded-4',
+                        confirmButton: 'btn btn-danger px-4',
+                        cancelButton: 'btn btn-secondary px-4'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#deleteId').val(id);
+                        $('#deleteForm').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}
