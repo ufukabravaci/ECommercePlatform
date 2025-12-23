@@ -20,4 +20,8 @@
     <ProjectReference Include="..\ECommercePlatform.Infrastructure\ECommercePlatform.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\" />
+  </ItemGroup>
+
 </Project>

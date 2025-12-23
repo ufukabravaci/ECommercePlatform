@@ -1,7 +1,9 @@
-﻿using ECommercePlatform.Domain.Users;
+﻿using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Users;
 using ECommercePlatform.Infrastructure.BackgroundJobs;
 using ECommercePlatform.Infrastructure.Context;
 using ECommercePlatform.Infrastructure.Options;
+using ECommercePlatform.Infrastructure.Services;
 using ECommercePlatform.Infrastructure.Tokens;
 using GenericRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -49,6 +51,7 @@ public static class ServiceRegistrar
             string con = configuration.GetConnectionString("SqlServer")!;
             opt.UseSqlServer(con);
         });
+        services.AddScoped<IFileService, LocalFileService>();
 
         var redisCon = configuration.GetConnectionString("Redis");
 
