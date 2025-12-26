@@ -55,5 +55,6 @@ app.UseAuthorization();
 app.MapAuthEndpoints();
 app.MapCompanyEndpoints();
 app.MapCategoryEndpoints();
+app.MapProductEndpoints();
 await app.ApplySeedDataAsync();
 app.Run();

@@ -23,15 +23,14 @@ public sealed class Product : Entity, IMultiTenantEntity
     {
         SetName(name);
         SetSku(sku);
-        Description = description;
+        SetDescription(description);
         SetPrice(price);
         UpdateStock(stock);
+        SetCategory(categoryId);
 
         if (companyId == Guid.Empty) throw new ArgumentException("Şirket bilgisi zorunludur.");
-        if (categoryId == Guid.Empty) throw new ArgumentException("Kategori bilgisi zorunludur.");
 
         CompanyId = companyId;
-        CategoryId = categoryId;
     }
 
     // Properties
@@ -55,8 +54,8 @@ public sealed class Product : Entity, IMultiTenantEntity
 
     public void AddImage(string imageUrl, bool isMain = false)
     {
-        if (_images.Count >= 5)
-            throw new InvalidOperationException("Bir ürüne en fazla 5 resim eklenebilir.");
+        if (_images.Count >= 20)
+            throw new InvalidOperationException("Bir ürüne en fazla 20 resim eklenebilir.");
 
         // Eğer hiç resim yoksa, eklenen ilk resim otomatik Main olur.
         if (_images.Count == 0) isMain = true;
@@ -89,5 +88,61 @@ public sealed class Product : Entity, IMultiTenantEntity
     {
         if (quantity < 0) throw new ArgumentException("Stok negatif olamaz.");
         Stock = quantity;
+    }
+    public void SetDescription(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            throw new ArgumentException("Ürün açıklaması boş olamaz.");
+
+        if (description.Length > 2000)
+            throw new ArgumentException("Ürün açıklaması 2000 karakteri geçemez.");
+
+        Description = description.Trim();
+    }
+    public void RemoveImage(Guid imageId)
+    {
+        var image = _images.FirstOrDefault(x => x.Id == imageId);
+        if (image is null)
+            throw new InvalidOperationException("Silinmek istenen resim bulunamadı.");
+
+        bool wasMain = image.IsMain;
+
+        _images.Remove(image);
+
+        // Eğer silinen resim main ise
+        // ve hala başka resimler varsa
+        // ilkini main yap
+        if (wasMain && _images.Count > 0)
+        {
+            _images[0].SetMain(true);
+        }
+    }
+    public void RemoveImageByUrl(string imageUrl)
+    {
+        var image = _images.FirstOrDefault(x => x.ImageUrl == imageUrl);
+        if (image is null)
+            throw new InvalidOperationException("Resim bulunamadı.");
+
+        RemoveImage(image.Id);
+    }
+
+    public void SetMainImage(Guid imageId)
+    {
+        var image = _images.FirstOrDefault(x => x.Id == imageId);
+        if (image is null)
+            throw new InvalidOperationException("Resim bulunamadı.");
+
+        foreach (var img in _images)
+            img.SetMain(false);
+
+        image.SetMain(true);
+    }
+
+    public void SetCategory(Guid categoryId)
+    {
+        if (categoryId == Guid.Empty)
+            throw new ArgumentException("Kategori bilgisi zorunludur.");
+
+        CategoryId = categoryId;
     }
 }

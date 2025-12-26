@@ -86,5 +86,7 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(p => new { p.Sku, p.CompanyId })
                .IsUnique()
                .HasFilter("[IsDeleted] = 0"); // Sadece silinmemişlerde unique olsun (Soft Delete)
+
+        builder.HasIndex(p => new { p.CompanyId, p.Name });
     }
 }

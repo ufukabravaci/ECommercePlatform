@@ -20,8 +20,13 @@ internal sealed class ProductImageConfiguration : IEntityTypeConfiguration<Produ
                .HasDefaultValue(false) // Varsayılan değer
                .IsRequired();
 
+        builder.HasIndex(x => new { x.ProductId, x.IsMain })
+       .HasFilter("[IsMain] = 1");
+
         // ProductId zaten ProductConfiguration tarafında tanımlandı (HasForeignKey).
         // Ancak explicit (açık) olarak burada da belirtmek okunabilirliği artırır, zorunlu değildir.
-        // builder.HasOne<Product>().WithMany(p => p.Images).HasForeignKey(x => x.ProductId);
+        builder.HasOne<Product>().WithMany(p => p.Images).HasForeignKey(x => x.ProductId);
+        builder.Property(x => x.ProductId)
+       .IsRequired();
     }
 }

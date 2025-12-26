@@ -1,7 +1,7 @@
 ﻿using ECommercePlatform.Application.Products;
-using ECommercePlatform.WebAPI.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using TS.MediatR;
+using TS.Result;
 
 namespace ECommercePlatform.WebAPI.Modules;
 
@@ -15,23 +15,13 @@ public static class ProductModule
             .DisableAntiforgery(); // EKLENDİ
 
         group.MapPost("/", async (
-            [FromForm] CreateProductRequestApiDto apiRequest,
-            ISender sender) =>
+            [FromForm] CreateProductCommand apiRequest,
+            ISender sender,
+            CancellationToken cancellationToken) =>
         {
-            var command = new CreateProductCommand(
-                apiRequest.Name,
-                apiRequest.Sku,
-                apiRequest.Description,
-                apiRequest.Price,
-                apiRequest.Currency,
-                apiRequest.Stock,
-                apiRequest.CategoryId,
-                apiRequest.Files?.ToList()
-            );
-
-            var result = await sender.Send(command);
-
+            var result = await sender.Send(apiRequest);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).Accepts<CreateProductCommand>("multipart/form-data")
+            .Produces<Result<string>>();
     }
 }

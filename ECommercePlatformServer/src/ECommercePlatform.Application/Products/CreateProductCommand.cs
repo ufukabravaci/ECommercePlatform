@@ -14,10 +14,10 @@ public sealed record CreateProductCommand(
     string Sku,
     string Description,
     decimal PriceAmount,
-    string CurrencyCode, // "TRY", "USD"
+    string CurrencyCode,
     int Stock,
     Guid CategoryId,
-    List<IFormFile>? Files  // <--- Stream buraya geliyor
+    IFormFileCollection? Files // <--- Native koleksiyon tipi
 ) : IRequest<Result<string>>;
 
 public sealed class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
@@ -54,8 +54,8 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
             .Must(beAValidCurrency).WithMessage($"Geçersiz para birimi. Geçerli değerler: {string.Join(", ", Enum.GetNames(typeof(Currency)))}");
 
         RuleFor(x => x.Files)
-            .Must(files => files == null || files.Count <= 5)
-            .WithMessage("En fazla 5 resim yükleyebilirsiniz.");
+            .Must(files => files == null || files.Count <= 20)
+            .WithMessage("En fazla 20 resim yükleyebilirsiniz.");
 
         RuleForEach(x => x.Files).ChildRules(file =>
         {
@@ -129,7 +129,7 @@ public sealed class CreateProductCommandHandler(
             {
                 foreach (var file in request.Files)
                 {
-                    // 🔥 KRİTİK NOKTA: Stream'i burada açıyoruz.
+                    // KRİTİK NOKTA: Stream'i burada açıyoruz.
                     // 'using' bloğu bittiği an stream kapanır (Dispose).
                     // ASP.NET Core geçici dosyayı request bitince temizler.
                     using var stream = file.OpenReadStream();
