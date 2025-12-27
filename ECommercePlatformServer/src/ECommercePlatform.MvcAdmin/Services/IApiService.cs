@@ -8,4 +8,6 @@ public interface IApiService
     Task<Result<T>> PostAsync<T>(string endpoint, object data);
     Task<Result<T>> PutAsync<T>(string endpoint, object data);
     Task<Result<T>> DeleteAsync<T>(string endpoint);
+    Task<Result<T>> PostMultipartAsync<T>(string endpoint, MultipartFormDataContent content);
+    Task<Result<T>> PatchAsync<T>(string endpoint, object? data = null);
 }

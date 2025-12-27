@@ -1,0 +1,606 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Products.ProductListViewModel
+@{
+    ViewData["Title"] = "Ürünler";
+    var products = Model.Products;
+    var productList = products.Items ?? new List<ECommercePlatform.MvcAdmin.DTOs.Products.ProductDto>();
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active">Ürünler</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Ürün Yönetimi</h1>
+        <p class="page-subtitle mb-0">Tüm ürünlerinizi buradan yönetebilirsiniz.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;" onclick="location.reload()">
+            <i class="fas fa-sync-alt me-2"></i>Yenile
+        </button>
+        <a asp-action="Create" class="btn btn-primary-gradient">
+            <i class="fas fa-plus me-2"></i>Yeni Ürün
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary" style="border-radius: 8px;">
+                        <i class="fas fa-chart-line me-1"></i>Toplam
+                    </span>
+                </div>
+                <div class="stat-value">@products.TotalCount</div>
+                <div class="stat-label">Toplam Ürün</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success" style="border-radius: 8px;">
+                        <i class="fas fa-check me-1"></i>Yeterli
+                    </span>
+                </div>
+                <div class="stat-value">@productList.Count(p => p.Stock > 10)</div>
+                <div class="stat-label">Stokta</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning" style="border-radius: 8px;">
+                        <i class="fas fa-exclamation me-1"></i>Uyarı
+                    </span>
+                </div>
+                <div class="stat-value">@productList.Count(p => p.Stock > 0 && p.Stock <= 10)</div>
+                <div class="stat-label">Düşük Stok</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon danger">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger" style="border-radius: 8px;">
+                        <i class="fas fa-times me-1"></i>Kritik
+                    </span>
+                </div>
+                <div class="stat-value">@productList.Count(p => p.Stock == 0)</div>
+                <div class="stat-label">Tükenen</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Table Card -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Ürün Listesi
+        </h5>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <!-- Sayfa Boyutu Seçici -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="text-muted small mb-0 d-none d-sm-inline">Göster:</label>
+                <select class="form-select form-select-sm" id="pageSizeSelect" style="width: auto; border-radius: 8px;">
+                    @{
+                        var pageSizes = new[] { 10, 25, 50, 100 };
+                    }
+                    @foreach (var size in pageSizes)
+                    {
+                        if (products.PageSize == size)
+                        {
+                            <option value="@size" selected>@size</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Arama -->
+            <div class="input-group" style="width: 220px;">
+                <span class="input-group-text bg-transparent border-end-0" style="border-radius: 10px 0 0 10px;">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" id="searchInput"
+                       placeholder="Ürün ara..." style="border-radius: 0 10px 10px 0;">
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        @if (!productList.Any())
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light"
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-box-open fa-2x text-muted"></i>
+                    </div>
+                </div>
+                <h5 class="text-muted mb-2">Henüz ürün bulunmuyor</h5>
+                <p class="text-muted mb-4">İlk ürününüzü ekleyerek başlayın.</p>
+                <a asp-action="Create" class="btn btn-primary-gradient">
+                    <i class="fas fa-plus me-2"></i>İlk Ürünü Ekle
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Ürün</th>
+                            <th>SKU</th>
+                            <th>Kategori</th>
+                            <th>Fiyat</th>
+                            <th>Stok</th>
+                            <th>Durum</th>
+                            <th style="width: 120px;" class="text-center">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var index = (products.PageNumber - 1) * products.PageSize + 1;
+                        }
+                        @foreach (var product in productList)
+                        {
+                            <tr data-product-id="@product.Id" data-href="@Url.Action("Edit", "Product", new { id = product.Id })" class="clickable-row">
+                                <td>
+                                    <span class="text-muted fw-medium">@index</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="product-thumb">
+                                            @if (!string.IsNullOrEmpty(product.MainImageUrl))
+                                            {
+                                                <img src="@product.MainImageUrl" alt="@product.Name"
+                                                     class="rounded" style="width: 45px; height: 45px; object-fit: cover;">
+                                            }
+                                            else
+                                            {
+                                                <div class="product-icon bg-primary bg-opacity-15 rounded d-flex align-items-center justify-content-center"
+                                                     style="width: 45px; height: 45px; flex-shrink: 0;">
+                                                    <i class="fas fa-box text-primary"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold">@product.Name</h6>
+                                            <small class="text-muted">
+                                                @if (!string.IsNullOrEmpty(product.Description))
+                                                {
+                                                    @(product.Description.Length > 40
+                                                                                            ? product.Description.Substring(0, 40) + "..."
+                                                                                            : product.Description)
+                                                }
+                                            </small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <code class="code-badge">@product.Sku</code>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(product.CategoryName))
+                                    {
+                                        <span class="badge-status pending">
+                                            <i class="fas fa-folder me-1"></i>@product.CategoryName
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Kategorisiz</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-success">
+                                        @product.PriceAmount.ToString("N2") @product.CurrencyCode
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (product.Stock == 0)
+                                        {
+                                            <span class="fw-semibold text-danger">@product.Stock</span>
+                                        }
+                                        else if (product.Stock <= 10)
+                                        {
+                                            <span class="fw-semibold text-warning">@product.Stock</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-semibold text-success">@product.Stock</span>
+                                        }
+                                        <small class="text-muted">adet</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (product.Stock == 0)
+                                    {
+                                        <span class="badge-status inactive">
+                                            <i class="fas fa-times-circle me-1"></i>Tükendi
+                                        </span>
+                                    }
+                                    else if (product.Stock <= 10)
+                                    {
+                                        <span class="badge-status pending">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Düşük
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status active">
+                                            <i class="fas fa-check-circle me-1"></i>Stokta
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="Edit" asp-route-id="@product.Id"
+                                           class="btn btn-sm btn-outline-primary action-btn"
+                                           data-bs-toggle="tooltip" title="Düzenle"
+                                           style="border-radius: 8px; width: 36px; height: 36px;">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger action-btn delete-btn"
+                                                data-id="@product.Id"
+                                                data-name="@product.Name"
+                                                data-bs-toggle="tooltip" title="Sil"
+                                                style="border-radius: 8px; width: 36px; height: 36px;">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            index++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    @if (productList.Any())
+    {
+        <div class="card-footer bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted" id="productCount">
+                Toplam <strong>@products.TotalCount</strong> üründen
+                <strong>@(((products.PageNumber - 1) * products.PageSize) + 1)-@(Math.Min(products.PageNumber * products.PageSize, products.TotalCount))</strong>
+                arası gösteriliyor
+            </span>
+
+            @if (products.TotalPages > 1)
+            {
+                <nav aria-label="Ürün sayfalama">
+                    <ul class="pagination pagination-sm mb-0">
+                        @* İlk Sayfa *@
+                        <li class="page-item @(!products.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="1" asp-route-pageSize="@products.PageSize"
+                               data-bs-toggle="tooltip" title="İlk Sayfa">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+
+                        @* Önceki Sayfa *@
+                        <li class="page-item @(!products.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(products.PageNumber - 1)" asp-route-pageSize="@products.PageSize"
+                               data-bs-toggle="tooltip" title="Önceki">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+
+                        @* Sayfa Numaraları *@
+                        @{
+                            var startPage = Math.Max(1, products.PageNumber - 2);
+                            var endPage = Math.Min(products.TotalPages, products.PageNumber + 2);
+
+                            // En az 5 sayfa göster (mümkünse)
+                            if (endPage - startPage < 4)
+                            {
+                                if (startPage == 1)
+                                {
+                                    endPage = Math.Min(products.TotalPages, startPage + 4);
+                                }
+                                else if (endPage == products.TotalPages)
+                                {
+                                    startPage = Math.Max(1, endPage - 4);
+                                }
+                            }
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+
+                        @for (var i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == products.PageNumber ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-pageSize="@products.PageSize">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < products.TotalPages)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+
+                        @* Sonraki Sayfa *@
+                        <li class="page-item @(!products.HasNextPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(products.PageNumber + 1)" asp-route-pageSize="@products.PageSize"
+                               data-bs-toggle="tooltip" title="Sonraki">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+
+                        @* Son Sayfa *@
+                        <li class="page-item @(!products.HasNextPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@products.TotalPages" asp-route-pageSize="@products.PageSize"
+                               data-bs-toggle="tooltip" title="Son Sayfa">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    }
+</div>
+
+<!-- Delete Confirmation Form (Hidden) -->
+<form id="deleteForm" asp-action="Delete" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+@section Styles {
+    <style>
+        /* Clickable Row */
+        .clickable-row {
+            cursor: pointer;
+        }
+
+            .clickable-row:hover {
+                background-color: rgba(102, 126, 234, 0.08) !important;
+            }
+
+        /* Code Badge - SKU için */
+        .code-badge {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        [data-bs-theme="dark"] .code-badge {
+            background: rgba(102, 126, 234, 0.3);
+            color: #a5b4fc;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+            .action-btn:hover {
+                transform: translateY(-2px);
+            }
+
+        /* Product Icon/Thumb */
+        .product-icon,
+        .product-thumb img {
+            transition: all 0.2s ease;
+        }
+
+        tr:hover .product-icon,
+        tr:hover .product-thumb img {
+            transform: scale(1.1);
+        }
+
+        /* Table Row Hover */
+        #productsTable tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            #productsTable tbody tr:hover {
+                background-color: rgba(102, 126, 234, 0.05);
+            }
+
+        /* Pagination Styles */
+        .pagination {
+            gap: 0.25rem;
+        }
+
+            .pagination .page-link {
+                border-radius: 8px !important;
+                border: 1px solid var(--border-color);
+                color: var(--text-secondary);
+                padding: 0.4rem 0.75rem;
+                font-size: 0.85rem;
+                transition: all 0.2s ease;
+                min-width: 36px;
+                text-align: center;
+            }
+
+                .pagination .page-link:hover {
+                    background: rgba(102, 126, 234, 0.1);
+                    border-color: rgba(102, 126, 234, 0.3);
+                    color: #667eea;
+                }
+
+            .pagination .page-item.active .page-link {
+                background: var(--primary-gradient);
+                border-color: transparent;
+                color: white;
+            }
+
+            .pagination .page-item.disabled .page-link {
+                background: transparent;
+                border-color: var(--border-color);
+                color: var(--text-muted);
+                opacity: 0.5;
+            }
+
+        /* Dark Mode Pagination */
+        [data-bs-theme="dark"] .pagination .page-link {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+        }
+
+            [data-bs-theme="dark"] .pagination .page-link:hover {
+                background: rgba(102, 126, 234, 0.2);
+            }
+
+        [data-bs-theme="dark"] .pagination .page-item.disabled .page-link {
+            background: transparent;
+        }
+
+        /* Badge Status - Ekstra ikonlu versiyonlar için */
+        .badge-status i {
+            font-size: 0.7rem;
+        }
+
+        /* Empty State Dark Mode */
+        [data-bs-theme="dark"] .bg-light {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* Product Image Placeholder Dark Mode */
+        [data-bs-theme="dark"] .product-icon {
+            background: rgba(102, 126, 234, 0.2) !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Tooltips başlat
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Arama fonksiyonu
+            $('#searchInput').on('keyup', function() {
+                var value = $(this).val().toLowerCase().trim();
+                var totalCount = $('#productsTable tbody tr').length;
+
+                if (value === '') {
+                    $('#productsTable tbody tr').show();
+                    updateProductCount(totalCount, totalCount);
+                    return;
+                }
+
+                var visibleCount = 0;
+                $('#productsTable tbody tr').each(function() {
+                    var productName = $(this).find('td:nth-child(2) h6').text().toLowerCase();
+                    var productSku = $(this).find('td:nth-child(3) code').text().toLowerCase();
+
+                    if (productName.indexOf(value) > -1 || productSku.indexOf(value) > -1) {
+                        $(this).show();
+                        visibleCount++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                updateProductCount(visibleCount, totalCount);
+            });
+
+            // Sayı güncelleme fonksiyonu
+            function updateProductCount(visible, total) {
+                var totalCount = @(products.TotalCount);
+                if (visible === total) {
+                    $('#productCount').html('Toplam <strong>' + totalCount + '</strong> üründen <strong>' + total + '</strong> gösteriliyor');
+                } else {
+                    $('#productCount').html('Toplam <strong>' + totalCount + '</strong> üründen <strong>' + visible + '</strong> / <strong>' + total + '</strong> gösteriliyor (filtrelenmiş)');
+                }
+            }
+
+            // Satıra tıklayınca Edit'e git (butonlar hariç)
+            $('.clickable-row').on('click', function(e) {
+                if ($(e.target).closest('.action-btn, button, a').length === 0) {
+                    window.location.href = $(this).data('href');
+                }
+            });
+
+            // Silme işlemi
+            $('.delete-btn').on('click', function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    html: `<strong>"${name}"</strong> ürününü silmek istediğinize emin misiniz?<br><small class="text-muted">Bu işlem geri alınamaz.</small>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>Evet, Sil',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>İptal',
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'rounded-4',
+                        confirmButton: 'btn btn-danger px-4',
+                        cancelButton: 'btn btn-secondary px-4'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#deleteId').val(id);
+                        $('#deleteForm').submit();
+                    }
+                });
+            });
+
+            // Sayfa boyutu değiştiğinde
+            $('#pageSizeSelect').on('change', function() {
+                window.location.href = '@Url.Action("Index")?page=1&pageSize=' + this.value;
+            });
+        });
+    </script>
+}

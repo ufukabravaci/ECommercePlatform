@@ -34,40 +34,33 @@ public sealed class GetAllProductsQueryHandler(
         }
 
         // 3. Toplam Kayıt Sayısını Al (Pagination Hesabı İçin)
-        // DİKKAT: Bunu Paging (Skip/Take) yapmadan ÖNCE almalıyız.
         // bir int değer aldık ama productlar hala memoryde değil.
         int totalCount = await query.CountAsync(cancellationToken);
 
-        // 4. Projection (SQL SELECT Optimizasyonu)
+        // Sıralama ve sayfalama
+        query = query.OrderByDescending(p => p.Name)
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize);
+
         // Include kullanmaya gerek yok, EF Core aşağıdaki lambda'ya bakıp JOIN atacak.
         // Bu sayede sadece ihtiyacımız olan alanlar seçilmiş olur. TÜm category'i include etmemiş olduk.
-        var dtoQuery = query.Select(p => new ProductDto(
+        var products = await query.Select(p => new ProductDto(
             p.Id,
             p.Name,
             p.Sku,
             p.Description,
-            p.Price.Amount,               // Value Object'ten property okuma
-            p.Price.Currency.ToString(),  // Enum to String
+            p.Price.Amount,
+            p.Price.Currency.ToString(),
             p.Stock,
             p.CategoryId,
-            p.Category.Name,              // EF Core burada otomatik JOIN atar
+            p.Category.Name,
 
-            // Ana resmi bulma mantığı (SQL'e çevrilir)
             p.Images.Where(i => i.IsMain).Select(i => i.ImageUrl).FirstOrDefault()
             ?? p.Images.Select(i => i.ImageUrl).FirstOrDefault(),
 
-            // Alt resim listesi
             p.Images.Select(i => new ProductImageDto(i.Id, i.ImageUrl, i.IsMain)).ToList()
-        ));
+        )).ToListAsync(cancellationToken);
 
-        // 5. Sıralama ve Sayfalama (SQL'de çalışır)
-        var products = await dtoQuery
-            .OrderByDescending(p => p.Name) // Sıralama kriteri eklenebilir
-            .Skip((request.PageNumber - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .ToListAsync(cancellationToken);
-
-        // 6. Sonuç
         var result = new PageResult<ProductDto>
         {
             Items = products,

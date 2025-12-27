@@ -19,6 +19,15 @@ public static class AuthModule
         })
         .RequireRateLimiting("fixed");
 
+        group.MapPost("/register", async (
+           ISender sender,
+           [FromBody] RegisterCustomerCommand command) =>
+        {
+            var result = await sender.Send(command);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        })
+       .RequireRateLimiting("fixed");
+
         group.MapPost("confirm-email", async (ISender sender, [FromBody] ConfirmEmailCommand command) =>
         {
             var result = await sender.Send(command);

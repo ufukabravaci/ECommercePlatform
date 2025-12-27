@@ -5,5 +5,5 @@ public record CategoryDto(
     string Name,
     string Slug,
     Guid? ParentId,
-    string ParentName
+    string? ParentName
 );

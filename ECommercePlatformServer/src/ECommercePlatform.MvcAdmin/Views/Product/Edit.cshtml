@@ -1,0 +1,630 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Products.UpdateProductViewModel
+@{
+    ViewData["Title"] = "Ürün Düzenle";
+    var images = ViewBag.Images as List<ECommercePlatform.MvcAdmin.DTOs.Products.ProductImageDto> ?? new();
+    var allCategories = ViewBag.AllCategories as List<ECommercePlatform.MvcAdmin.DTOs.Category.CategoryDto> 
+                        ?? new List<ECommercePlatform.MvcAdmin.DTOs.Category.CategoryDto>();
+    var categoryHierarchy = ViewBag.CategoryHierarchy as List<Guid> ?? new List<Guid>();
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Ürünler</a></li>
+                <li class="breadcrumb-item active">Düzenle</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Ürün Düzenle</h1>
+        <p class="page-subtitle mb-0">@Model.Name ürününü düzenliyorsunuz.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+        </a>
+        <button type="button" class="btn btn-outline-danger" style="border-radius: 10px;" 
+                onclick="confirmDeleteProduct()">
+            <i class="fas fa-trash me-2"></i>Ürünü Sil
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sol Kolon - Düzenleme Formu -->
+    <div class="col-lg-8">
+        <!-- Ürün Bilgileri -->
+        <form asp-action="Edit" method="post" id="editProductForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CategoryId" id="selectedCategoryId" />
+            
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2 text-primary"></i>Ürün Bilgileri
+                    </h5>
+                    <span class="badge bg-primary bg-opacity-10 text-primary" style="border-radius: 20px;">
+                        Düzenleme Modu
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="Name" class="form-label fw-medium">Ürün Adı <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" style="border-radius: 10px;">
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label fw-medium">Açıklama</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" style="border-radius: 10px;"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kategori Seçimi -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-folder-tree me-2 text-warning"></i>Kategori Seçimi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Kategoriyi değiştirmek için aşağıdan yeni bir kategori seçin.
+                    </p>
+                    
+                    <div id="categorySelectionArea">
+                        <!-- JavaScript ile doldurulacak -->
+                    </div>
+
+                    <div id="selectedCategoryDisplay" class="mt-3" style="display: none;">
+                        <div class="d-flex align-items-center gap-2 p-3 bg-success bg-opacity-10 rounded-3">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span class="fw-medium">Seçilen Kategori:</span>
+                            <span id="selectedCategoryPath" class="text-success fw-semibold"></span>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="resetCategorySelection()" style="border-radius: 8px;">
+                                <i class="fas fa-times me-1"></i>Değiştir
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tags me-2 text-success"></i>Fiyat ve Stok
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="PriceAmount" class="form-label fw-medium">Fiyat <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="PriceAmount" type="number" step="0.01" min="0.01" 
+                                       class="form-control" style="border-radius: 10px 0 0 10px;">
+                                <select asp-for="CurrencyCode" asp-items="Model.CurrencyList" 
+                                        class="form-select" style="max-width: 100px; border-radius: 0 10px 10px 0;">
+                                </select>
+                            </div>
+                            <span asp-validation-for="PriceAmount" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Stock" class="form-label fw-medium">Stok <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="Stock" type="number" min="0" 
+                                       class="form-control" style="border-radius: 10px 0 0 10px;">
+                                <span class="input-group-text" style="border-radius: 0 10px 10px 0;">adet</span>
+                            </div>
+                            <span asp-validation-for="Stock" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;"
+                                onclick="location.reload()">
+                            <i class="fas fa-undo me-2"></i>Değişiklikleri Geri Al
+                        </button>
+                        <button type="submit" class="btn btn-primary-gradient">
+                            <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Görsel Yönetimi -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-images me-2 text-info"></i>Ürün Görselleri
+                </h5>
+                <span class="badge bg-info bg-opacity-10 text-info" style="border-radius: 20px;">
+                    @images.Count / 5 görsel
+                </span>
+            </div>
+            <div class="card-body">
+                @if (images.Any())
+                {
+                    <div class="row g-3 mb-4">
+                        @foreach (var image in images)
+                        {
+                            <div class="col-6 col-md-4 col-lg-3">
+                                <div class="image-card position-relative" style="border-radius: 12px; overflow: hidden; border: 2px solid @(image.IsMain ? "#667eea" : "transparent");">
+                                    <img src="@image.ImageUrl" alt="Product Image" 
+                                         style="width: 100%; height: 150px; object-fit: cover;">
+                                    
+                                    @if (image.IsMain)
+                                    {
+                                        <span class="badge bg-primary position-absolute top-0 start-0 m-2" 
+                                              style="font-size: 10px; border-radius: 6px;">
+                                            <i class="fas fa-star me-1"></i>Ana Görsel
+                                        </span>
+                                    }
+                                    
+                                    <div class="image-actions position-absolute bottom-0 start-0 end-0 p-2 d-flex gap-1"
+                                         style="background: linear-gradient(transparent, rgba(0,0,0,0.7));">
+                                        @if (!image.IsMain)
+                                        {
+                                            <form asp-action="SetMainImage" method="post" class="flex-grow-1">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@Model.Id" />
+                                                <input type="hidden" name="imageId" value="@image.Id" />
+                                                <button type="submit" class="btn btn-sm btn-light w-100" style="border-radius: 6px;" title="Ana Görsel Yap">
+                                                    <i class="fas fa-star"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        <form asp-action="DeleteImage" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@Model.Id" />
+                                            <input type="hidden" name="imageId" value="@image.Id" />
+                                            <button type="submit" class="btn btn-sm btn-danger" style="border-radius: 6px;" 
+                                                    onclick="return confirm('Bu görseli silmek istediğinize emin misiniz?')" title="Sil">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 mb-4 bg-light" style="border-radius: 12px;">
+                        <i class="fas fa-image fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">Henüz görsel yüklenmemiş</p>
+                    </div>
+                }
+
+                @if (images.Count < 5)
+                {
+                    <div class="border-top pt-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-plus-circle me-2 text-success"></i>Yeni Görsel Ekle
+                        </h6>
+                        <form asp-action="UploadImage" method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Görsel Seç</label>
+                                    <input type="file" name="file" class="form-control" accept="image/*" required 
+                                           style="border-radius: 10px;">
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="isMain" value="true" class="form-check-input" id="isMainCheck">
+                                        <label class="form-check-label" for="isMainCheck">Ana görsel yap</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-success w-100" style="border-radius: 10px;">
+                                        <i class="fas fa-upload me-2"></i>Yükle
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ Kolon - Bilgi Kartları -->
+    <div class="col-lg-4">
+        <!-- Ürün Durumu -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2 text-info"></i>Ürün Durumu
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Stok Durumu</span>
+                    @if (Model.Stock == 0)
+                    {
+                        <span class="badge-status inactive">Tükendi</span>
+                    }
+                    else if (Model.Stock <= 10)
+                    {
+                        <span class="badge-status pending">Düşük Stok</span>
+                    }
+                    else
+                    {
+                        <span class="badge-status active">Stokta</span>
+                    }
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Görsel Sayısı</span>
+                    <span class="fw-medium">@images.Count adet</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Fiyat</span>
+                    <span class="fw-semibold text-success">@Model.PriceAmount.ToString("N2") @Model.CurrencyCode</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ana Görsel Önizleme -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-image me-2 text-primary"></i>Ana Görsel
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                @{
+                    var mainImage = images.FirstOrDefault(i => i.IsMain) ?? images.FirstOrDefault();
+                }
+                @if (mainImage != null)
+                {
+                    <img src="@mainImage.ImageUrl" alt="@Model.Name" 
+                         class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">
+                }
+                else
+                {
+                    <div class="bg-light rounded py-5">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                        <p class="text-muted mt-2 mb-0">Görsel yok</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Hızlı Aksiyonlar -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2 text-warning"></i>Hızlı Aksiyonlar
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-outline-primary" style="border-radius: 10px;">
+                        <i class="fas fa-copy me-2"></i>Ürünü Kopyala
+                    </a>
+                    <a href="#" class="btn btn-outline-info" style="border-radius: 10px;">
+                        <i class="fas fa-external-link-alt me-2"></i>Mağazada Görüntüle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Product Modal -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Ürünü Sil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <strong>@Model.Name</strong> ürününü silmek istediğinize emin misiniz?
+                </p>
+                <div class="alert alert-warning py-2 mb-0" style="border-radius: 10px;">
+                    <small><i class="fas fa-info-circle me-1"></i>Bu işlem geri alınamaz ve tüm görseller silinecektir.</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" 
+                        style="border-radius: 10px;">
+                    İptal
+                </button>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                        <i class="fas fa-trash me-2"></i>Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .image-card {
+            transition: all 0.3s ease;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .image-actions {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .image-card:hover .image-actions {
+            opacity: 1;
+        }
+
+        /* Category Selection Styles */
+        .category-level {
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .category-level-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .category-level-label .level-number {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .category-select {
+            border-radius: 10px !important;
+            border: 2px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .category-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+        }
+
+        [data-bs-theme="dark"] .category-select {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        [data-bs-theme="dark"] .bg-light {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        // Tüm kategoriler (sunucudan gelen)
+        const allCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(allCategories));
+
+        // Mevcut kategori hiyerarşisi (Edit için)
+        const initialHierarchy = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryHierarchy));
+
+        // Seçim state'i
+        let selectedPath = [];
+        let isInitialLoad = true;
+
+        $(document).ready(function() {
+            // Mevcut kategori hiyerarşisini yükle
+            if (initialHierarchy && initialHierarchy.length > 0) {
+                loadExistingCategorySelection();
+            } else {
+                initCategorySelection();
+            }
+        });
+
+        function loadExistingCategorySelection() {
+            // Mevcut seçili kategorinin path'ini oluştur
+            initialHierarchy.forEach((categoryId, index) => {
+                const category = allCategories.find(c => c.id === categoryId);
+                if (category) {
+                    selectedPath.push({ id: category.id, name: category.name });
+                }
+            });
+
+            // Seçili kategoriyi göster
+            updateSelectedCategory();
+
+            // Seçim alanını gizle, sadece seçili kategoriyi göster
+            isInitialLoad = false;
+        }
+
+        function initCategorySelection() {
+            $('#selectedCategoryDisplay').hide();
+            $('#categorySelectionArea').empty();
+            renderCategoryLevel(0, null);
+        }
+
+        function renderCategoryLevel(level, parentId) {
+            // Bu seviyedeki kategorileri filtrele
+            const categories = allCategories.filter(c => {
+                if (parentId === null) {
+                    return c.parentId === null;
+                }
+                return c.parentId === parentId;
+            });
+
+            // Eğer kategori yoksa, bu seviyeyi gösterme
+            if (categories.length === 0) {
+                return;
+            }
+
+            // Mevcut hiyerarşide bu seviyede seçili olan kategori
+            const selectedInThisLevel = initialHierarchy && initialHierarchy[level]
+                ? initialHierarchy[level]
+                : null;
+
+            const levelHtml = `
+                <div class="category-level" id="categoryLevel${level}">
+                    <div class="category-level-label">
+                        <span class="level-number">${level + 1}</span>
+                        <span>${level === 0 ? 'Ana Kategori' : 'Alt Kategori ' + level}</span>
+                    </div>
+                    <select class="form-select category-select"
+                            id="categorySelect${level}"
+                            onchange="onCategorySelect(${level}, this.value)">
+                        <option value="">-- ${level === 0 ? 'Ana Kategori' : 'Alt Kategori'} Seçin --</option>
+                        ${categories.map(c => `
+                            <option value="${c.id}" ${c.id === selectedInThisLevel ? 'selected' : ''}>
+                                ${c.name}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+            `;
+
+            // Eski seviyeleri temizle (bu seviyeden sonrakiler)
+            $(`.category-level`).each(function() {
+                const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
+                if (levelNum >= level) {
+                    $(this).remove();
+                }
+            });
+
+            // Yeni seviyeyi ekle
+            $('#categorySelectionArea').append(levelHtml);
+
+            // Eğer bu seviyede seçili bir kategori varsa, alt seviyeyi de yükle
+            if (selectedInThisLevel && isInitialLoad) {
+                const hasChildren = allCategories.some(c => c.parentId === selectedInThisLevel);
+                if (hasChildren) {
+                    renderCategoryLevel(level + 1, selectedInThisLevel);
+                }
+            }
+        }
+
+        function onCategorySelect(level, categoryId) {
+            if (!categoryId) {
+                // Seçim temizlendi, bu seviyeden sonrasını sil
+                selectedPath = selectedPath.slice(0, level);
+                updateSelectedCategory();
+
+                // Sonraki seviyeleri kaldır
+                $(`.category-level`).each(function() {
+                    const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
+                    if (levelNum > level) {
+                        $(this).remove();
+                    }
+                });
+                return;
+            }
+
+            // Seçilen kategoriyi bul
+            const category = allCategories.find(c => c.id === categoryId);
+            if (!category) return;
+
+            // Path'i güncelle
+            selectedPath = selectedPath.slice(0, level);
+            selectedPath.push({ id: category.id, name: category.name });
+
+            // Hidden field'ı güncelle
+            updateSelectedCategory();
+
+            // Alt kategorileri kontrol et ve göster
+            const hasChildren = allCategories.some(c => c.parentId === categoryId);
+            if (hasChildren) {
+                renderCategoryLevel(level + 1, categoryId);
+            } else {
+                // Alt kategori yok, sonraki seviyeleri temizle
+                $(`.category-level`).each(function() {
+                    const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
+                    if (levelNum > level) {
+                        $(this).remove();
+                    }
+                });
+            }
+        }
+
+        function updateSelectedCategory() {
+            const $display = $('#selectedCategoryDisplay');
+            const $pathSpan = $('#selectedCategoryPath');
+            const $hiddenInput = $('#selectedCategoryId');
+
+            if (selectedPath.length === 0) {
+                $display.hide();
+                $hiddenInput.val('');
+                return;
+            }
+
+            // Son seçilen kategori ID'sini hidden field'a yaz
+            const lastCategory = selectedPath[selectedPath.length - 1];
+            $hiddenInput.val(lastCategory.id);
+
+            // Path'i göster
+            const pathText = selectedPath.map(p => p.name).join(' → ');
+            $pathSpan.text(pathText);
+            $display.show();
+        }
+
+        function resetCategorySelection() {
+            selectedPath = [];
+            $('#categorySelectionArea').empty();
+            $('#selectedCategoryDisplay').hide();
+
+            // Yeniden başlat
+            renderCategoryLevel(0, null);
+        }
+
+        function confirmDeleteProduct() {
+            new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
+        }
+
+        // Form submit öncesi validasyon
+        $('#editProductForm').on('submit', function(e) {
+            const categoryId = $('#selectedCategoryId').val();
+            if (!categoryId) {
+                e.preventDefault();
+                toastr.error('Lütfen bir kategori seçin.');
+                $('html, body').animate({
+                    scrollTop: $('#categorySelectionArea').offset().top - 100
+                }, 500);
+                return false;
+            }
+        });
+    </script>
+}

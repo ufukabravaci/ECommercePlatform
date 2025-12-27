@@ -1,0 +1,675 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Products.CreateProductViewModel
+@{
+    ViewData["Title"] = "Yeni Ürün";
+    var allCategories = ViewBag.AllCategories as List<ECommercePlatform.MvcAdmin.DTOs.Category.CategoryDto>
+                        ?? new List<ECommercePlatform.MvcAdmin.DTOs.Category.CategoryDto>();
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Ürünler</a></li>
+                <li class="breadcrumb-item active">Yeni Ürün</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Yeni Ürün Ekle</h1>
+        <p class="page-subtitle mb-0">Mağazanıza yeni bir ürün ekleyin.</p>
+    </div>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+        </a>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" id="createProductForm">
+    @Html.AntiForgeryToken()
+
+    <!-- Hidden field for selected category -->
+    <input type="hidden" asp-for="CategoryId" id="selectedCategoryId" />
+
+    <div class="row g-4">
+        <!-- Sol Kolon - Temel Bilgiler -->
+        <div class="col-lg-8">
+            <!-- Ürün Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Ürün Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label asp-for="Name" class="form-label fw-medium">Ürün Adı <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="Ürün adını girin" style="border-radius: 10px;">
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Sku" class="form-label fw-medium">SKU <span class="text-danger">*</span></label>
+                            <input asp-for="Sku" class="form-control" placeholder="PRD-001" style="border-radius: 10px;">
+                            <span asp-validation-for="Sku" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label fw-medium">Açıklama</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Ürün açıklamasını girin..." style="border-radius: 10px;"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                            <small class="text-muted">Maksimum 2000 karakter</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kategori Seçimi -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-folder-tree me-2 text-warning"></i>Kategori Seçimi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Önce ana kategori seçin, ardından alt kategorilere inebilirsiniz. İstediğiniz seviyede durabilirsiniz.
+                    </p>
+
+                    <!-- Kategori Seçim Alanı -->
+                    <div id="categorySelectionArea">
+                        <!-- JavaScript ile doldurulacak -->
+                    </div>
+
+                    <!-- Seçilen Kategori Gösterimi -->
+                    <div id="selectedCategoryDisplay" class="mt-3" style="display: none;">
+                        <div class="d-flex align-items-center gap-2 p-3 bg-success bg-opacity-10 rounded-3">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span class="fw-medium">Seçilen Kategori:</span>
+                            <span id="selectedCategoryPath" class="text-success fw-semibold"></span>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="resetCategorySelection()" style="border-radius: 8px;">
+                                <i class="fas fa-times me-1"></i>Sıfırla
+                            </button>
+                        </div>
+                    </div>
+
+                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Fiyat ve Stok -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tags me-2 text-success"></i>Fiyat ve Stok
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="PriceAmount" class="form-label fw-medium">Fiyat <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="PriceAmount" type="number" step="0.01" min="0.01"
+                                       class="form-control" placeholder="0.00" style="border-radius: 10px 0 0 10px;">
+                                <select asp-for="CurrencyCode" asp-items="Model.CurrencyList"
+                                        class="form-select" style="max-width: 150px; border-radius: 0 10px 10px 0;">
+                                </select>
+                            </div>
+                            <span asp-validation-for="PriceAmount" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Stock" class="form-label fw-medium">Stok Miktarı <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="Stock" type="number" min="0"
+                                       class="form-control" placeholder="0" style="border-radius: 10px 0 0 10px;">
+                                <span class="input-group-text" style="border-radius: 0 10px 10px 0;">adet</span>
+                            </div>
+                            <span asp-validation-for="Stock" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ürün Görselleri -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-images me-2 text-info"></i>Ürün Görselleri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" asp-for="Files" id="fileInput" class="d-none"
+                               accept="image/*" multiple>
+                        <div class="text-center py-4">
+                            <div class="upload-icon mb-3">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
+                            </div>
+                            <h6 class="mb-1">Görsel Yükle</h6>
+                            <p class="text-muted small mb-3">
+                                Sürükle bırak veya <a href="#" onclick="document.getElementById('fileInput').click(); return false;" class="text-primary">dosya seç</a>
+                            </p>
+                            <small class="text-muted">PNG, JPG, WEBP (Max: 5MB, 5 adet)</small>
+                        </div>
+                    </div>
+
+                    <!-- Preview Area -->
+                    <div id="previewArea" class="row g-3 mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Kolon - Özet ve Aksiyonlar -->
+        <div class="col-lg-4">
+            <!-- Hızlı Özet -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clipboard-list me-2 text-info"></i>Ürün Özeti
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="summary-item d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Ürün Adı</span>
+                        <span class="fw-medium text-truncate ms-2" style="max-width: 150px;" id="summaryName">-</span>
+                    </div>
+                    <div class="summary-item d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">SKU</span>
+                        <span class="fw-medium" id="summarySku">-</span>
+                    </div>
+                    <div class="summary-item d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Kategori</span>
+                        <span class="fw-medium text-truncate ms-2" style="max-width: 150px;" id="summaryCategory">-</span>
+                    </div>
+                    <div class="summary-item d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Fiyat</span>
+                        <span class="fw-semibold text-success" id="summaryPrice">-</span>
+                    </div>
+                    <div class="summary-item d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Stok</span>
+                        <span class="fw-medium" id="summaryStock">-</span>
+                    </div>
+                    <div class="summary-item d-flex justify-content-between">
+                        <span class="text-muted">Görseller</span>
+                        <span class="fw-medium" id="summaryImages">0 adet</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aksiyonlar -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <button type="submit" class="btn btn-primary-gradient btn-lg" id="submitBtn">
+                            <i class="fas fa-check me-2"></i>Ürünü Kaydet
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;"
+                                onclick="if(confirm('Değişiklikler kaybolacak. Emin misiniz?')) window.location.href='@Url.Action("Index")'">
+                            <i class="fas fa-times me-2"></i>İptal
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yardım -->
+            <div class="card mt-4 border-0" style="background: rgba(102, 126, 234, 0.1);">
+                <div class="card-body">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-lightbulb me-2"></i>İpuçları
+                    </h6>
+                    <ul class="small text-muted mb-0 ps-3">
+                        <li class="mb-2">Açıklayıcı ürün adları kullanın</li>
+                        <li class="mb-2">SKU kodları benzersiz olmalıdır</li>
+                        <li class="mb-2">Kategori seçiminde istediğiniz seviyede durabilirsiniz</li>
+                        <li>Yüksek kaliteli görseller satışı artırır</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Styles {
+    <style>
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+            .upload-area:hover,
+            .upload-area.dragover {
+                border-color: var(--primary-color);
+                background: rgba(102, 126, 234, 0.05);
+            }
+
+        .preview-item {
+            position: relative;
+        }
+
+            .preview-item img {
+                width: 100%;
+                height: 120px;
+                object-fit: cover;
+                border-radius: 12px;
+            }
+
+            .preview-item .remove-btn {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                width: 24px;
+                height: 24px;
+                background: rgba(239, 68, 68, 0.9);
+                border: none;
+                border-radius: 50%;
+                color: white;
+                font-size: 12px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+        /* Category Selection Styles */
+        .category-level {
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .category-level-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+            .category-level-label .level-number {
+                width: 24px;
+                height: 24px;
+                background: var(--primary-gradient);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.75rem;
+            }
+
+        .category-select {
+            border-radius: 10px !important;
+            border: 2px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+        }
+
+            .category-select:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+            }
+
+            .category-select option {
+                padding: 0.5rem;
+            }
+
+        .category-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .category-breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .category-breadcrumb-separator {
+            color: var(--text-muted);
+        }
+
+        /* Dark mode */
+        [data-bs-theme="dark"] .category-select {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        [data-bs-theme="dark"] .category-breadcrumb-item {
+            background: rgba(102, 126, 234, 0.2);
+            color: #a5b4fc;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        // Tüm kategoriler (sunucudan gelen)
+        const allCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(allCategories, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+        // Debug: Kategorileri konsola yazdır
+        console.log('Tüm Kategoriler:', allCategories);
+        console.log('Kategori Sayısı:', allCategories ? allCategories.length : 0);
+
+        // Seçim state'i
+        let selectedPath = [];
+
+        $(document).ready(function() {
+            // Kategorileri kontrol et
+            if (!allCategories || allCategories.length === 0) {
+                $('#categorySelectionArea').html(`
+                    <div class="alert alert-warning" style="border-radius: 10px;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Henüz kategori bulunmuyor. Önce <a href="/Category/Create">kategori oluşturun</a>.
+                    </div>
+                `);
+                return;
+            }
+
+            // İlk seviye kategorileri yükle
+            initCategorySelection();
+
+            // Diğer form işlemleri
+            initFileUpload();
+            initSummaryUpdate();
+        });
+
+        function initCategorySelection() {
+            $('#categorySelectionArea').empty();
+            renderCategoryLevel(0, null);
+        }
+
+        function renderCategoryLevel(level, parentId) {
+            console.log(`Rendering level ${level}, parentId: ${parentId}`);
+
+            // Bu seviyedeki kategorileri filtrele
+            const categories = allCategories.filter(c => {
+                // parentId null, undefined veya boş string olabilir - hepsini kontrol et
+                if (parentId === null || parentId === undefined || parentId === '') {
+                    // Ana kategoriler: parentId null, undefined, boş string veya "00000000-0000-0000-0000-000000000000"
+                    return !c.parentId || c.parentId === null || c.parentId === '' || c.parentId === '00000000-0000-0000-0000-000000000000';
+                }
+                return c.parentId === parentId;
+            });
+
+            console.log(`Level ${level} kategorileri:`, categories);
+
+            // Eğer kategori yoksa
+            if (categories.length === 0) {
+                if (level === 0) {
+                    $('#categorySelectionArea').html(`
+                        <div class="alert alert-info" style="border-radius: 10px;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Ana kategori bulunamadı. Lütfen önce ana kategori oluşturun.
+                        </div>
+                    `);
+                }
+                return;
+            }
+
+            const levelHtml = `
+                <div class="category-level" id="categoryLevel${level}">
+                    <div class="category-level-label">
+                        <span class="level-number">${level + 1}</span>
+                        <span>${level === 0 ? 'Ana Kategori' : 'Alt Kategori ' + level}</span>
+                    </div>
+                    <select class="form-select category-select"
+                            id="categorySelect${level}"
+                            onchange="onCategorySelect(${level}, this.value)">
+                        <option value="">-- ${level === 0 ? 'Ana Kategori' : 'Alt Kategori'} Seçin --</option>
+                        ${categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+
+            // Eski seviyeleri temizle (bu seviyeden sonrakiler)
+            $(`.category-level`).each(function() {
+                const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
+                if (levelNum >= level) {
+                    $(this).remove();
+                }
+            });
+
+            // Yeni seviyeyi ekle
+            $('#categorySelectionArea').append(levelHtml);
+        }
+
+        function onCategorySelect(level, categoryId) {
+            console.log(`Selected at level ${level}: ${categoryId}`);
+
+            if (!categoryId) {
+                // Seçim temizlendi
+                selectedPath = selectedPath.slice(0, level);
+                updateSelectedCategory();
+
+                // Sonraki seviyeleri kaldır
+                $(`.category-level`).each(function() {
+                    const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
+                    if (levelNum > level) {
+                        $(this).remove();
+                    }
+                });
+                return;
+            }
+
+            // Seçilen kategoriyi bul
+            const category = allCategories.find(c => c.id === categoryId);
+            if (!category) {
+                console.error('Kategori bulunamadı:', categoryId);
+                return;
+            }
+
+            // Path'i güncelle
+            selectedPath = selectedPath.slice(0, level);
+            selectedPath.push({ id: category.id, name: category.name });
+
+            // Hidden field'ı güncelle
+            updateSelectedCategory();
+
+            // Alt kategorileri kontrol et
+            const childCategories = allCategories.filter(c => c.parentId === categoryId);
+            console.log(`Alt kategoriler (${categoryId}):`, childCategories);
+
+            if (childCategories.length > 0) {
+                renderCategoryLevel(level + 1, categoryId);
+            } else {
+                // Alt kategori yok, sonraki seviyeleri temizle
+                $(`.category-level`).each(function() {
+                    const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
+                    if (levelNum > level) {
+                        $(this).remove();
+                    }
+                });
+            }
+        }
+
+        function updateSelectedCategory() {
+            const $display = $('#selectedCategoryDisplay');
+            const $pathSpan = $('#selectedCategoryPath');
+            const $hiddenInput = $('#selectedCategoryId');
+            const $summaryCategory = $('#summaryCategory');
+
+            if (selectedPath.length === 0) {
+                $display.hide();
+                $hiddenInput.val('');
+                $summaryCategory.text('-');
+                return;
+            }
+
+            // Son seçilen kategori ID'sini hidden field'a yaz
+            const lastCategory = selectedPath[selectedPath.length - 1];
+            $hiddenInput.val(lastCategory.id);
+
+            // Path'i göster
+            const pathText = selectedPath.map(p => p.name).join(' → ');
+            $pathSpan.text(pathText);
+            $summaryCategory.text(lastCategory.name);
+            $display.show();
+        }
+
+        function resetCategorySelection() {
+            selectedPath = [];
+            $('#categorySelectionArea').empty();
+            updateSelectedCategory();
+            initCategorySelection();
+        }
+
+        // ==================== FILE UPLOAD ====================
+        function initFileUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const previewArea = document.getElementById('previewArea');
+            let selectedFiles = [];
+
+            if (!uploadArea || !fileInput) return;
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+
+            function handleFiles(files) {
+                const fileArray = Array.from(files);
+
+                if (selectedFiles.length + fileArray.length > 5) {
+                    toastr.warning('En fazla 5 görsel yükleyebilirsiniz.');
+                    return;
+                }
+
+                fileArray.forEach(file => {
+                    if (!file.type.startsWith('image/')) {
+                        toastr.error('Sadece görsel dosyaları yüklenebilir.');
+                        return;
+                    }
+
+                    if (file.size > 5 * 1024 * 1024) {
+                        toastr.error('Dosya boyutu 5MB\'dan küçük olmalıdır.');
+                        return;
+                    }
+
+                    selectedFiles.push(file);
+                });
+
+                updatePreview();
+                updateImageCount();
+            }
+
+            function updatePreview() {
+                previewArea.innerHTML = '';
+
+                if (selectedFiles.length === 0) {
+                    previewArea.style.display = 'none';
+                    return;
+                }
+
+                previewArea.style.display = 'flex';
+
+                selectedFiles.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const col = document.createElement('div');
+                        col.className = 'col-4 col-md-3';
+                        col.innerHTML = `
+                            <div class="preview-item">
+                                <img src="${e.target.result}" alt="${file.name}">
+                                <button type="button" class="remove-btn" onclick="removeFile(${index})">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                ${index === 0 ? '<span class="badge bg-primary position-absolute bottom-0 start-0 m-2" style="font-size: 10px; border-radius: 6px;">Ana Görsel</span>' : ''}
+                            </div>
+                        `;
+                        previewArea.appendChild(col);
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                // Update file input
+                const dt = new DataTransfer();
+                selectedFiles.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+            }
+
+            function updateImageCount() {
+                $('#summaryImages').text(`${selectedFiles.length} adet`);
+            }
+
+            window.removeFile = function(index) {
+                selectedFiles.splice(index, 1);
+                updatePreview();
+                updateImageCount();
+            };
+        }
+
+        // ==================== SUMMARY UPDATE ====================
+        function initSummaryUpdate() {
+            function updateSummary() {
+                $('#summaryName').text($('#Name').val() || '-');
+                $('#summarySku').text($('#Sku').val() || '-');
+
+                const price = $('#PriceAmount').val();
+                const currency = $('#CurrencyCode').val();
+                $('#summaryPrice').text(price ? `${parseFloat(price).toFixed(2)} ${currency}` : '-');
+
+                const stock = $('#Stock').val();
+                $('#summaryStock').text(stock ? `${stock} adet` : '-');
+            }
+
+            $('#Name, #Sku, #PriceAmount, #CurrencyCode, #Stock').on('input change', updateSummary);
+        }
+
+        // Form submit öncesi validasyon
+        $('#createProductForm').on('submit', function(e) {
+            const categoryId = $('#selectedCategoryId').val();
+            if (!categoryId) {
+                e.preventDefault();
+                toastr.error('Lütfen bir kategori seçin.');
+                $('html, body').animate({
+                    scrollTop: $('#categorySelectionArea').offset().top - 100
+                }, 500);
+                return false;
+            }
+        });
+    </script>
+}

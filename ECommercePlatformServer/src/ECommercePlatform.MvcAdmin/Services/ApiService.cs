@@ -72,6 +72,21 @@ public class ApiService : IApiService
         return await HandleResponse<T>(response);
     }
 
+    public async Task<Result<T>> PatchAsync<T>(string endpoint, object? data = null)
+    {
+        await AddAuthorizationHeaderAsync();
+        // PatchAsJsonAsync System.Net.Http.Json namespace'inden gelir.
+        // Data null ise boş json göndeririz veya direkt request atarız.
+        HttpResponseMessage response;
+
+        if (data != null)
+            response = await _httpClient.PatchAsJsonAsync(endpoint, data);
+        else
+            response = await _httpClient.PatchAsync(endpoint, null);
+
+        return await HandleResponse<T>(response);
+    }
+
     // API'den gelen cevabı Result<T>'ye çevir
     private async Task<Result<T>> HandleResponse<T>(HttpResponseMessage response)
     {
@@ -93,6 +108,13 @@ public class ApiService : IApiService
             // JSON parse hatası veya API 500 patlamış html dönmüş olabilir
             return Result<T>.Failure($"Sunucu hatası: {response.StatusCode}");
         }
+    }
+
+    public async Task<Result<T>> PostMultipartAsync<T>(string endpoint, MultipartFormDataContent content)
+    {
+        await AddAuthorizationHeaderAsync();
+        var response = await _httpClient.PostAsync(endpoint, content);
+        return await HandleResponse<T>(response);
     }
 
 }
