@@ -12,7 +12,8 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.ToTable("Products");
 
         // Primary Key
-        builder.HasKey(p => p.Id);
+        builder.Property(x => x.Id)
+               .ValueGeneratedNever();
 
         // --- Properties ---
         builder.Property(p => p.Name)

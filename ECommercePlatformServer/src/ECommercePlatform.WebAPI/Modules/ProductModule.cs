@@ -14,6 +14,7 @@ public static class ProductModule
             .RequireAuthorization()
             .DisableAntiforgery(); // EKLENDİ
 
+        // CREATE
         group.MapPost("/", async (
             [FromForm] CreateProductCommand apiRequest,
             ISender sender,
@@ -35,8 +36,7 @@ public static class ProductModule
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         });
 
-        // UPDATE
-        // Örn: PUT /api/products
+        // UPDATE  /api/products
         group.MapPut("/", async (
             [FromBody] UpdateProductCommand command,
             ISender sender,
@@ -46,8 +46,7 @@ public static class ProductModule
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         });
 
-        // DELETE
-        // Örn: DELETE /api/products/{id}
+        // DELETE /api/products/{id}
         group.MapDelete("/{id}", async (
             Guid id,
             ISender sender,
@@ -67,8 +66,7 @@ public static class ProductModule
             return result.IsSuccessful ? Results.Ok(result) : Results.NotFound(result);
         });
 
-        // 1. Add Image
-        // POST /api/products/{id}/images
+        // 1. Add Image /api/products/{id}/images
         group.MapPost("/{id}/images", async (
             Guid id,
             [FromForm] IFormFile file,
@@ -81,8 +79,7 @@ public static class ProductModule
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         }).Accepts<AddProductImageCommand>("multipart/form-data"); // Swagger için önemli
 
-        // 2. Remove Image
-        // DELETE /api/products/{id}/images/{imageId}
+        // 2. Remove Image /api/products/{id}/images/{imageId}
         group.MapDelete("/{id}/images/{imageId}", async (
             Guid id,
             Guid imageId,
@@ -94,8 +91,7 @@ public static class ProductModule
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         });
 
-        // 3. Set Main Image
-        // PATCH /api/products/{id}/images/{imageId}/set-main
+        // 3. Set Main Image /api/products/{id}/images/{imageId}/set-main
         group.MapPatch("/{id}/images/{imageId}/set-main", async (
             Guid id,
             Guid imageId,

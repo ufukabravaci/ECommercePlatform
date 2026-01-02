@@ -101,20 +101,29 @@ public sealed class Product : Entity, IMultiTenantEntity
     }
     public void RemoveImage(Guid imageId)
     {
-        var image = _images.FirstOrDefault(x => x.Id == imageId);
+        // 1. Resmi bul (Sadece silinmemişler arasında ara)
+        var image = _images.FirstOrDefault(x => x.Id == imageId && !x.IsDeleted);
+
         if (image is null)
             throw new InvalidOperationException("Silinmek istenen resim bulunamadı.");
 
+        // 2. Eğer silinen resim "Main" (Ana Resim) ise yeni bir ana resim seçmemiz lazım
         bool wasMain = image.IsMain;
 
-        _images.Remove(image);
+        // 3. HARD DELETE YERİNE SOFT DELETE
+        image.Delete();         // <-- YENİ KOD (IsDeleted = true yapar)
+        image.SetMain(false);   // Silinen resim artık Main olamaz
 
-        // Eğer silinen resim main ise
-        // ve hala başka resimler varsa
-        // ilkini main yap
-        if (wasMain && _images.Count > 0)
+        // 4. Yeni Ana Resim Seçimi
+        if (wasMain)
         {
-            _images[0].SetMain(true);
+            // Silinmemiş (IsDeleted == false) ilk resmi bul
+            var nextMainImage = _images.FirstOrDefault(x => !x.IsDeleted && x.Id != imageId);
+
+            if (nextMainImage != null)
+            {
+                nextMainImage.SetMain(true);
+            }
         }
     }
     public void RemoveImageByUrl(string imageUrl)

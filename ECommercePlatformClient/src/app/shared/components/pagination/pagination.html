@@ -1,0 +1,80 @@
+@if (showPagination()) {
+  <nav class="pagination-wrapper" aria-label="Sayfa navigasyonu">
+    <div class="pagination-info">
+      Toplam <strong>{{ pagination().totalCount }}</strong> ürün, 
+      Sayfa <strong>{{ pagination().pageNumber }}</strong> / <strong>{{ pagination().totalPages }}</strong>
+    </div>
+
+    <ul class="pagination">
+      <!-- First -->
+      <li class="pagination-item">
+        <button 
+          type="button" 
+          class="pagination-btn"
+          [disabled]="!pagination().hasPreviousPage"
+          (click)="goToFirst()"
+          aria-label="İlk sayfa"
+        >
+          <i class="bi bi-chevron-double-left"></i>
+        </button>
+      </li>
+
+      <!-- Previous -->
+      <li class="pagination-item">
+        <button 
+          type="button" 
+          class="pagination-btn"
+          [disabled]="!pagination().hasPreviousPage"
+          (click)="goToPrevious()"
+          aria-label="Önceki sayfa"
+        >
+          <i class="bi bi-chevron-left"></i>
+        </button>
+      </li>
+
+      <!-- Page Numbers -->
+      @for (page of visiblePages(); track $index) {
+        <li class="pagination-item">
+          @if (page === -1) {
+            <span class="pagination-ellipsis">...</span>
+          } @else {
+            <button 
+              type="button" 
+              class="pagination-btn"
+              [class.active]="page === pagination().pageNumber"
+              (click)="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+        </li>
+      }
+
+      <!-- Next -->
+      <li class="pagination-item">
+        <button 
+          type="button" 
+          class="pagination-btn"
+          [disabled]="!pagination().hasNextPage"
+          (click)="goToNext()"
+          aria-label="Sonraki sayfa"
+        >
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </li>
+
+      <!-- Last -->
+      <li class="pagination-item">
+        <button 
+          type="button" 
+          class="pagination-btn"
+          [disabled]="!pagination().hasNextPage"
+          (click)="goToLast()"
+          aria-label="Son sayfa"
+        >
+          <i class="bi bi-chevron-double-right"></i>
+        </button>
+      </li>
+    </ul>
+  </nav>
+}

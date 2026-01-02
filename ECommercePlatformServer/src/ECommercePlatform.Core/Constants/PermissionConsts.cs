@@ -18,4 +18,5 @@ public static class PermissionConsts
     public const string UpdateProduct = "Product.Update";
     public const string DeleteProduct = "Product.Delete";
     public const string ReadProduct = "Product.Read";
+    public const string ManageProductImages = "Product.ManageImages";
 }

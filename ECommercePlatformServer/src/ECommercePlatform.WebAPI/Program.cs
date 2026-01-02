@@ -46,9 +46,9 @@ app.UseCors(x => x
 .AllowAnyOrigin()
 .AllowAnyMethod()
 .SetPreflightMaxAge(TimeSpan.FromMinutes(10)));
-app.UseStaticFiles();
 app.UseExceptionHandler();
 app.UseRateLimiter();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 //Endpoint Mapping

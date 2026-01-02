@@ -1,0 +1,112 @@
+<footer class="footer">
+  <!-- Main Footer -->
+  <div class="footer-main">
+    <div class="container">
+      <div class="row g-5">
+        <!-- Brand Column -->
+        <div class="col-lg-4">
+          <div class="footer-brand">
+            <a routerLink="/" class="brand-link">
+              <div class="brand-icon">
+                <i class="bi bi-bag-heart-fill"></i>
+              </div>
+              <span class="brand-name">Flavour</span>
+            </a>
+            <p class="brand-description">
+              Premium kalitede ürünler, benzersiz alışveriş deneyimi. 
+              Tarzınızı yansıtan ürünleri keşfedin.
+            </p>
+            <div class="social-links">
+              <a href="#" class="social-link" title="Facebook">
+                <i class="bi bi-facebook"></i>
+              </a>
+              <a href="#" class="social-link" title="Instagram">
+                <i class="bi bi-instagram"></i>
+              </a>
+              <a href="#" class="social-link" title="Twitter">
+                <i class="bi bi-twitter-x"></i>
+              </a>
+              <a href="#" class="social-link" title="YouTube">
+                <i class="bi bi-youtube"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="footer-section">
+            <h6 class="footer-title">Alışveriş</h6>
+            <ul class="footer-links">
+              <li><a routerLink="/products">Tüm Ürünler</a></li>
+              <li><a routerLink="/categories">Kategoriler</a></li>
+              <li><a routerLink="/products" [queryParams]="{sort: 'newest'}">Yeni Gelenler</a></li>
+              <li><a routerLink="/products" [queryParams]="{sale: true}">İndirimler</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Support -->
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="footer-section">
+            <h6 class="footer-title">Destek</h6>
+            <ul class="footer-links">
+              <li><a routerLink="/contact">İletişim</a></li>
+              <li><a routerLink="/faq">S.S.S.</a></li>
+              <li><a routerLink="/shipping">Kargo Bilgileri</a></li>
+              <li><a routerLink="/returns">İade & Değişim</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Company -->
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="footer-section">
+            <h6 class="footer-title">Kurumsal</h6>
+            <ul class="footer-links">
+              <li><a routerLink="/about">Hakkımızda</a></li>
+              <li><a href="#">Kariyer</a></li>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Basın</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="col-md-8 col-lg-2">
+          <div class="footer-section">
+            <h6 class="footer-title">Bülten</h6>
+            <p class="newsletter-text">Kampanyalardan ilk siz haberdar olun.</p>
+            <form class="newsletter-form">
+              <input type="email" placeholder="E-posta" class="newsletter-input" />
+              <button type="submit" class="newsletter-btn">
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Bottom -->
+  <div class="footer-bottom">
+    <div class="container">
+      <div class="footer-bottom-content">
+        <p class="copyright">
+          &copy; {{ currentYear }} Flavour. Tüm hakları saklıdır.
+        </p>
+        <div class="footer-bottom-links">
+          <a href="#">Gizlilik Politikası</a>
+          <a href="#">Kullanım Şartları</a>
+          <a href="#">Çerez Politikası</a>
+        </div>
+        <div class="payment-methods">
+          <img src="images/visa.svg" alt="Visa" />
+          <img src="images/mastercard.svg" alt="Mastercard" />
+          <img src="images/amex.svg" alt="Amex" />
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

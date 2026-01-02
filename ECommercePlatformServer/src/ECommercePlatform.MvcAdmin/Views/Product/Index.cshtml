@@ -3,6 +3,7 @@
     ViewData["Title"] = "Ürünler";
     var products = Model.Products;
     var productList = products.Items ?? new List<ECommercePlatform.MvcAdmin.DTOs.Products.ProductDto>();
+    var apiBaseUrl = ViewBag.ApiBaseUrl as string ?? "";
 }
 
 <!-- Page Header -->
@@ -182,8 +183,15 @@
                                         <div class="product-thumb">
                                             @if (!string.IsNullOrEmpty(product.MainImageUrl))
                                             {
-                                                <img src="@product.MainImageUrl" alt="@product.Name"
-                                                     class="rounded" style="width: 45px; height: 45px; object-fit: cover;">
+                                                var imageUrl = product.MainImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                                                ? product.MainImageUrl
+                                                : $"{apiBaseUrl}{product.MainImageUrl}";
+
+                                                <img src="@imageUrl"
+                                                     alt="@product.Name"
+                                                     class="rounded"
+                                                     style="width: 45px; height: 45px; object-fit: cover;"
+                                                     onerror="this.src='https://via.placeholder.com/45?text=X'">
                                             }
                                             else
                                             {

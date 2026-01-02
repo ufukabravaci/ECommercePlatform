@@ -1,0 +1,145 @@
+<header class="navbar-wrapper" [class.scrolled]="isScrolled()">
+  <nav class="navbar-main">
+    <div class="container">
+      <div class="navbar-content">
+        <!-- Logo -->
+        <a routerLink="/" class="navbar-brand">
+          <div class="brand-icon">
+            <i class="bi bi-bag-heart-fill"></i>
+          </div>
+          <span class="brand-text">
+            <span class="brand-name">Flavour</span>
+            <span class="brand-tagline">Premium Store</span>
+          </span>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="navbar-nav d-none d-lg-flex">
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
+            Ana Sayfa
+          </a>
+          <a routerLink="/products" routerLinkActive="active" class="nav-link">
+            Ürünler
+          </a>
+          <a routerLink="/categories" routerLinkActive="active" class="nav-link">
+            Kategoriler
+          </a>
+          <a routerLink="/about" routerLinkActive="active" class="nav-link">
+            Hakkımızda
+          </a>
+        </nav>
+
+        <!-- Actions -->
+        <div class="navbar-actions">
+          <!-- Search -->
+          <button class="action-btn d-none d-md-flex" title="Ara" (click)="toggleSearch()">
+            <i class="bi bi-search"></i>
+          </button>
+
+          <!-- Wishlist -->
+          <a routerLink="/account/wishlist" class="action-btn d-none d-md-flex" title="Favoriler">
+            <i class="bi bi-heart"></i>
+            <span class="action-badge">0</span>
+          </a>
+
+          <!-- Cart -->
+          <a routerLink="/cart" class="action-btn cart-btn" title="Sepet">
+            <i class="bi bi-bag"></i>
+            <span class="action-badge">0</span>
+          </a>
+
+          <!-- User -->
+          @if (isAuthenticated()) {
+            <div class="dropdown">
+              <button class="action-btn user-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person"></i>
+              </button>
+              <div class="dropdown-menu dropdown-menu-end">
+                <div class="dropdown-header">
+                  <span class="user-greeting">Merhaba,</span>
+                  <span class="user-name">{{ userFullName() }}</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a routerLink="/account" class="dropdown-item" (click)="closeMenu()">
+                  <i class="bi bi-person-circle"></i>Hesabım
+                </a>
+                <a routerLink="/account/orders" class="dropdown-item" (click)="closeMenu()">
+                  <i class="bi bi-box-seam"></i>Siparişlerim
+                </a>
+                <a routerLink="/account/wishlist" class="dropdown-item" (click)="closeMenu()">
+                  <i class="bi bi-heart"></i>Favorilerim
+                </a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item text-danger" (click)="logout()">
+                  <i class="bi bi-box-arrow-right"></i>Çıkış Yap
+                </button>
+              </div>
+            </div>
+          } @else {
+            <a routerLink="/auth/login" class="btn btn-primary btn-sm d-none d-md-flex">
+              Giriş Yap
+            </a>
+          }
+
+          <!-- Mobile Menu Toggle -->
+          <button class="mobile-toggle d-lg-none" (click)="toggleMenu()" [class.active]="isMenuOpen()">
+            <span class="toggle-line"></span>
+            <span class="toggle-line"></span>
+            <span class="toggle-line"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu d-lg-none" [class.open]="isMenuOpen()">
+    <div class="mobile-menu-content">
+      <nav class="mobile-nav">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">
+          <i class="bi bi-house"></i>Ana Sayfa
+        </a>
+        <a routerLink="/products" routerLinkActive="active" (click)="closeMenu()">
+          <i class="bi bi-grid-3x3-gap"></i>Ürünler
+        </a>
+        <a routerLink="/categories" routerLinkActive="active" (click)="closeMenu()">
+          <i class="bi bi-tags"></i>Kategoriler
+        </a>
+        <a routerLink="/about" routerLinkActive="active" (click)="closeMenu()">
+          <i class="bi bi-info-circle"></i>Hakkımızda
+        </a>
+      </nav>
+      
+      @if (!isAuthenticated()) {
+        <div class="mobile-auth">
+          <a routerLink="/auth/login" class="btn btn-primary w-100" (click)="closeMenu()">
+            Giriş Yap
+          </a>
+          <a routerLink="/auth/register" class="btn btn-outline-primary w-100" (click)="closeMenu()">
+            Kayıt Ol
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Search Overlay -->
+  @if (isSearchOpen()) {
+    <div class="search-overlay" (click)="toggleSearch()">
+      <div class="search-container" (click)="$event.stopPropagation()">
+        <div class="search-input-wrapper">
+          <i class="bi bi-search"></i>
+          <input 
+            type="text" 
+            placeholder="Ürün ara..." 
+            class="search-input"
+            autofocus
+          />
+          <button class="search-close" (click)="toggleSearch()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</header>

@@ -12,10 +12,18 @@ namespace ECommercePlatform.MvcAdmin.Controllers;
 public class ProductController : Controller
 {
     private readonly IApiService _apiService;
+    private readonly IConfiguration _configuration;
 
-    public ProductController(IApiService apiService)
+    public ProductController(IApiService apiService, IConfiguration configuration)
     {
         _apiService = apiService;
+        _configuration = configuration;
+    }
+
+    // API Base URL'ini al
+    private string GetApiBaseUrl()
+    {
+        return _configuration["ApiSettings:BaseUrl"]?.TrimEnd('/') ?? "";
     }
 
     // LIST
@@ -33,6 +41,9 @@ public class ProductController : Controller
             return View(new ProductListViewModel());
         }
 
+        // API Base URL'ini ViewBag'e ekle
+        ViewBag.ApiBaseUrl = GetApiBaseUrl();
+
         return View(new ProductListViewModel { Products = result.Data });
     }
 
@@ -47,7 +58,6 @@ public class ProductController : Controller
             CurrencyList = GetCurrencySelectList()
         };
 
-        // Kategorileri JSON olarak ViewBag'e at
         ViewBag.AllCategories = categories;
 
         return View(model);
@@ -127,9 +137,10 @@ public class ProductController : Controller
 
         ViewBag.AllCategories = categories;
         ViewBag.Images = product.Images;
-
-        // Mevcut kategorinin hiyerarşisini bul (Edit sayfasında seçili göstermek için)
         ViewBag.CategoryHierarchy = GetCategoryHierarchy(categories, product.CategoryId);
+
+        // ✅ API Base URL'ini ViewBag'e ekle
+        ViewBag.ApiBaseUrl = GetApiBaseUrl();
 
         return View(model);
     }
@@ -143,6 +154,7 @@ public class ProductController : Controller
         {
             model.CurrencyList = GetCurrencySelectList();
             ViewBag.AllCategories = await GetAllCategoriesAsync();
+            ViewBag.ApiBaseUrl = GetApiBaseUrl();
             return View(model);
         }
 
@@ -158,6 +170,7 @@ public class ProductController : Controller
         TempData["ErrorMessage"] = result.ErrorMessages?.FirstOrDefault();
         model.CurrencyList = GetCurrencySelectList();
         ViewBag.AllCategories = await GetAllCategoriesAsync();
+        ViewBag.ApiBaseUrl = GetApiBaseUrl();
         return View(model);
     }
 
@@ -247,9 +260,6 @@ public class ProductController : Controller
         };
     }
 
-    /// <summary>
-    /// Verilen kategori ID'sinin üst kategorilerini bulur (root'tan hedefe)
-    /// </summary>
     private List<Guid> GetCategoryHierarchy(List<CategoryDto> categories, Guid categoryId)
     {
         var hierarchy = new List<Guid>();
@@ -257,7 +267,7 @@ public class ProductController : Controller
 
         while (current != null)
         {
-            hierarchy.Insert(0, current.Id); // Başa ekle
+            hierarchy.Insert(0, current.Id);
             current = current.ParentId.HasValue
                 ? categories.FirstOrDefault(c => c.Id == current.ParentId.Value)
                 : null;

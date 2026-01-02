@@ -1,9 +1,10 @@
 ﻿using ECommercePlatform.Application.Services;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace ECommercePlatform.Infrastructure.Services;
 
-public sealed class LocalFileService(IWebHostEnvironment environment) : IFileService
+public sealed class LocalFileService(IWebHostEnvironment environment, IHttpContextAccessor httpContextAccessor) : IFileService
 {
     public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType, string folderName, CancellationToken cancellationToken = default)
     {
@@ -21,7 +22,10 @@ public sealed class LocalFileService(IWebHostEnvironment environment) : IFileSer
         await fileStream.CopyToAsync(targetStream, cancellationToken);
 
         // 4. URL Dönüşü
-        return $"/uploads/{folderName}/{uniqueName}".Replace("\\", "/");
+        var request = httpContextAccessor.HttpContext!.Request;
+        var baseUrl = $"{request.Scheme}://{request.Host}";
+
+        return $"{baseUrl}/uploads/{folderName}/{uniqueName}";
     }
 
     public void Delete(string path)

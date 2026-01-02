@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Application.DTOs;
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Products;
 using GenericRepository;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +9,7 @@ using TS.Result;
 
 namespace ECommercePlatform.Application.Products;
 
+[Permission(PermissionConsts.ReadProduct)]
 public sealed record GetAllProductsQuery(
     int PageNumber = 1,
     int PageSize = 10,

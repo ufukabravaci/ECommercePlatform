@@ -1,0 +1,313 @@
+<div class="product-detail-page">
+  <!-- Loading -->
+  @if (loading()) {
+    <app-loading-spinner message="Ürün yükleniyor..." minHeight="60vh" />
+  }
+
+  <!-- Error -->
+  @if (error(); as errorMessage) {
+    <div class="container py-5">
+      <div class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+        <div class="flex-grow-1">{{ errorMessage }}</div>
+        <a routerLink="/products" class="btn btn-outline-danger btn-sm ms-3">
+          <i class="bi bi-arrow-left me-1"></i>Ürünlere Dön
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- Product Content -->
+  @if (product(); as p) {
+    <!-- Breadcrumb -->
+    <div class="bg-white border-bottom">
+      <div class="container py-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+              <a routerLink="/" class="text-decoration-none">
+                <i class="bi bi-house"></i> Ana Sayfa
+              </a>
+            </li>
+            <li class="breadcrumb-item">
+              <a routerLink="/products" class="text-decoration-none">Ürünler</a>
+            </li>
+            @if (p.categoryName) {
+              <li class="breadcrumb-item">
+                <a 
+                  [routerLink]="['/products']" 
+                  [queryParams]="{ category: p.categoryId }"
+                  class="text-decoration-none"
+                >
+                  {{ p.categoryName }}
+                </a>
+              </li>
+            }
+            <li class="breadcrumb-item active" aria-current="page">{{ p.name }}</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Main Product Section -->
+    <section class="py-5">
+      <div class="container">
+        <div class="row g-5">
+          <!-- Product Images -->
+          <div class="col-lg-6">
+            <div class="product-gallery">
+              <!-- Main Image -->
+              <div class="main-image-wrapper mb-3 rounded-3 overflow-hidden bg-light">
+                @if (selectedImage()) {
+                  <img 
+                    [src]="normalizeImageUrl(selectedImage()!.imageUrl)" 
+                    [alt]="p.name"
+                    class="main-image img-fluid w-100"
+                  />
+                } @else if (p.mainImageUrl) {
+                  <img 
+                    [src]="normalizeImageUrl(p.mainImageUrl)" 
+                    [alt]="p.name"
+                    class="main-image img-fluid w-100"
+                  />
+                } @else {
+                  <div class="no-image d-flex align-items-center justify-content-center">
+                    <i class="bi bi-image text-muted"></i>
+                  </div>
+                }
+              </div>
+
+              <!-- Thumbnails -->
+              @if (p.images.length > 1) {
+                <div class="thumbnails-wrapper d-flex gap-2 flex-wrap">
+                  @for (image of p.images; track image.id) {
+                    <button 
+                      type="button"
+                      class="thumbnail-btn p-0 border rounded overflow-hidden"
+                      [class.active]="selectedImage()?.id === image.id"
+                      (click)="selectImage(image)"
+                    >
+                      <img 
+                        [src]="normalizeImageUrl(image.imageUrl)" 
+                        [alt]="p.name"
+                        class="thumbnail-image"
+                      />
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Product Info -->
+          <div class="col-lg-6">
+            <div class="product-info">
+              <!-- Category & SKU -->
+              <div class="d-flex gap-2 mb-3">
+                @if (p.categoryName) {
+                  <span class="badge bg-primary">{{ p.categoryName }}</span>
+                }
+                <span class="badge bg-light text-dark">SKU: {{ p.sku }}</span>
+              </div>
+
+              <!-- Title -->
+              <h1 class="product-title h2 fw-bold mb-3">{{ p.name }}</h1>
+
+              <!-- Price -->
+              <div class="price-section mb-4">
+                <span class="current-price display-5 fw-bold text-primary">
+                  {{ getFormattedPrice(p) }}
+                </span>
+              </div>
+
+              <!-- Stock Status -->
+              <div class="stock-status mb-4">
+                <span [class]="'fw-semibold ' + getStockStatus(p.stock).class">
+                  <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+                  {{ getStockStatus(p.stock).text }}
+                </span>
+              </div>
+
+              <!-- Short Description -->
+              @if (p.description) {
+                <p class="text-muted mb-4">
+                  {{ p.description.length > 200 ? p.description.substring(0, 200) + '...' : p.description }}
+                </p>
+              }
+
+              <!-- Quantity Selector -->
+              @if (p.stock > 0) {
+                <div class="quantity-section mb-4">
+                  <label class="form-label fw-semibold">Adet</label>
+                  <div class="quantity-selector d-flex align-items-center gap-2">
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary qty-btn"
+                      [disabled]="quantity() <= 1"
+                      (click)="decrementQuantity()"
+                    >
+                      <i class="bi bi-dash"></i>
+                    </button>
+                    <input 
+                      type="number" 
+                      class="form-control text-center qty-input"
+                      [value]="quantity()"
+                      (change)="updateQuantity($event)"
+                      min="1"
+                      [max]="p.stock"
+                    />
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary qty-btn"
+                      [disabled]="quantity() >= p.stock"
+                      (click)="incrementQuantity()"
+                    >
+                      <i class="bi bi-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Action Buttons -->
+              <div class="action-buttons d-flex gap-3 mb-4">
+                <button 
+                  type="button"
+                  class="btn btn-primary btn-lg flex-grow-1"
+                  [disabled]="p.stock <= 0"
+                  (click)="addToCart()"
+                >
+                  <i class="bi bi-cart-plus me-2"></i>
+                  @if (p.stock > 0) {
+                    Sepete Ekle
+                  } @else {
+                    Stokta Yok
+                  }
+                </button>
+                <button 
+                  type="button"
+                  class="btn btn-outline-danger btn-lg"
+                  title="Favorilere Ekle"
+                  (click)="addToWishlist()"
+                >
+                  <i class="bi bi-heart"></i>
+                </button>
+              </div>
+
+              <!-- Additional Info -->
+              <div class="additional-info">
+                <div class="info-item d-flex align-items-center gap-2 mb-2">
+                  <i class="bi bi-truck text-primary"></i>
+                  <span class="small">150 TL üzeri siparişlerde ücretsiz kargo</span>
+                </div>
+                <div class="info-item d-flex align-items-center gap-2 mb-2">
+                  <i class="bi bi-arrow-repeat text-primary"></i>
+                  <span class="small">14 gün içinde ücretsiz iade</span>
+                </div>
+                <div class="info-item d-flex align-items-center gap-2">
+                  <i class="bi bi-shield-check text-primary"></i>
+                  <span class="small">Güvenli ödeme altyapısı</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs Section -->
+    <section class="py-5 bg-white">
+      <div class="container">
+        <ul class="nav nav-tabs mb-4" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button 
+              type="button"
+              class="nav-link"
+              [class.active]="activeTab() === 'description'"
+              (click)="setActiveTab('description')"
+              role="tab"
+            >
+              <i class="bi bi-file-text me-2"></i>Açıklama
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button 
+              type="button"
+              class="nav-link"
+              [class.active]="activeTab() === 'details'"
+              (click)="setActiveTab('details')"
+              role="tab"
+            >
+              <i class="bi bi-list-check me-2"></i>Özellikler
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button 
+              type="button"
+              class="nav-link"
+              [class.active]="activeTab() === 'reviews'"
+              (click)="setActiveTab('reviews')"
+              role="tab"
+            >
+              <i class="bi bi-star me-2"></i>Yorumlar
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          @if (activeTab() === 'description') {
+            <div class="tab-pane fade show active">
+              <div class="description-content">
+                @if (p.description) {
+                  <p class="lead">{{ p.description }}</p>
+                } @else {
+                  <p class="text-muted">Bu ürün için açıklama bulunmamaktadır.</p>
+                }
+              </div>
+            </div>
+          }
+
+          @if (activeTab() === 'details') {
+            <div class="tab-pane fade show active">
+              <table class="table table-striped">
+                <tbody>
+                  <tr>
+                    <th scope="row" style="width: 200px;">Ürün Kodu (SKU)</th>
+                    <td>{{ p.sku }}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Kategori</th>
+                    <td>{{ p.categoryName || '-' }}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Stok Durumu</th>
+                    <td>
+                      <span [class]="getStockStatus(p.stock).class">
+                        {{ getStockStatus(p.stock).text }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Stok Adedi</th>
+                    <td>{{ p.stock }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          }
+
+          @if (activeTab() === 'reviews') {
+            <div class="tab-pane fade show active">
+              <div class="text-center py-5">
+                <i class="bi bi-chat-square-text display-1 text-muted"></i>
+                <p class="text-muted mt-3">Henüz yorum yapılmamış. İlk yorumu siz yapın!</p>
+                <button type="button" class="btn btn-primary">
+                  <i class="bi bi-pencil me-2"></i>Yorum Yaz
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+</div>

@@ -10,8 +10,8 @@ internal sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
     {
         builder.ToTable("Companies");
         builder.HasKey(c => c.Id);
-        builder.Property(c => c.Id).ValueGeneratedNever(); // Guid.CreateVersion7() elle set edildiği için
-
+        builder.Property(x => x.Id)
+               .ValueGeneratedNever();
         builder.Property(c => c.Name)
             .IsRequired()
             .HasMaxLength(200);

@@ -10,7 +10,8 @@ internal sealed class UserRefreshTokenConfiguration : IEntityTypeConfiguration<U
     {
         builder.ToTable("UserRefreshTokens");
 
-        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+               .ValueGeneratedNever();
 
         builder.Property(x => x.Code).HasMaxLength(500).IsRequired();
         builder.Property(x => x.Expiration).IsRequired();

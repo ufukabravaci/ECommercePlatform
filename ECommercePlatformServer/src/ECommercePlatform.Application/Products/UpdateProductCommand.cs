@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Domain.Categories;
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Domain.Categories;
+using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Products;
 using ECommercePlatform.Domain.Shared;
 using FluentValidation;
@@ -8,6 +10,7 @@ using TS.Result;
 
 namespace ECommercePlatform.Application.Products;
 
+[Permission(PermissionConsts.UpdateProduct)]
 public sealed record UpdateProductCommand(
     Guid Id,
     string Name,

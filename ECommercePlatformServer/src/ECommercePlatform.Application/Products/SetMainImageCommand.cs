@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Domain.Products;
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Domain.Constants;
+using ECommercePlatform.Domain.Products;
 using GenericRepository;
 using Microsoft.EntityFrameworkCore;
 using TS.MediatR;
@@ -6,6 +8,7 @@ using TS.Result;
 
 namespace ECommercePlatform.Application.Products;
 
+[Permission(PermissionConsts.ManageProductImages)]
 public sealed record SetMainProductImageCommand(
     Guid ProductId,
     Guid ImageId

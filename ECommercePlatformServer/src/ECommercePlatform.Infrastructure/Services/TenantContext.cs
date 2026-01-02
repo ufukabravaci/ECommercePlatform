@@ -13,11 +13,11 @@ internal sealed class TenantContext(IHttpContextAccessor _httpContextAccessor) :
     {
         get
         {
-            // 1. Token'da var mı? (Giriş yapmış kullanıcı)
+            // 1. Token'da var mı?
             var claimValue = User?.FindFirst(ClaimTypesConst.CompanyId)?.Value;
             if (Guid.TryParse(claimValue, out var tokenId)) return tokenId;
 
-            // 2. Header'da var mı? (Login isteği atan kullanıcı)
+            // 2. Header'da var mı?
             var headerValue = _httpContextAccessor.HttpContext?
                 .Request.Headers[ClaimTypesConst.TenantIdHeader]
                 .FirstOrDefault();

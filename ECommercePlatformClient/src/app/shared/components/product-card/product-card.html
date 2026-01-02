@@ -1,0 +1,79 @@
+<article class="product-card">
+  <!-- Image Section -->
+  <div class="product-image-wrapper">
+    <a [routerLink]="['/products', product().id]" class="product-image-link">
+      @if (product().mainImageUrl) {
+        <img 
+          [src]="normalizeImageUrl(product().mainImageUrl)" 
+          [alt]="product().name"
+          class="product-image"
+          loading="lazy"
+        />
+      } @else {
+        <div class="product-image-placeholder">
+          <i class="bi bi-image"></i>
+        </div>
+      }
+    </a>
+
+    <!-- Badges -->
+    <div class="product-badges">
+      @if (stockStatus(); as status) {
+        <span class="badge" [class]="status.class">{{ status.label }}</span>
+      }
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="product-actions">
+      <button 
+        type="button" 
+        class="action-btn" 
+        title="Favorilere Ekle"
+        (click)="$event.preventDefault()"
+      >
+        <i class="bi bi-heart"></i>
+      </button>
+      <button 
+        type="button" 
+        class="action-btn" 
+        title="Hızlı Bakış"
+        (click)="$event.preventDefault()"
+      >
+        <i class="bi bi-eye"></i>
+      </button>
+    </div>
+
+    <!-- Add to Cart Button -->
+    <button 
+      type="button"
+      class="add-to-cart-btn"
+      [disabled]="isOutOfStock()"
+      (click)="onAddToCart($event)"
+    >
+      <i class="bi bi-bag-plus"></i>
+      <span>Sepete Ekle</span>
+    </button>
+  </div>
+
+  <!-- Info Section -->
+  <div class="product-info">
+    @if (product().categoryName) {
+      <span class="product-category">{{ product().categoryName }}</span>
+    }
+
+    <h3 class="product-title">
+      <a [routerLink]="['/products', product().id]">{{ product().name }}</a>
+    </h3>
+
+    <div class="product-footer">
+      <div class="product-price">
+        <span class="price-current">{{ formattedPrice() }}</span>
+      </div>
+
+      <div class="product-rating">
+        <i class="bi bi-star-fill"></i>
+        <span>4.5</span>
+      </div>
+    </div>
+  </div>
+</article>

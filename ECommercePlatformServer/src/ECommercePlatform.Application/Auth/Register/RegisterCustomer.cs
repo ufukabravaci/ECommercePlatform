@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using TS.MediatR;
 using TS.Result;
 
-namespace ECommercePlatform.Application.Auth.RefreshToken;
+namespace ECommercePlatform.Application.Auth.Register;
 
 public sealed record RegisterCustomerCommand(
     string FirstName,

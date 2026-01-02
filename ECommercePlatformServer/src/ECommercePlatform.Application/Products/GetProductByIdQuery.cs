@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Application.DTOs;
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Products;
 using FluentValidation;
 using GenericRepository;
@@ -8,6 +10,7 @@ using TS.Result;
 
 namespace ECommercePlatform.Application.Products;
 
+[Permission(PermissionConsts.ReadProduct)]
 public sealed record GetProductByIdQuery(Guid Id) : IRequest<Result<ProductDto>>;
 
 public sealed class GetProductByIdQueryValidator : AbstractValidator<GetProductByIdQuery>

@@ -21,4 +21,5 @@ export interface PaginationParams {
   search?: string;
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
+  categoryId?: string;
 }

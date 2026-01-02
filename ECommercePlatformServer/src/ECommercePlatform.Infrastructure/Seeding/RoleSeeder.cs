@@ -32,6 +32,12 @@ public static class RoleSeeder
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadCategory);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteCategory);
 
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.CreateProduct);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.UpdateProduct);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteProduct);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadProduct);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ManageProductImages);
+
             if (isAdded) // Sadece yeni bir claim eklendiyse cache'i uçur
             {
                 await cache.RemoveAsync($"Role_{RoleConsts.CompanyOwner}_Permissions");

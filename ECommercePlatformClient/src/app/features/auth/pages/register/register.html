@@ -1,0 +1,195 @@
+<div class="auth-page">
+  <div class="auth-background">
+    <div class="auth-glow auth-glow-1"></div>
+    <div class="auth-glow auth-glow-2"></div>
+    <div class="auth-grid"></div>
+  </div>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6 col-xl-5">
+        <div class="auth-card">
+          @if (success()) {
+            <!-- Success State -->
+            <div class="success-state">
+              <div class="success-icon">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+              <h2 class="success-title">Kayıt Başarılı!</h2>
+              <p class="success-text">
+                Hesabınız oluşturuldu. E-posta adresinize gönderilen doğrulama 
+                linkine tıklayarak hesabınızı aktifleştirin.
+              </p>
+              <a routerLink="/auth/login" class="btn btn-accent btn-lg w-100">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Giriş Yap</span>
+              </a>
+            </div>
+          } @else {
+            <!-- Logo -->
+            <a routerLink="/" class="auth-logo">
+              <div class="logo-icon">
+                <i class="bi bi-bag-heart-fill"></i>
+              </div>
+              <span class="logo-text">Flavour</span>
+            </a>
+
+            <!-- Header -->
+            <div class="auth-header">
+              <h1 class="auth-title">Hesap Oluştur</h1>
+              <p class="auth-subtitle">Alışverişe başlamak için kayıt olun</p>
+            </div>
+
+            <!-- Error Alert -->
+            @if (error()) {
+              <div class="auth-alert auth-alert-error">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>{{ error() }}</span>
+              </div>
+            }
+
+            <!-- Register Form -->
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+              <!-- Name Fields -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Ad</label>
+                  <div class="input-wrapper input-wrapper-simple">
+                    <input
+                      type="text"
+                      class="form-input"
+                      placeholder="Adınız"
+                      formControlName="firstName"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Soyad</label>
+                  <div class="input-wrapper input-wrapper-simple">
+                    <input
+                      type="text"
+                      class="form-input"
+                      placeholder="Soyadınız"
+                      formControlName="lastName"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div class="form-group">
+                <label class="form-label">E-posta Adresi</label>
+                <div class="input-wrapper">
+                  <i class="bi bi-envelope"></i>
+                  <input
+                    type="email"
+                    class="form-input"
+                    placeholder="ornek@email.com"
+                    formControlName="email"
+                  />
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div class="form-group">
+                <label class="form-label">Şifre</label>
+                <div class="input-wrapper">
+                  <i class="bi bi-lock"></i>
+                  <input
+                    [type]="showPassword() ? 'text' : 'password'"
+                    class="form-input"
+                    placeholder="En az 6 karakter"
+                    formControlName="password"
+                  />
+                  <button
+                    type="button"
+                    class="input-toggle"
+                    (click)="togglePasswordVisibility('password')"
+                    tabindex="-1"
+                  >
+                    <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+                  </button>
+                </div>
+                
+                <!-- Password Strength -->
+                @if (passwordStrength()) {
+                  <div class="password-strength">
+                    <div class="strength-bar">
+                      <div 
+                        class="strength-fill" 
+                        [class]="passwordStrength()!.class"
+                        [style.width.%]="passwordStrength()!.level * 25"
+                      ></div>
+                    </div>
+                    <span class="strength-text">Şifre gücü: {{ passwordStrength()!.text }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Confirm Password -->
+              <div class="form-group">
+                <label class="form-label">Şifre Tekrar</label>
+                <div class="input-wrapper">
+                  <i class="bi bi-lock-fill"></i>
+                  <input
+                    [type]="showConfirmPassword() ? 'text' : 'password'"
+                    class="form-input"
+                    placeholder="Şifrenizi tekrar girin"
+                    formControlName="confirmPassword"
+                  />
+                  <button
+                    type="button"
+                    class="input-toggle"
+                    (click)="togglePasswordVisibility('confirm')"
+                    tabindex="-1"
+                  >
+                    <i class="bi" [class.bi-eye]="!showConfirmPassword()" [class.bi-eye-slash]="showConfirmPassword()"></i>
+                  </button>
+                </div>
+                
+                @if (form.hasError('passwordsMismatch')) {
+                  <span class="form-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    Şifreler eşleşmiyor
+                  </span>
+                }
+              </div>
+
+              <!-- Submit Button -->
+              <button
+                type="submit"
+                class="btn btn-accent btn-lg w-100"
+                [disabled]="loading || form.invalid"
+              >
+                @if (loading()) {
+                  <span class="spinner"></span>
+                  <span>Kayıt yapılıyor...</span>
+                } @else {
+                  <i class="bi bi-person-plus"></i>
+                  <span>Kayıt Ol</span>
+                }
+              </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="auth-divider">
+              <span>veya</span>
+            </div>
+
+            <!-- Social Login -->
+            <button type="button" class="btn btn-dark w-100">
+              <i class="bi bi-google"></i>
+              <span>Google ile Kayıt Ol</span>
+            </button>
+
+            <!-- Login Link -->
+            <p class="auth-footer">
+              Zaten hesabınız var mı?
+              <a routerLink="/auth/login">Giriş Yapın</a>
+            </p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -30,13 +30,13 @@ public class ApiService : IApiService
                 new AuthenticationHeaderValue("Bearer", token);
         }
 
-        // 2. Tenant ID Header Ekle (YENİ)
+        // 2. Tenant ID Header Ekle
         // Login olmuş kullanıcının Session'ında CompanyId varsa bunu Header'a bas.
         // Bu sayede API'deki TenantContext bunu okuyabilir.
         var companyId = context.Session.GetString("CompanyId");
         if (!string.IsNullOrEmpty(companyId))
         {
-            // Eski header varsa sil ki çakışmasın
+            // Eski header varsa sil
             if (_httpClient.DefaultRequestHeaders.Contains("X-Tenant-ID"))
                 _httpClient.DefaultRequestHeaders.Remove("X-Tenant-ID");
 

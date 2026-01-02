@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Domain.Products;
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Domain.Constants;
+using ECommercePlatform.Domain.Products;
 using GenericRepository;
 using TS.MediatR;
 using TS.Result;
@@ -6,7 +8,7 @@ using TS.Result;
 namespace ECommercePlatform.Application.Products;
 
 
-//soft delete olduğu için ürün resimlerini silmiyorum. Bu davranış değiştirilebilir.
+[Permission(PermissionConsts.ManageProductImages)]
 public sealed record DeleteProductCommand(Guid Id) : IRequest<Result<string>>;
 
 public sealed class DeleteProductCommandHandler(
@@ -30,7 +32,7 @@ public sealed class DeleteProductCommandHandler(
         // Generic Repo'nun Delete metodu Entity.Remove çağırır.
         // Infrastructure katmanında SaveChanges override edilmişse bu işlem Soft Delete'e döner.
         // Edilmemişse DB'den siler. Proje kurallarında Soft Delete olduğu belirtilmişti.
-        productRepository.Delete(product);
+        product.Delete();
 
         // 3. Kayıt
         await unitOfWork.SaveChangesAsync(cancellationToken);

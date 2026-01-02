@@ -1,0 +1,16 @@
+<div 
+  class="loading-container"
+  [class.overlay]="overlay()"
+  [style.min-height]="overlay() ? 'auto' : minHeight()"
+>
+  <div class="loading-content">
+    <div class="spinner" [class]="'spinner-' + size()">
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+    </div>
+    @if (message()) {
+      <p class="loading-message">{{ message() }}</p>
+    }
+  </div>
+</div>

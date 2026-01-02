@@ -20,7 +20,7 @@ internal sealed class UserContext(
     {
         var context = _httpContextAccessor.HttpContext;
         if (context is null) return Guid.Empty;
-        var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? context.User?.FindFirst("sub")?.Value; ;
 
         if (string.IsNullOrEmpty(userIdClaim)) return Guid.Empty;
 

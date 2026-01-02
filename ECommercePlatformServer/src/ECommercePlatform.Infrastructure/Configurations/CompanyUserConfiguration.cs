@@ -13,7 +13,8 @@ internal sealed class CompanyUserConfiguration
     {
         builder.ToTable("CompanyUsers");
 
-        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+               .ValueGeneratedNever(); ;
 
         builder.Property(x => x.UserId).IsRequired();
         builder.Property(x => x.CompanyId).IsRequired();

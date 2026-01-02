@@ -2,9 +2,10 @@
 @{
     ViewData["Title"] = "Ürün Düzenle";
     var images = ViewBag.Images as List<ECommercePlatform.MvcAdmin.DTOs.Products.ProductImageDto> ?? new();
-    var allCategories = ViewBag.AllCategories as List<ECommercePlatform.MvcAdmin.DTOs.Category.CategoryDto> 
+    var allCategories = ViewBag.AllCategories as List<ECommercePlatform.MvcAdmin.DTOs.Category.CategoryDto>
                         ?? new List<ECommercePlatform.MvcAdmin.DTOs.Category.CategoryDto>();
     var categoryHierarchy = ViewBag.CategoryHierarchy as List<Guid> ?? new List<Guid>();
+    var apiBaseUrl = ViewBag.ApiBaseUrl as string ?? "";
 }
 
 <!-- Page Header -->
@@ -24,7 +25,7 @@
         <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
             <i class="fas fa-arrow-left me-2"></i>Geri Dön
         </a>
-        <button type="button" class="btn btn-outline-danger" style="border-radius: 10px;" 
+        <button type="button" class="btn btn-outline-danger" style="border-radius: 10px;"
                 onclick="confirmDeleteProduct()">
             <i class="fas fa-trash me-2"></i>Ürünü Sil
         </button>
@@ -32,14 +33,15 @@
 </div>
 
 <div class="row g-4">
-    <!-- Sol Kolon - Düzenleme Formu -->
+    <!-- ==================== SOL KOLON ==================== -->
     <div class="col-lg-8">
-        <!-- Ürün Bilgileri -->
+
+        <!-- Ürün Bilgileri Formu -->
         <form asp-action="Edit" method="post" id="editProductForm">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="CategoryId" id="selectedCategoryId" />
-            
+
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
@@ -77,10 +79,8 @@
                         <i class="fas fa-info-circle me-1"></i>
                         Kategoriyi değiştirmek için aşağıdan yeni bir kategori seçin.
                     </p>
-                    
-                    <div id="categorySelectionArea">
-                        <!-- JavaScript ile doldurulacak -->
-                    </div>
+
+                    <div id="categorySelectionArea"></div>
 
                     <div id="selectedCategoryDisplay" class="mt-3" style="display: none;">
                         <div class="d-flex align-items-center gap-2 p-3 bg-success bg-opacity-10 rounded-3">
@@ -92,11 +92,12 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <span asp-validation-for="CategoryId" class="text-danger small"></span>
                 </div>
             </div>
 
+            <!-- Fiyat ve Stok -->
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
@@ -105,21 +106,21 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label asp-for="PriceAmount" class="form-label fw-medium">Fiyat <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input asp-for="PriceAmount" type="number" step="0.01" min="0.01" 
+                                <input asp-for="PriceAmount" type="number" step="0.01" min="0.01"
                                        class="form-control" style="border-radius: 10px 0 0 10px;">
-                                <select asp-for="CurrencyCode" asp-items="Model.CurrencyList" 
-                                        class="form-select" style="max-width: 100px; border-radius: 0 10px 10px 0;">
+                                <select asp-for="CurrencyCode" asp-items="Model.CurrencyList"
+                                        class="form-select" style="max-width: 120px; border-radius: 0 10px 10px 0;">
                                 </select>
                             </div>
                             <span asp-validation-for="PriceAmount" class="text-danger small"></span>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label asp-for="Stock" class="form-label fw-medium">Stok <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input asp-for="Stock" type="number" min="0" 
+                                <input asp-for="Stock" type="number" min="0"
                                        class="form-control" style="border-radius: 10px 0 0 10px;">
                                 <span class="input-group-text" style="border-radius: 0 10px 10px 0;">adet</span>
                             </div>
@@ -131,17 +132,17 @@
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;"
                                 onclick="location.reload()">
-                            <i class="fas fa-undo me-2"></i>Değişiklikleri Geri Al
+                            <i class="fas fa-undo me-2"></i>Geri Al
                         </button>
                         <button type="submit" class="btn btn-primary-gradient">
-                            <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                            <i class="fas fa-save me-2"></i>Kaydet
                         </button>
                     </div>
                 </div>
             </div>
         </form>
 
-        <!-- Görsel Yönetimi -->
+        <!-- ==================== GÖRSEL YÖNETİMİ ==================== -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
@@ -152,43 +153,54 @@
                 </span>
             </div>
             <div class="card-body">
+
+                <!-- Mevcut Görseller -->
                 @if (images.Any())
                 {
                     <div class="row g-3 mb-4">
                         @foreach (var image in images)
                         {
-                            <div class="col-6 col-md-4 col-lg-3">
-                                <div class="image-card position-relative" style="border-radius: 12px; overflow: hidden; border: 2px solid @(image.IsMain ? "#667eea" : "transparent");">
-                                    <img src="@image.ImageUrl" alt="Product Image" 
-                                         style="width: 100%; height: 150px; object-fit: cover;">
-                                    
+                            var fullImageUrl = image.ImageUrl.StartsWith("http")
+                            ? image.ImageUrl
+                            : $"{apiBaseUrl}{image.ImageUrl}";
+
+                            <div class="col-6 col-md-4">
+                                <div class="image-card @(image.IsMain ? "is-main" : "")">
+                                    <div class="image-container" onclick="openImageModal('@fullImageUrl')">
+                                        <img src="@fullImageUrl" alt="Product Image"
+                                             onerror="this.src='https://via.placeholder.com/300x300?text=Resim+Yok'">
+                                        <div class="image-overlay">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+
                                     @if (image.IsMain)
                                     {
-                                        <span class="badge bg-primary position-absolute top-0 start-0 m-2" 
-                                              style="font-size: 10px; border-radius: 6px;">
+                                        <div class="main-badge">
                                             <i class="fas fa-star me-1"></i>Ana Görsel
-                                        </span>
+                                        </div>
                                     }
-                                    
-                                    <div class="image-actions position-absolute bottom-0 start-0 end-0 p-2 d-flex gap-1"
-                                         style="background: linear-gradient(transparent, rgba(0,0,0,0.7));">
+
+                                    <div class="image-card-actions">
                                         @if (!image.IsMain)
                                         {
-                                            <form asp-action="SetMainImage" method="post" class="flex-grow-1">
+                                            <form asp-action="SetMainImage" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@Model.Id" />
                                                 <input type="hidden" name="imageId" value="@image.Id" />
-                                                <button type="submit" class="btn btn-sm btn-light w-100" style="border-radius: 6px;" title="Ana Görsel Yap">
+                                                <button type="submit" class="btn btn-sm btn-warning"
+                                                        data-bs-toggle="tooltip" title="Ana Görsel Yap">
                                                     <i class="fas fa-star"></i>
                                                 </button>
                                             </form>
                                         }
-                                        <form asp-action="DeleteImage" method="post">
+                                        <form asp-action="DeleteImage" method="post" class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@Model.Id" />
                                             <input type="hidden" name="imageId" value="@image.Id" />
-                                            <button type="submit" class="btn btn-sm btn-danger" style="border-radius: 6px;" 
-                                                    onclick="return confirm('Bu görseli silmek istediğinize emin misiniz?')" title="Sil">
+                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Bu görseli silmek istediğinize emin misiniz?')"
+                                                    data-bs-toggle="tooltip" title="Görseli Sil">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -200,49 +212,71 @@
                 }
                 else
                 {
-                    <div class="text-center py-4 mb-4 bg-light" style="border-radius: 12px;">
-                        <i class="fas fa-image fa-2x text-muted mb-2"></i>
-                        <p class="text-muted mb-0">Henüz görsel yüklenmemiş</p>
+                    <div class="empty-images-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <h6>Henüz görsel yüklenmemiş</h6>
+                        <p class="text-muted mb-0">Ürününüze görsel ekleyerek satışlarınızı artırın.</p>
                     </div>
                 }
 
+                <!-- Yeni Görsel Yükleme -->
                 @if (images.Count < 5)
                 {
-                    <div class="border-top pt-4">
+                    <div class="upload-section @(images.Any() ? "border-top pt-4 mt-2" : "")">
                         <h6 class="mb-3">
-                            <i class="fas fa-plus-circle me-2 text-success"></i>Yeni Görsel Ekle
+                            <i class="fas fa-cloud-upload-alt me-2 text-success"></i>Yeni Görsel Ekle
                         </h6>
-                        <form asp-action="UploadImage" method="post" enctype="multipart/form-data">
+                        <form asp-action="UploadImage" method="post" enctype="multipart/form-data" id="uploadForm">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.Id" />
-                            
-                            <div class="row g-3 align-items-end">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-medium">Görsel Seç</label>
-                                    <input type="file" name="file" class="form-control" accept="image/*" required 
-                                           style="border-radius: 10px;">
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-check">
-                                        <input type="checkbox" name="isMain" value="true" class="form-check-input" id="isMainCheck">
-                                        <label class="form-check-label" for="isMainCheck">Ana görsel yap</label>
+
+                            <div class="upload-dropzone" id="uploadDropzone">
+                                <input type="file" name="file" id="imageFileInput" class="d-none" accept="image/*" required>
+                                <div class="dropzone-content">
+                                    <div class="dropzone-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
                                     </div>
+                                    <p class="mb-1"><strong>Sürükle & Bırak</strong> veya <span class="text-primary">dosya seç</span></p>
+                                    <small class="text-muted">PNG, JPG, WEBP • Max 5MB</small>
                                 </div>
-                                <div class="col-md-3">
-                                    <button type="submit" class="btn btn-success w-100" style="border-radius: 10px;">
-                                        <i class="fas fa-upload me-2"></i>Yükle
+                                <div class="dropzone-preview" id="dropzonePreview" style="display: none;">
+                                    <img id="previewImg" src="" alt="Preview">
+                                    <button type="button" class="preview-remove" onclick="clearPreview()">
+                                        <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                             </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="form-check">
+                                    <input type="checkbox" name="isMain" value="true" class="form-check-input" id="isMainCheck">
+                                    <label class="form-check-label" for="isMainCheck">
+                                        <i class="fas fa-star text-warning me-1"></i>Ana görsel olarak ayarla
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-success px-4" id="uploadBtn" disabled style="border-radius: 10px;">
+                                    <i class="fas fa-upload me-2"></i>Yükle
+                                </button>
+                            </div>
                         </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0 mt-3" style="border-radius: 10px;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Maksimum görsel sayısına (5) ulaştınız. Yeni görsel eklemek için mevcut bir görseli silin.
                     </div>
                 }
             </div>
         </div>
     </div>
 
-    <!-- Sağ Kolon - Bilgi Kartları -->
+    <!-- ==================== SAĞ KOLON ==================== -->
     <div class="col-lg-4">
+
         <!-- Ürün Durumu -->
         <div class="card mb-4">
             <div class="card-header">
@@ -284,20 +318,29 @@
                     <i class="fas fa-image me-2 text-primary"></i>Ana Görsel
                 </h5>
             </div>
-            <div class="card-body text-center">
+            <div class="card-body p-3">
                 @{
                     var mainImage = images.FirstOrDefault(i => i.IsMain) ?? images.FirstOrDefault();
                 }
                 @if (mainImage != null)
                 {
-                    <img src="@mainImage.ImageUrl" alt="@Model.Name" 
-                         class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">
+                    var mainImageUrl = mainImage.ImageUrl.StartsWith("http")
+                    ? mainImage.ImageUrl
+                    : $"{apiBaseUrl}{mainImage.ImageUrl}";
+
+                    <div class="main-image-preview" onclick="openImageModal('@mainImageUrl')">
+                        <img src="@mainImageUrl" alt="@Model.Name"
+                             onerror="this.src='https://via.placeholder.com/300x300?text=Resim+Yok'">
+                        <div class="preview-overlay">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                    </div>
                 }
                 else
                 {
-                    <div class="bg-light rounded py-5">
-                        <i class="fas fa-image fa-3x text-muted"></i>
-                        <p class="text-muted mt-2 mb-0">Görsel yok</p>
+                    <div class="no-image-placeholder">
+                        <i class="fas fa-image"></i>
+                        <span>Görsel yok</span>
                     </div>
                 }
             </div>
@@ -324,6 +367,7 @@
     </div>
 </div>
 
+<!-- ==================== MODALS ==================== -->
 <!-- Delete Product Modal -->
 <div class="modal fade" id="deleteProductModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -335,16 +379,13 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>
-                    <strong>@Model.Name</strong> ürününü silmek istediğinize emin misiniz?
-                </p>
+                <p><strong>@Model.Name</strong> ürününü silmek istediğinize emin misiniz?</p>
                 <div class="alert alert-warning py-2 mb-0" style="border-radius: 10px;">
-                    <small><i class="fas fa-info-circle me-1"></i>Bu işlem geri alınamaz ve tüm görseller silinecektir.</small>
+                    <small><i class="fas fa-info-circle me-1"></i>Bu işlem geri alınamaz.</small>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" 
-                        style="border-radius: 10px;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
                     İptal
                 </button>
                 <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
@@ -358,35 +399,339 @@
     </div>
 </div>
 
+<!-- Image Zoom Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content image-modal-content">
+            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                    data-bs-dismiss="modal" style="z-index: 10;"></button>
+            <img id="modalImage" src="" alt="Product Image">
+        </div>
+    </div>
+</div>
+
+<!-- ==================== STYLES ==================== -->
 @section Styles {
     <style>
+        /* ===== IMAGE CARD ===== */
         .image-card {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
             transition: all 0.3s ease;
         }
-        
-        .image-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+            .image-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+                border-color: rgba(102, 126, 234, 0.3);
+            }
+
+            .image-card.is-main {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            }
+
+        /* Image Container - Kare */
+        .image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 100%;
+            overflow: hidden;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         }
-        
-        .image-actions {
+
+            .image-container img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 12px;
+                transition: transform 0.3s ease;
+            }
+
+        .image-card:hover .image-container img {
+            transform: scale(1.05);
+        }
+
+        /* Zoom Overlay */
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        
-        .image-card:hover .image-actions {
+
+            .image-overlay i {
+                color: white;
+                font-size: 2rem;
+            }
+
+        .image-card:hover .image-overlay {
             opacity: 1;
         }
 
-        /* Category Selection Styles */
+        /* Main Badge */
+        .main-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            z-index: 2;
+        }
+
+        /* Action Buttons */
+        .image-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            justify-content: center;
+        }
+
+            .image-card-actions .btn {
+                border-radius: 8px !important;
+                padding: 0.5rem 0.75rem;
+                min-width: 42px;
+            }
+
+            .image-card-actions .btn-warning {
+                background: rgba(245, 158, 11, 0.15);
+                border: none;
+                color: #f59e0b;
+            }
+
+                .image-card-actions .btn-warning:hover {
+                    background: #f59e0b;
+                    color: white;
+                }
+
+            .image-card-actions .btn-danger {
+                background: rgba(239, 68, 68, 0.15);
+                border: none;
+                color: #ef4444;
+            }
+
+                .image-card-actions .btn-danger:hover {
+                    background: #ef4444;
+                    color: white;
+                }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-images-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+        }
+
+            .empty-images-state .empty-icon {
+                width: 80px;
+                height: 80px;
+                background: rgba(102, 126, 234, 0.1);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 1rem;
+            }
+
+                .empty-images-state .empty-icon i {
+                    font-size: 2rem;
+                    color: #667eea;
+                }
+
+        /* ===== UPLOAD DROPZONE ===== */
+        .upload-dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .upload-dropzone:hover,
+            .upload-dropzone.dragover {
+                border-color: #667eea;
+                background: rgba(102, 126, 234, 0.05);
+            }
+
+        .dropzone-content {
+            pointer-events: none;
+        }
+
+        .dropzone-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+            .dropzone-icon i {
+                font-size: 1.5rem;
+                color: #667eea;
+            }
+
+        .dropzone-preview {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+
+            .dropzone-preview img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                border-radius: 12px;
+                background: #f8fafc;
+                padding: 8px;
+            }
+
+        .preview-remove {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 28px;
+            height: 28px;
+            background: #ef4444;
+            border: 2px solid white;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+            .preview-remove:hover {
+                background: #dc2626;
+                transform: scale(1.1);
+            }
+
+        /* ===== MAIN IMAGE PREVIEW (Sağ Kolon) ===== */
+        .main-image-preview {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+
+            .main-image-preview img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 12px;
+                transition: transform 0.3s ease;
+            }
+
+            .main-image-preview:hover img {
+                transform: scale(1.05);
+            }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+            .preview-overlay i {
+                color: white;
+                font-size: 2rem;
+            }
+
+        .main-image-preview:hover .preview-overlay {
+            opacity: 1;
+        }
+
+        .no-image-placeholder {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+
+            .no-image-placeholder i {
+                font-size: 3rem;
+                opacity: 0.5;
+            }
+
+        /* ===== IMAGE MODAL ===== */
+        .image-modal-content {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+            .image-modal-content img {
+                width: 100%;
+                max-height: 80vh;
+                object-fit: contain;
+                border-radius: 16px;
+                background: rgba(0, 0, 0, 0.9);
+            }
+
+        /* ===== CATEGORY ===== */
         .category-level {
             margin-bottom: 1rem;
             animation: fadeIn 0.3s ease;
         }
 
         @@keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .category-level-label {
@@ -399,78 +744,164 @@
             color: var(--text-secondary);
         }
 
-        .category-level-label .level-number {
-            width: 24px;
-            height: 24px;
-            background: var(--primary-gradient);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-        }
+            .category-level-label .level-number {
+                width: 24px;
+                height: 24px;
+                background: var(--primary-gradient);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.75rem;
+            }
 
         .category-select {
             border-radius: 10px !important;
             border: 2px solid var(--border-color);
             padding: 0.75rem 1rem;
-            transition: all 0.2s ease;
         }
 
-        .category-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+            .category-select:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+            }
+
+        /* ===== DARK MODE ===== */
+        [data-bs-theme="dark"] .image-container,
+        [data-bs-theme="dark"] .main-image-preview,
+        [data-bs-theme="dark"] .no-image-placeholder,
+        [data-bs-theme="dark"] .empty-images-state {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        [data-bs-theme="dark"] .dropzone-preview img {
+            background: #1e293b;
         }
 
         [data-bs-theme="dark"] .category-select {
             background-color: var(--card-bg);
             color: var(--text-primary);
         }
-
-        [data-bs-theme="dark"] .bg-light {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-        }
     </style>
 }
 
+<!-- ==================== SCRIPTS ==================== -->
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
 
     <script>
-        // Tüm kategoriler (sunucudan gelen)
-        const allCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(allCategories));
-
-        // Mevcut kategori hiyerarşisi (Edit için)
+        // Kategori verileri
+        const allCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(allCategories, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
         const initialHierarchy = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryHierarchy));
 
-        // Seçim state'i
         let selectedPath = [];
         let isInitialLoad = true;
 
         $(document).ready(function() {
-            // Mevcut kategori hiyerarşisini yükle
+            // Tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Kategori yükleme
             if (initialHierarchy && initialHierarchy.length > 0) {
                 loadExistingCategorySelection();
             } else {
                 initCategorySelection();
             }
+
+            // Upload dropzone
+            initUploadDropzone();
         });
 
+        // ========== IMAGE UPLOAD ==========
+        function initUploadDropzone() {
+            const dropzone = document.getElementById('uploadDropzone');
+            const fileInput = document.getElementById('imageFileInput');
+            const preview = document.getElementById('dropzonePreview');
+            const previewImg = document.getElementById('previewImg');
+            const content = dropzone?.querySelector('.dropzone-content');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            if (!dropzone || !fileInput) return;
+
+            dropzone.addEventListener('click', (e) => {
+                if (e.target.closest('.preview-remove')) return;
+                fileInput.click();
+            });
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('dragover');
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (!file.type.startsWith('image/')) {
+                    toastr.error('Sadece görsel dosyaları yüklenebilir.');
+                    return;
+                }
+
+                if (file.size > 5 * 1024 * 1024) {
+                    toastr.error('Dosya boyutu 5MB\'dan küçük olmalıdır.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    preview.style.display = 'block';
+                    content.style.display = 'none';
+                    uploadBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearPreview() {
+            const fileInput = document.getElementById('imageFileInput');
+            const preview = document.getElementById('dropzonePreview');
+            const content = document.querySelector('.dropzone-content');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            fileInput.value = '';
+            preview.style.display = 'none';
+            content.style.display = 'block';
+            uploadBtn.disabled = true;
+        }
+
+        function openImageModal(imageUrl) {
+            document.getElementById('modalImage').src = imageUrl;
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
+        }
+
+        // ========== CATEGORY SELECTION ==========
         function loadExistingCategorySelection() {
-            // Mevcut seçili kategorinin path'ini oluştur
-            initialHierarchy.forEach((categoryId, index) => {
+            initialHierarchy.forEach((categoryId) => {
                 const category = allCategories.find(c => c.id === categoryId);
                 if (category) {
                     selectedPath.push({ id: category.id, name: category.name });
                 }
             });
-
-            // Seçili kategoriyi göster
             updateSelectedCategory();
-
-            // Seçim alanını gizle, sadece seçili kategoriyi göster
             isInitialLoad = false;
         }
 
@@ -481,23 +912,21 @@
         }
 
         function renderCategoryLevel(level, parentId) {
-            // Bu seviyedeki kategorileri filtrele
             const categories = allCategories.filter(c => {
-                if (parentId === null) {
-                    return c.parentId === null;
+                if (parentId === null || parentId === undefined || parentId === '') {
+                    return !c.parentId || c.parentId === null || c.parentId === '' || c.parentId === '00000000-0000-0000-0000-000000000000';
                 }
                 return c.parentId === parentId;
             });
 
-            // Eğer kategori yoksa, bu seviyeyi gösterme
             if (categories.length === 0) {
+                if (level === 0) {
+                    $('#categorySelectionArea').html('<div class="alert alert-warning" style="border-radius: 10px;"><i class="fas fa-exclamation-triangle me-2"></i>Henüz kategori bulunmuyor.</div>');
+                }
                 return;
             }
 
-            // Mevcut hiyerarşide bu seviyede seçili olan kategori
-            const selectedInThisLevel = initialHierarchy && initialHierarchy[level]
-                ? initialHierarchy[level]
-                : null;
+            const selectedInThisLevel = initialHierarchy && initialHierarchy[level] ? initialHierarchy[level] : null;
 
             const levelHtml = `
                 <div class="category-level" id="categoryLevel${level}">
@@ -505,77 +934,49 @@
                         <span class="level-number">${level + 1}</span>
                         <span>${level === 0 ? 'Ana Kategori' : 'Alt Kategori ' + level}</span>
                     </div>
-                    <select class="form-select category-select"
-                            id="categorySelect${level}"
-                            onchange="onCategorySelect(${level}, this.value)">
+                    <select class="form-select category-select" id="categorySelect${level}" onchange="onCategorySelect(${level}, this.value)">
                         <option value="">-- ${level === 0 ? 'Ana Kategori' : 'Alt Kategori'} Seçin --</option>
-                        ${categories.map(c => `
-                            <option value="${c.id}" ${c.id === selectedInThisLevel ? 'selected' : ''}>
-                                ${c.name}
-                            </option>
-                        `).join('')}
+                        ${categories.map(c => `<option value="${c.id}" ${c.id === selectedInThisLevel ? 'selected' : ''}>${c.name}</option>`).join('')}
                     </select>
                 </div>
             `;
 
-            // Eski seviyeleri temizle (bu seviyeden sonrakiler)
             $(`.category-level`).each(function() {
                 const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
-                if (levelNum >= level) {
-                    $(this).remove();
-                }
+                if (levelNum >= level) $(this).remove();
             });
 
-            // Yeni seviyeyi ekle
             $('#categorySelectionArea').append(levelHtml);
 
-            // Eğer bu seviyede seçili bir kategori varsa, alt seviyeyi de yükle
             if (selectedInThisLevel && isInitialLoad) {
                 const hasChildren = allCategories.some(c => c.parentId === selectedInThisLevel);
-                if (hasChildren) {
-                    renderCategoryLevel(level + 1, selectedInThisLevel);
-                }
+                if (hasChildren) renderCategoryLevel(level + 1, selectedInThisLevel);
             }
         }
 
         function onCategorySelect(level, categoryId) {
             if (!categoryId) {
-                // Seçim temizlendi, bu seviyeden sonrasını sil
                 selectedPath = selectedPath.slice(0, level);
                 updateSelectedCategory();
-
-                // Sonraki seviyeleri kaldır
                 $(`.category-level`).each(function() {
-                    const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
-                    if (levelNum > level) {
-                        $(this).remove();
-                    }
+                    if (parseInt($(this).attr('id').replace('categoryLevel', '')) > level) $(this).remove();
                 });
                 return;
             }
 
-            // Seçilen kategoriyi bul
             const category = allCategories.find(c => c.id === categoryId);
             if (!category) return;
 
-            // Path'i güncelle
             selectedPath = selectedPath.slice(0, level);
             selectedPath.push({ id: category.id, name: category.name });
-
-            // Hidden field'ı güncelle
             updateSelectedCategory();
 
-            // Alt kategorileri kontrol et ve göster
-            const hasChildren = allCategories.some(c => c.parentId === categoryId);
-            if (hasChildren) {
+            const childCategories = allCategories.filter(c => c.parentId === categoryId);
+            if (childCategories.length > 0) {
                 renderCategoryLevel(level + 1, categoryId);
             } else {
-                // Alt kategori yok, sonraki seviyeleri temizle
                 $(`.category-level`).each(function() {
-                    const levelNum = parseInt($(this).attr('id').replace('categoryLevel', ''));
-                    if (levelNum > level) {
-                        $(this).remove();
-                    }
+                    if (parseInt($(this).attr('id').replace('categoryLevel', '')) > level) $(this).remove();
                 });
             }
         }
@@ -591,13 +992,9 @@
                 return;
             }
 
-            // Son seçilen kategori ID'sini hidden field'a yaz
             const lastCategory = selectedPath[selectedPath.length - 1];
             $hiddenInput.val(lastCategory.id);
-
-            // Path'i göster
-            const pathText = selectedPath.map(p => p.name).join(' → ');
-            $pathSpan.text(pathText);
+            $pathSpan.text(selectedPath.map(p => p.name).join(' → '));
             $display.show();
         }
 
@@ -605,8 +1002,7 @@
             selectedPath = [];
             $('#categorySelectionArea').empty();
             $('#selectedCategoryDisplay').hide();
-
-            // Yeniden başlat
+            isInitialLoad = false;
             renderCategoryLevel(0, null);
         }
 
@@ -614,15 +1010,10 @@
             new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
         }
 
-        // Form submit öncesi validasyon
         $('#editProductForm').on('submit', function(e) {
-            const categoryId = $('#selectedCategoryId').val();
-            if (!categoryId) {
+            if (!$('#selectedCategoryId').val()) {
                 e.preventDefault();
                 toastr.error('Lütfen bir kategori seçin.');
-                $('html, body').animate({
-                    scrollTop: $('#categorySelectionArea').offset().top - 100
-                }, 500);
                 return false;
             }
         });

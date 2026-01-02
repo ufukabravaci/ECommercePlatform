@@ -1,0 +1,44 @@
+.cart-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.empty-cart {
+  .empty-icon i {
+    font-size: 6rem;
+    color: #dee2e6;
+  }
+}
+
+.cart-item {
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+
+  &:last-child {
+    border-bottom: none !important;
+  }
+
+  .item-image {
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .no-image {
+      width: 100%;
+      height: 100%;
+
+      i {
+        font-size: 2rem;
+      }
+    }
+  }
+}

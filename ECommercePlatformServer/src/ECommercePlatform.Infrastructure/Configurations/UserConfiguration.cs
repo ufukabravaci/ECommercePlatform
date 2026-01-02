@@ -10,7 +10,8 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("Users");
 
-        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+               .ValueGeneratedNever();
 
         builder.Property(p => p.FirstName)
                .HasMaxLength(100)

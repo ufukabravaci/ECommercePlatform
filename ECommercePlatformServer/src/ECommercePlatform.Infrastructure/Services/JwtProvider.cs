@@ -15,20 +15,19 @@ namespace ECommercePlatform.Infrastructure.Services;
 public sealed class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
 {
     public async Task<string> CreateTenantTokenAsync(
-        User user,
-        CompanyUser companyUser,
-        CancellationToken cancellationToken)
+    User user,
+    CompanyUser companyUser,
+    CancellationToken cancellationToken)
     {
         var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Email, user.Email ?? ""),
-            new(ClaimTypes.Name, user.UserName ?? ""),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(ClaimTypesConst.CompanyId, companyUser.CompanyId.ToString()),
-        };
-
-        // Sadece o şirketteki rolleri ekle. Diğer şirketlerde başka rolleri varsa onlarla ilgilenmiyoruz.
+    {
+        new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+        new(JwtRegisteredClaimNames.GivenName, user.FirstName ?? ""),
+        new(JwtRegisteredClaimNames.FamilyName, user.LastName ?? ""),
+        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new(ClaimTypesConst.CompanyId, companyUser.CompanyId.ToString()),
+    };
         foreach (var role in companyUser.Roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));

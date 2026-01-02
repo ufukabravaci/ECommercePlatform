@@ -10,7 +10,8 @@ internal sealed class ProductImageConfiguration : IEntityTypeConfiguration<Produ
     {
         builder.ToTable("ProductImages");
 
-        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+               .ValueGeneratedNever();
 
         builder.Property(x => x.ImageUrl)
                .HasMaxLength(500)

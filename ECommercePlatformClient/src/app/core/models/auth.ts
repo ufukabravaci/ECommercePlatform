@@ -1,10 +1,15 @@
 export interface LoginRequest {
-  email: string;
+  emailOrUserName: string;
   password: string;
   companyId?: string;
 }
 
 export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
   accessToken: string;
   refreshToken: string;
 }

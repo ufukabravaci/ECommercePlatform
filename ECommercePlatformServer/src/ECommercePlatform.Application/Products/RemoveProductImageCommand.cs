@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Application.Services;
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Products;
 using GenericRepository;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +9,8 @@ using TS.Result;
 
 namespace ECommercePlatform.Application.Products;
 
+
+[Permission(PermissionConsts.ManageProductImages)]
 public sealed record RemoveProductImageCommand(
     Guid ProductId,
     Guid ImageId

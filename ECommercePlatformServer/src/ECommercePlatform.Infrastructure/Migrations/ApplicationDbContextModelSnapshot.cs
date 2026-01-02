@@ -25,7 +25,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
             modelBuilder.Entity("ECommercePlatform.Domain.Categories.Category", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CompanyId")
@@ -131,7 +130,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
             modelBuilder.Entity("ECommercePlatform.Domain.Companies.CompanyUser", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CompanyId")
@@ -182,7 +180,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
             modelBuilder.Entity("ECommercePlatform.Domain.Products.Product", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CategoryId")
@@ -250,7 +247,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
             modelBuilder.Entity("ECommercePlatform.Domain.Products.ProductImage", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -329,7 +325,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
             modelBuilder.Entity("ECommercePlatform.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("AccessFailedCount")
@@ -429,7 +424,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
             modelBuilder.Entity("ECommercePlatform.Domain.Users.UserRefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")

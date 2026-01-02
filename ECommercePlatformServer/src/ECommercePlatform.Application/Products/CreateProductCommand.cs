@@ -1,4 +1,6 @@
-﻿using ECommercePlatform.Application.Services;
+﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Products;
 using ECommercePlatform.Domain.Shared;
 using FluentValidation;
@@ -9,6 +11,7 @@ using TS.Result;
 
 namespace ECommercePlatform.Application.Products;
 
+[Permission(PermissionConsts.CreateProduct)]
 public sealed record CreateProductCommand(
     string Name,
     string Sku,

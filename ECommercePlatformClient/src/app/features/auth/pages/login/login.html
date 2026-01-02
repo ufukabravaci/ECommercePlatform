@@ -1,0 +1,122 @@
+<div class="auth-page">
+  <div class="auth-background">
+    <div class="auth-glow auth-glow-1"></div>
+    <div class="auth-glow auth-glow-2"></div>
+    <div class="auth-grid"></div>
+  </div>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="auth-card">
+          <!-- Logo -->
+          <a routerLink="/" class="auth-logo">
+            <div class="logo-icon">
+              <i class="bi bi-bag-heart-fill"></i>
+            </div>
+            <span class="logo-text">Flavour</span>
+          </a>
+
+          <!-- Header -->
+          <div class="auth-header">
+            <h1 class="auth-title">Tekrar Hoş Geldiniz</h1>
+            <p class="auth-subtitle">Hesabınıza giriş yapın</p>
+          </div>
+
+          <!-- Error Alert -->
+          @if (error()) {
+            <div class="auth-alert auth-alert-error">
+              <i class="bi bi-exclamation-circle"></i>
+              <span>{{ error() }}</span>
+            </div>
+          }
+
+          <!-- Login Form -->
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+            <!-- Email -->
+            <div class="form-group">
+              <label class="form-label">E-posta Adresi</label>
+              <div class="input-wrapper">
+                <i class="bi bi-envelope"></i>
+                <input
+                  type="email"
+                  class="form-input"
+                  formControlName="emailOrUserName"
+                  placeholder="ornek@email.com"
+                />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <div class="form-label-row">
+                <label class="form-label">Şifre</label>
+                <a routerLink="/auth/forgot-password" class="form-link">
+                  Şifremi Unuttum
+                </a>
+              </div>
+              <div class="input-wrapper">
+                <i class="bi bi-lock"></i>
+                <input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="form-input"
+                  formControlName="password"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  class="input-toggle"
+                  (click)="togglePasswordVisibility()"
+                  tabindex="-1"
+                >
+                  <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Remember Me -->
+            <div class="form-group">
+              <label class="checkbox-wrapper">
+                <input type="checkbox" class="checkbox-input" />
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-label">Beni hatırla</span>
+              </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="btn btn-accent btn-lg w-100"
+              [disabled]="loading() || form.invalid"
+            >
+              @if (loading()) {
+                <span class="spinner"></span>
+                <span>Giriş yapılıyor...</span>
+              } @else {
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Giriş Yap</span>
+              }
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <div class="auth-divider">
+            <span>veya</span>
+          </div>
+
+          <!-- Social Login -->
+          <button type="button" class="btn btn-dark w-100">
+            <i class="bi bi-google"></i>
+            <span>Google ile Giriş Yap</span>
+          </button>
+
+          <!-- Register Link -->
+          <p class="auth-footer">
+            Hesabınız yok mu?
+            <a routerLink="/auth/register">Kayıt Olun</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
