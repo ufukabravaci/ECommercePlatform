@@ -1,7 +1,7 @@
-﻿using ECommercePlatform.Application.Categories;
-using ECommercePlatform.Application.Companies;
+﻿using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Domain.Categories;
 using ECommercePlatform.Domain.Companies;
+using ECommercePlatform.Domain.Orders;
 using Mapster;
 
 namespace ECommercePlatform.Application.Mapping;
@@ -23,5 +23,30 @@ public sealed class MapsterConfig : IRegister
             .Map(dest => dest.ParentName, src => src.Parent != null ? src.Parent.Name : "-")
             // Entity içinde Id, Name, Slug, ParentId zaten public property olduğu için otomatik eşleşir.
             .RequireDestinationMemberSource(true);
+
+        config.NewConfig<Order, OrderListDto>()
+            .Map(dest => dest.Status, src => src.Status.ToString())
+            .Map(dest => dest.TotalAmount, src => src.Items.Sum(x => x.Price.Amount * x.Quantity))
+            .Map(dest => dest.ItemCount, src => src.Items.Count)
+            // SQL Translation için açıkça string birleştirme yapıyoruz:
+            .Map(dest => dest.CustomerName, src => src.Customer.FirstName + " " + src.Customer.LastName)
+            .RequireDestinationMemberSource(true);
+
+        config.NewConfig<OrderItem, OrderItemDto>()
+            .Map(dest => dest.PriceAmount, src => src.Price.Amount)
+            .Map(dest => dest.PriceCurrency, src => src.Price.Currency)
+            .Map(dest => dest.Total, src => src.Price.Amount * src.Quantity);
+
+        config.NewConfig<Order, OrderDetailDto>()
+            .Map(dest => dest.Status, src => src.Status.ToString())
+            .Map(dest => dest.TotalAmount, src => src.Items.Sum(x => x.Price.Amount * x.Quantity))
+            // Adres Value Object Flattening
+            .Map(dest => dest.ShippingCity, src => src.ShippingAddress.City)
+            .Map(dest => dest.ShippingDistrict, src => src.ShippingAddress.District)
+            .Map(dest => dest.ShippingStreet, src => src.ShippingAddress.Street)
+            .Map(dest => dest.ShippingZipCode, src => src.ShippingAddress.ZipCode)
+            .Map(dest => dest.ShippingFullAddress, src => src.ShippingAddress.FullAddress)
+            // Items listesini Mapster otomatik olarak OrderItemDto config'ini kullanarak mapler.
+            .Map(dest => dest.Items, src => src.Items);
     }
 }

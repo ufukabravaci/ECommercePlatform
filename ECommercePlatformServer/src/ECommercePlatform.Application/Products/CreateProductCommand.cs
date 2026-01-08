@@ -1,5 +1,6 @@
 ﻿using ECommercePlatform.Application.Attributes;
 using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Brands;
 using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Products;
 using ECommercePlatform.Domain.Shared;
@@ -19,6 +20,7 @@ public sealed record CreateProductCommand(
     decimal PriceAmount,
     string CurrencyCode,
     int Stock,
+    Guid BrandId,
     Guid CategoryId,
     IFormFileCollection? Files // <--- Native koleksiyon tipi
 ) : IRequest<Result<string>>;
@@ -46,6 +48,10 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
 
         RuleFor(x => x.Stock)
             .GreaterThanOrEqualTo(0).WithMessage("Stok miktarı negatif olamaz.");
+
+        RuleFor(x => x.BrandId)
+            .NotEmpty().WithMessage("Marka seçimi zorunludur.")
+            .NotEqual(Guid.Empty).WithMessage("Geçersiz marka.");
 
         RuleFor(x => x.CategoryId)
             .NotEmpty().WithMessage("Kategori seçimi zorunludur.")
@@ -92,6 +98,7 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
 
 public sealed class CreateProductCommandHandler(
     IRepository<Product> productRepository,
+    IRepository<Brand> brandRepository,
     IUnitOfWork unitOfWork,
     IFileService fileService, // Infrastructure'dan gelen servis
     ITenantContext tenantContext
@@ -109,6 +116,14 @@ public sealed class CreateProductCommandHandler(
             cancellationToken);
         if (isSkuExists) return Result<string>.Failure("Bu SKU zaten kullanımda.");
 
+        // MARKANIN GEÇERLİLİĞİNİ KONTROL ET
+        bool isBrandValid = await brandRepository.AnyAsync(
+            b => b.Id == request.BrandId && b.CompanyId == tenantContext.CompanyId,
+            cancellationToken);
+
+        if (!isBrandValid)
+            return Result<string>.Failure("Geçersiz marka seçimi.");
+
         // 2. Entity Oluşturma
         var currency = Enum.Parse<Currency>(request.CurrencyCode);
         var price = new Money(request.PriceAmount, currency);
@@ -119,6 +134,7 @@ public sealed class CreateProductCommandHandler(
             request.Description,
             price,
             request.Stock,
+            request.BrandId,
             companyId.Value,
             request.CategoryId
         );

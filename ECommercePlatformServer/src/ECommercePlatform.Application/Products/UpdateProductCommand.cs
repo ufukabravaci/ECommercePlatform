@@ -1,4 +1,5 @@
 ﻿using ECommercePlatform.Application.Attributes;
+using ECommercePlatform.Domain.Brands;
 using ECommercePlatform.Domain.Categories;
 using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Products;
@@ -18,7 +19,8 @@ public sealed record UpdateProductCommand(
     decimal PriceAmount,
     string CurrencyCode,
     int Stock,
-    Guid CategoryId
+    Guid CategoryId,
+    Guid BrandId
 ) : IRequest<Result<string>>;
 
 public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
@@ -49,13 +51,17 @@ public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProd
             .NotEmpty().WithMessage("Para birimi boş olamaz.")
             .Must(c => Enum.TryParse<Currency>(c, true, out _))
             .WithMessage("Geçersiz para birimi seçimi.");
+        RuleFor(x => x.BrandId)
+            .NotEmpty().WithMessage("Marka seçimi zorunludur.")
+            .NotEqual(Guid.Empty).WithMessage("Geçersiz marka.");
     }
 }
 
 public sealed class UpdateProductCommandHandler(
     IRepository<Product> productRepository,
     IRepository<Category> categoryRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    IRepository<Brand> brandRepository
 ) : IRequestHandler<UpdateProductCommand, Result<string>>
 {
     public async Task<Result<string>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -87,11 +93,23 @@ public sealed class UpdateProductCommandHandler(
             product.SetCategory(request.CategoryId);
         }
 
-        // 2. Domain Metotları ile Güncelleme
-        // Bu metotlar kendi içlerinde validasyon yapar (Domain Guards)
-        product.SetName(request.Name);
-        product.SetDescription(request.Description);
-        product.UpdateStock(request.Stock);
+
+        // 2. Marka Değişikliği ve Güvenlik Kontrolü
+        if (product.BrandId != request.BrandId)
+        {
+            // Markanın bu şirkete ait olup olmadığını repo üzerinden kontrol ediyoruz
+            // IRepository<Brand> brandRepository enjekte edilmeli
+            bool isBrandValid = await brandRepository.AnyAsync(
+                b => b.Id == request.BrandId && b.CompanyId == product.CompanyId,
+                cancellationToken);
+
+            if (!isBrandValid)
+                return Result<string>.Failure("Seçilen marka geçersiz veya şirketinize ait değil.");
+
+            product.SetBrand(request.BrandId); // Domain Behavior çalışır
+        }
+
+
 
         // 3. Domain Metotları ile State Update
         // Domain katmanında yazdığımız Guard Clause'lar (if throw...) burada otomatik çalışır.

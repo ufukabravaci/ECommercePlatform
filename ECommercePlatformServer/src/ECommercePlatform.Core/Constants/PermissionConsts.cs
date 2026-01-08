@@ -19,4 +19,16 @@ public static class PermissionConsts
     public const string DeleteProduct = "Product.Delete";
     public const string ReadProduct = "Product.Read";
     public const string ManageProductImages = "Product.ManageImages";
+
+    // Order Permissions
+    public const string CreateOrder = "Order.Create";
+    public const string ReadOrder = "Order.Read";
+    public const string ReadAllOrders = "Order.Read.All";
+    public const string UpdateOrderStatus = "Order.UpdateStatus";
+
+    // Brand Permissions
+    public const string CreateBrand = "Brand.Create";
+    public const string UpdateBrand = "Brand.Update";
+    public const string DeleteBrand = "Brand.Delete";
+    public const string ReadBrand = "Brand.Read";
 }

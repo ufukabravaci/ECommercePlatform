@@ -29,9 +29,7 @@ public sealed class DeleteProductCommandHandler(
         }
 
         // 2. Silme İşlemi
-        // Generic Repo'nun Delete metodu Entity.Remove çağırır.
-        // Infrastructure katmanında SaveChanges override edilmişse bu işlem Soft Delete'e döner.
-        // Edilmemişse DB'den siler. Proje kurallarında Soft Delete olduğu belirtilmişti.
+        // override edilmiş Delete metodu kullanılıyor
         product.Delete();
 
         // 3. Kayıt

@@ -1,4 +1,5 @@
 ﻿using ECommercePlatform.Domain.Abstractions;
+using ECommercePlatform.Domain.Brands;
 using ECommercePlatform.Domain.Categories;
 using ECommercePlatform.Domain.Companies;
 using ECommercePlatform.Domain.Shared;
@@ -19,6 +20,7 @@ public sealed class Product : Entity, IMultiTenantEntity
         Money price,
         int stock,
         Guid companyId,
+        Guid brandId,
         Guid categoryId) : this()
     {
         SetName(name);
@@ -27,6 +29,7 @@ public sealed class Product : Entity, IMultiTenantEntity
         SetPrice(price);
         UpdateStock(stock);
         SetCategory(categoryId);
+        SetBrand(brandId);
 
         if (companyId == Guid.Empty) throw new ArgumentException("Şirket bilgisi zorunludur.");
 
@@ -45,12 +48,23 @@ public sealed class Product : Entity, IMultiTenantEntity
     public Company Company { get; set; } = default!;
     public Guid CategoryId { get; private set; }
     public Category Category { get; set; } = default!;
+    public Guid BrandId { get; private set; }
+    public Brand Brand { get; set; } = default!;
 
     // Encapsulated Collection
     private readonly List<ProductImage> _images;
     public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
 
     // --- BEHAVIORS ---
+
+    public override void Delete()
+    {
+        base.Delete();
+        foreach (var image in _images)
+        {
+            image.Delete();
+        }
+    }
 
     public void AddImage(string imageUrl, bool isMain = false)
     {
@@ -80,6 +94,14 @@ public sealed class Product : Entity, IMultiTenantEntity
     {
         if (string.IsNullOrWhiteSpace(sku)) throw new ArgumentException("SKU boş olamaz.");
         Sku = sku.Trim().ToUpperInvariant();
+    }
+
+    public void SetBrand(Guid brandId)
+    {
+        if (brandId == Guid.Empty)
+            throw new ArgumentException("Marka (Brand) bilgisi zorunludur.");
+
+        BrandId = brandId;
     }
 
     public void SetPrice(Money price) => Price = price ?? throw new ArgumentNullException(nameof(price));

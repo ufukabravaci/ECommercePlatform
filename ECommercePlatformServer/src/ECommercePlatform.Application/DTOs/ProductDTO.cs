@@ -11,6 +11,8 @@ public sealed record ProductDto(
     Guid CategoryId,
     string? CategoryName,
     string? MainImageUrl,
+    Guid BrandId,
+    string BrandName,
     List<ProductImageDto> Images
 );
 

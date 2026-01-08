@@ -56,5 +56,8 @@ app.MapAuthEndpoints();
 app.MapCompanyEndpoints();
 app.MapCategoryEndpoints();
 app.MapProductEndpoints();
+app.MapOrderEndpoints();
+app.MapBasketEndpoints();
+app.MapBrandEndpoints();
 await app.ApplySeedDataAsync();
 app.Run();

@@ -57,10 +57,10 @@ public sealed class GetAllProductsQueryHandler(
             p.Stock,
             p.CategoryId,
             p.Category.Name,
-
             p.Images.Where(i => i.IsMain).Select(i => i.ImageUrl).FirstOrDefault()
             ?? p.Images.Select(i => i.ImageUrl).FirstOrDefault(),
-
+            p.BrandId,
+            p.Brand.Name,
             p.Images.Select(i => new ProductImageDto(i.Id, i.ImageUrl, i.IsMain)).ToList()
         )).ToListAsync(cancellationToken);
 

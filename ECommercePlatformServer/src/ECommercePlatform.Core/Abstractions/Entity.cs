@@ -24,10 +24,11 @@ public abstract class Entity : IAuditableEntity
 
     public void SetStatus(bool isActive) => IsActive = isActive;
 
-    public void Delete()
+    public virtual void Delete()
     {
         if (IsDeleted) return;
         IsDeleted = true;
+        IsActive = false;
         DeletedAt = DateTimeOffset.Now;
     }
 }

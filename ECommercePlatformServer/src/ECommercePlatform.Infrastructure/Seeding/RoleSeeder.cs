@@ -31,12 +31,22 @@ public static class RoleSeeder
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.UpdateCategory);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadCategory);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteCategory);
-
+            //Product
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.CreateProduct);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.UpdateProduct);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteProduct);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadProduct);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ManageProductImages);
+            //Order
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.CreateOrder);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadOrder);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadAllOrders);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.UpdateOrderStatus);
+            //Brand
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.CreateBrand);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteBrand);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadBrand);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.UpdateBrand);
 
             if (isAdded) // Sadece yeni bir claim eklendiyse cache'i uçur
             {
@@ -47,19 +57,40 @@ public static class RoleSeeder
         var employeeRole = await roleManager.FindByNameAsync(RoleConsts.Employee);
         if (employeeRole != null)
         {
-            //isAdded mantığını ekle
             bool isAdded = await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.UpdateCompany);
             //Category
             isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.CreateCategory);
             isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.UpdateCategory);
             isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadCategory);
             isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.DeleteCategory);
+            //Product
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.CreateProduct);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.UpdateProduct);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.DeleteProduct);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadProduct);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ManageProductImages);
+            //Order
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.CreateOrder);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadOrder);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadAllOrders);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.UpdateOrderStatus);
             //Cache temizleme
             if (isAdded)
             {
                 await cache.RemoveAsync($"Role_{RoleConsts.Employee}_Permissions");
             }
 
+        }
+        var customerRole = await roleManager.FindByNameAsync(RoleConsts.Customer);
+        if (customerRole != null)
+        {
+            // Müşterinin yapabilecekleri:
+            bool isAdded = await AddPermissionToRole(roleManager, customerRole, PermissionConsts.CreateOrder);
+            isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.ReadOrder);
+            if (isAdded)
+            {
+                await cache.RemoveAsync($"Role_{RoleConsts.Customer}_Permissions");
+            }
         }
 
     }

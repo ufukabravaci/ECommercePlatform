@@ -48,11 +48,11 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // --- Relationships ---
 
-        // 1. Company (Tenant) - Zorunlu ve Cascade
+        // 1. Company (Tenant)
         builder.HasOne(p => p.Company)
                .WithMany() // Company tarafında Products listesi tutmuyoruz (Performance)
                .HasForeignKey(p => p.CompanyId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .OnDelete(DeleteBehavior.Restrict);
 
         // 2. Category - Zorunlu ve Restrict
         // Kategori silinirse ürünler silinmemeli, hata vermeli.
@@ -65,7 +65,14 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasMany(p => p.Images)
                .WithOne()
                .HasForeignKey(img => img.ProductId)
-               .OnDelete(DeleteBehavior.Cascade); // Ürün silinirse resimleri çöp olur, silinsin.
+               .OnDelete(DeleteBehavior.Restrict);
+
+        // 4. Brand - Zorunlu ve Restrict
+        // Marka silinirse ürünler silinmemeli, hata vermeli.
+        builder.HasOne(p => p.Brand)
+               .WithMany() // Brand tarafında Products listesi tutmadık (opsiyonel)
+               .HasForeignKey(p => p.BrandId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         // --- ENCAPSULATION AYARI (Kritik) ---
         // Domain'de "private readonly List<ProductImage> _images" kullandığımız için
@@ -80,6 +87,8 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // Kategori filtreleri için
         builder.HasIndex(p => p.CategoryId);
+
+        builder.HasIndex(p => p.BrandId);
 
         // SKU Benzersizliği (Tenant Bazlı)
         // A firmasının "KLM-01" ürünü olabilir, B firmasının da olabilir.

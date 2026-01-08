@@ -43,11 +43,11 @@ public sealed class GetProductByIdQueryHandler(
             p.Stock,
             p.CategoryId,
             p.Category.Name,
-
             // Ana resim önceliği: IsMain olan, yoksa ilk resim, o da yoksa null
             p.Images.Where(i => i.IsMain).Select(i => i.ImageUrl).FirstOrDefault()
             ?? p.Images.Select(i => i.ImageUrl).FirstOrDefault(),
-
+            p.BrandId,
+            p.Brand.Name,
             // Tüm resim listesi
             p.Images.Select(i => new ProductImageDto(i.Id, i.ImageUrl, i.IsMain)).ToList()
         )).FirstOrDefaultAsync(cancellationToken);
