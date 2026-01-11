@@ -13,7 +13,7 @@ namespace ECommercePlatform.Application.Brands;
 public sealed record CreateBrandCommand(
     string Name,
     string? LogoUrl
-) : IRequest<Result<string>>;
+) : IRequest<Result<Guid>>;
 
 public sealed class CreateBrandCommandValidator : AbstractValidator<CreateBrandCommand>
 {
@@ -27,9 +27,9 @@ public sealed class CreateBrandCommandHandler(
     IRepository<Brand> brandRepository,
     IUnitOfWork unitOfWork,
     ITenantContext tenantContext
-) : IRequestHandler<CreateBrandCommand, Result<string>>
+) : IRequestHandler<CreateBrandCommand, Result<Guid>>
 {
-    public async Task<Result<string>> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
     {
         // Aynı isimde marka var mı? (Global Filter CompanyId'yi zaten süzer)
         bool isExists = await brandRepository.AnyAsync(
@@ -37,13 +37,13 @@ public sealed class CreateBrandCommandHandler(
             cancellationToken);
 
         if (isExists)
-            return Result<string>.Failure("Bu isimde bir marka zaten mevcut.");
+            return Result<Guid>.Failure("Bu isimde bir marka zaten mevcut.");
 
         var brand = new Brand(request.Name, request.LogoUrl, tenantContext.CompanyId!.Value);
 
         brandRepository.Add(brand);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<string>.Succeed("Marka başarıyla oluşturuldu.");
+        return Result<Guid>.Succeed(brand.Id);
     }
 }

@@ -4,6 +4,7 @@ using ECommercePlatform.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ECommercePlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260111130456_banners_table_created")]
+    partial class banners_table_created
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -295,9 +298,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CargoTrackingNumber")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
@@ -525,73 +525,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasFilter("[IsMain] = 1");
 
                     b.ToTable("ProductImages", (string)null);
-                });
-
-            modelBuilder.Entity("ECommercePlatform.Domain.Reviews.Review", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("SellerRepliedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("SellerReply")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Users.AppRole", b =>
@@ -949,35 +882,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                                 .HasForeignKey("CompanyId");
                         });
 
-                    b.OwnsOne("ECommercePlatform.Domain.Companies.ShippingSettings", "ShippingSettings", b1 =>
-                        {
-                            b1.Property<Guid>("CompanyId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<decimal>("FlatRate")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("decimal(18,2)")
-                                .HasDefaultValue(0m)
-                                .HasColumnName("ShippingFlatRate");
-
-                            b1.Property<decimal>("FreeShippingThreshold")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("decimal(18,2)")
-                                .HasDefaultValue(0m)
-                                .HasColumnName("FreeShippingThreshold");
-
-                            b1.HasKey("CompanyId");
-
-                            b1.ToTable("Companies");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CompanyId");
-                        });
-
                     b.Navigation("Address");
-
-                    b.Navigation("ShippingSettings")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Companies.CompanyUser", b =>
@@ -1162,25 +1067,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ECommercePlatform.Domain.Reviews.Review", b =>
-                {
-                    b.HasOne("ECommercePlatform.Domain.Users.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ECommercePlatform.Domain.Products.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Users.User", b =>

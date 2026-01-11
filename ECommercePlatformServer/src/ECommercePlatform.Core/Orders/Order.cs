@@ -30,8 +30,10 @@ public sealed class Order : Entity, IMultiTenantEntity
     public DateTime OrderDate { get; private set; }
     public OrderStatus Status { get; private set; }
 
+
     // Multi-Tenant
     public Guid CompanyId { get; private set; }
+    public string? CargoTrackingNumber { get; private set; }
 
     // Customer (User tablosu ile ilişkili)
     public Guid CustomerId { get; private set; }
@@ -47,6 +49,21 @@ public sealed class Order : Entity, IMultiTenantEntity
     public void UpdateStatus(OrderStatus newStatus)
     {
         Status = newStatus;
+    }
+
+    public void SetTrackingNumber(string trackingNumber)
+    {
+        if (string.IsNullOrWhiteSpace(trackingNumber))
+            throw new ArgumentException("Kargo takip numarası boş olamaz.");
+
+        if (Status == OrderStatus.Cancelled)
+            throw new InvalidOperationException("İptal edilmiş siparişe kargo numarası eklenemez.");
+
+        if (Status == OrderStatus.Shipped)
+            throw new InvalidOperationException("Bu sipariş zaten kargoya verilmiştir.");
+
+        CargoTrackingNumber = trackingNumber;
+        Status = OrderStatus.Shipped;
     }
 
     public void AddOrderItem(Guid productId, string productName, Money price, int quantity)

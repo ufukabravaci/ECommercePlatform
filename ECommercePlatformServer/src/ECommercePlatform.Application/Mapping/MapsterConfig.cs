@@ -1,7 +1,13 @@
-﻿using ECommercePlatform.Application.DTOs;
+﻿using ECommercePlatform.Application.Banners;
+using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Application.Reviews;
+using ECommercePlatform.Domain.Banners;
+using ECommercePlatform.Domain.Brands;
 using ECommercePlatform.Domain.Categories;
 using ECommercePlatform.Domain.Companies;
 using ECommercePlatform.Domain.Orders;
+using ECommercePlatform.Domain.Products;
+using ECommercePlatform.Domain.Reviews;
 using Mapster;
 
 namespace ECommercePlatform.Application.Mapping;
@@ -48,5 +54,18 @@ public sealed class MapsterConfig : IRegister
             .Map(dest => dest.ShippingFullAddress, src => src.ShippingAddress.FullAddress)
             // Items listesini Mapster otomatik olarak OrderItemDto config'ini kullanarak mapler.
             .Map(dest => dest.Items, src => src.Items);
+
+        config.NewConfig<Review, ReviewDto>()
+           .Map(dest => dest.CustomerName, src => src.Customer.FirstName + " " + src.Customer.LastName)
+           .RequireDestinationMemberSource(true);
+
+        config.NewConfig<Brand, BrandDto>();
+        config.NewConfig<Banner, BannerDto>();
+
+        config.NewConfig<Product, ProductDto>()
+            .Map(dest => dest.CategoryName, src => src.Category.Name)
+            .Map(dest => dest.BrandName, src => src.Brand.Name)
+            .Map(dest => dest.MainImageUrl, src => src.Images.Where(i => i.IsMain).Select(i => i.ImageUrl).FirstOrDefault())
+            .RequireDestinationMemberSource(true);
     }
 }

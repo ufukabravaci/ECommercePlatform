@@ -23,7 +23,16 @@
             </div>
         </div>
 
-        <h5 class="mb-3">Üzgünüz!</h5>
+        <!-- HATA MESAJINI GÖSTER -->
+        @if (!string.IsNullOrEmpty(Model?.ErrorMessage))
+        {
+            <h5 class="mb-3 text-danger">@Model.ErrorMessage</h5>
+        }
+        else
+        {
+            <h5 class="mb-3">Üzgünüz!</h5>
+        }
+
         <p class="text-muted mb-4">
             İsteğiniz sırasında beklenmeyen bir hata oluştu.
             Lütfen daha sonra tekrar deneyiniz.

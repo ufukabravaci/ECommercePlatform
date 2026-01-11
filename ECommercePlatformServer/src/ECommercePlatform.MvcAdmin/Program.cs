@@ -1,3 +1,4 @@
+using ECommercePlatform.MvcAdmin.Filters;
 using ECommercePlatform.MvcAdmin.Services;
 using Mapster;
 
@@ -10,12 +11,12 @@ builder.Services.AddHttpClient<IApiService, ApiService>(opt =>
     opt.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
 });
 //redis & session
-//builder.Services.AddStackExchangeRedisCache(opt =>
-//{
-//    opt.Configuration = builder.Configuration.GetConnectionString("Redis");
-//    opt.InstanceName = "EComAdmin_";
-//});
-builder.Services.AddDistributedMemoryCache();
+builder.Services.AddStackExchangeRedisCache(opt =>
+{
+    opt.Configuration = builder.Configuration.GetConnectionString("Redis");
+    opt.InstanceName = "EComAdmin_";
+});
+//builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(opt =>
 {
     opt.IdleTimeout = TimeSpan.FromMinutes(60);
@@ -25,7 +26,10 @@ builder.Services.AddSession(opt =>
     opt.Cookie.SameSite = SameSiteMode.Lax;
     opt.Cookie.Name = ".ECommerce.Admin.Session";
 });
-
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<GlobalExceptionFilter>();
+});
 builder.Services.AddMapster();
 //===============================================================//
 var app = builder.Build();

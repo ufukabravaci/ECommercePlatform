@@ -13,7 +13,7 @@ namespace ECommercePlatform.Application.Categories;
 public sealed record CreateCategoryCommand(
     string Name,
     Guid? ParentId
-) : IRequest<Result<string>>;
+) : IRequest<Result<Guid>>;
 
 public sealed class CreateCategoryCommandValidator
     : AbstractValidator<CreateCategoryCommand>
@@ -34,15 +34,15 @@ public sealed class CreateCategoryCommandHandler(
     IRepository<Category> categoryRepository,
     IUnitOfWork unitOfWork,
     ITenantContext tenantContext
-) : IRequestHandler<CreateCategoryCommand, Result<string>>
+) : IRequestHandler<CreateCategoryCommand, Result<Guid>>
 {
-    public async Task<Result<string>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         Guid? companyId = tenantContext.CompanyId;
         if (!companyId.HasValue)
         {
             // Token'da CompanyId yoksa (veya Admin panelinden bağlam dışı bir işlemse)
-            return Result<string>.Failure(500, "Şirket bilgisi tespit edilemedi. Lütfen tekrar giriş yapın.");
+            return Result<Guid>.Failure(500, "Şirket bilgisi tespit edilemedi. Lütfen tekrar giriş yapın.");
         }
 
         // İsim Kontrolü (Aynı şirkette aynı isimli kategori olamaz)
@@ -51,7 +51,7 @@ public sealed class CreateCategoryCommandHandler(
             cancellationToken);
         if (isNameExists)
         {
-            return Result<string>.Failure("Bu isimde bir kategori zaten mevcut.");
+            return Result<Guid>.Failure("Bu isimde bir kategori zaten mevcut.");
         }
 
         Category category = new(request.Name, companyId.Value);
@@ -66,7 +66,7 @@ public sealed class CreateCategoryCommandHandler(
             );
 
             if (parentCategory is null)
-                return Result<string>.Failure("Seçilen üst kategori bulunamadı.");
+                return Result<Guid>.Failure("Seçilen üst kategori bulunamadı.");
 
             // 2. Derinliği Hesapla (While Döngüsü ile)
             // Yeni eklenecek kategori 1. seviye, Parent 2. seviye... diye sayacağız.
@@ -81,7 +81,7 @@ public sealed class CreateCategoryCommandHandler(
 
                 if (currentDepth > CategoryRules.MaxDepth)
                 {
-                    return Result<string>.Failure($"Kategori en fazla {CategoryRules.MaxDepth} seviye olabilir.");
+                    return Result<Guid>.Failure($"Kategori en fazla {CategoryRules.MaxDepth} seviye olabilir.");
                 }
 
                 // Bir üstteki babayı bulmamız lazım.
@@ -113,7 +113,7 @@ public sealed class CreateCategoryCommandHandler(
             }
             catch (Exception ex)
             {
-                return Result<string>.Failure(ex.Message);
+                return Result<Guid>.Failure(ex.Message);
             }
         }
 
@@ -121,7 +121,7 @@ public sealed class CreateCategoryCommandHandler(
         await categoryRepository.AddAsync(category, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return "Kategori başarıyla oluşturuldu.";
+        return Result<Guid>.Succeed(category.Id);
     }
 
 }

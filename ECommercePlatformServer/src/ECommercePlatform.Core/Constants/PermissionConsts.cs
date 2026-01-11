@@ -6,6 +6,7 @@ public static class PermissionConsts
     public const string UpdateCompany = "Company.Update";
     public const string DeleteCompany = "Company.Delete";
     public const string ReadCompany = "Company.Read";
+    public const string UpdateShippingSettings = "Company.UpdateShippingSettings";
 
     // Category Permissions
     public const string CreateCategory = "Category.Create";
@@ -31,4 +32,19 @@ public static class PermissionConsts
     public const string UpdateBrand = "Brand.Update";
     public const string DeleteBrand = "Brand.Delete";
     public const string ReadBrand = "Brand.Read";
+
+    // Banner Permissions
+    public const string CreateBanner = "Banner.Create";
+    public const string UpdateBanner = "Banner.Update";
+    public const string DeleteBanner = "Banner.Delete";
+    public const string ReadBanner = "Banner.Read";
+
+    // Review Permissions
+    public const string CreateReview = "Review.Create";
+    public const string ManageReview = "Review.Manage";
+    public const string ReadReview = "Review.Read";
+
+    //Customer Permissions
+    public const string ReadCustomer = "Customer.Read";
+    public const string DeleteCustomer = "Customer.Delete";
 }

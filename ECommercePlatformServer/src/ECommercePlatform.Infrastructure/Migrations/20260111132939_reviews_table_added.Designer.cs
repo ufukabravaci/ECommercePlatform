@@ -4,6 +4,7 @@ using ECommercePlatform.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ECommercePlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260111132939_reviews_table_added")]
+    partial class reviews_table_added
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -294,9 +297,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CargoTrackingNumber")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
@@ -949,35 +949,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                                 .HasForeignKey("CompanyId");
                         });
 
-                    b.OwnsOne("ECommercePlatform.Domain.Companies.ShippingSettings", "ShippingSettings", b1 =>
-                        {
-                            b1.Property<Guid>("CompanyId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<decimal>("FlatRate")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("decimal(18,2)")
-                                .HasDefaultValue(0m)
-                                .HasColumnName("ShippingFlatRate");
-
-                            b1.Property<decimal>("FreeShippingThreshold")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("decimal(18,2)")
-                                .HasDefaultValue(0m)
-                                .HasColumnName("FreeShippingThreshold");
-
-                            b1.HasKey("CompanyId");
-
-                            b1.ToTable("Companies");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CompanyId");
-                        });
-
                     b.Navigation("Address");
-
-                    b.Navigation("ShippingSettings")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Companies.CompanyUser", b =>

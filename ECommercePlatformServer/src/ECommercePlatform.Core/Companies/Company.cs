@@ -9,6 +9,7 @@ public sealed class Company : Entity
     private Company()
     {
         CompanyUsers = new List<CompanyUser>();
+        ShippingSettings = ShippingSettings.Default;
     }
 
     public Company(string name, string taxNumber) : this()
@@ -25,6 +26,7 @@ public sealed class Company : Entity
     public string Name { get; private set; } = default!;
     public string TaxNumber { get; private set; } = default!;
     public Address? Address { get; private set; } = default!;
+    public ShippingSettings ShippingSettings { get; private set; }
     public ICollection<CompanyUser> CompanyUsers { get; set; }
 
     #region Methods
@@ -42,6 +44,11 @@ public sealed class Company : Entity
     {
         if (string.IsNullOrWhiteSpace(taxNumber)) throw new ArgumentException("Vergi numarası boş olamaz.");
         TaxNumber = taxNumber;
+    }
+
+    public void UpdateShippingSettings(decimal threshold, decimal rate)
+    {
+        ShippingSettings = new ShippingSettings(threshold, rate);
     }
     #endregion
 }

@@ -47,6 +47,18 @@ public static class RoleSeeder
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteBrand);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadBrand);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.UpdateBrand);
+            //Banner
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.CreateBanner);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteBanner);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadBanner);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.UpdateBanner);
+            //Review
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.CreateReview);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ManageReview);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadReview);
+            //Customer
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadCustomer);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteCustomer);
 
             if (isAdded) // Sadece yeni bir claim eklendiyse cache'i uçur
             {
@@ -74,6 +86,19 @@ public static class RoleSeeder
             isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadOrder);
             isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadAllOrders);
             isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.UpdateOrderStatus);
+            //Banner
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.CreateBanner);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.DeleteBanner);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadBanner);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.UpdateBanner);
+            //Review
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.CreateReview);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ManageReview);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadReview);
+            //Customer
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadCustomer);
+            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.DeleteCustomer);
+
             //Cache temizleme
             if (isAdded)
             {
@@ -87,6 +112,8 @@ public static class RoleSeeder
             // Müşterinin yapabilecekleri:
             bool isAdded = await AddPermissionToRole(roleManager, customerRole, PermissionConsts.CreateOrder);
             isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.ReadOrder);
+            isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.ReadBanner);
+            isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.ReadReview);
             if (isAdded)
             {
                 await cache.RemoveAsync($"Role_{RoleConsts.Customer}_Permissions");

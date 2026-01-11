@@ -33,5 +33,18 @@ internal sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
         });
         builder.Navigation(u => u.Address).IsRequired(false);
 
+        // 2. Shipping Settings Mapping
+        builder.OwnsOne(c => c.ShippingSettings, settings =>
+        {
+            settings.Property(s => s.FreeShippingThreshold)
+                .HasColumnName("FreeShippingThreshold")
+                .HasColumnType("decimal(18,2)")
+                .HasDefaultValue(0);
+
+            settings.Property(s => s.FlatRate)
+                .HasColumnName("ShippingFlatRate")
+                .HasColumnType("decimal(18,2)")
+                .HasDefaultValue(0);
+        });
     }
 }

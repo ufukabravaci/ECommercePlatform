@@ -88,5 +88,28 @@ public static class OrderModule
 
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         });
+
+        // 7-) REFUND
+        group.MapPatch("/{orderNumber}/refund", async (
+            string orderNumber,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(new RefundOrderCommand(orderNumber), ct);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        });
+
+        // 8-) TRACKING NUMBER EKLEME
+        // Body: { "trackingNumber": "123456" }
+        group.MapPatch("/{orderNumber}/tracking", async (
+            string orderNumber,
+            [FromBody] string trackingNumber,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var command = new AddTrackingNumberCommand(orderNumber, trackingNumber);
+            var result = await sender.Send(command, ct);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        });
     }
 }

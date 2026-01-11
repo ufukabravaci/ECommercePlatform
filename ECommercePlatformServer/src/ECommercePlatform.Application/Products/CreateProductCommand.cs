@@ -23,7 +23,7 @@ public sealed record CreateProductCommand(
     Guid BrandId,
     Guid CategoryId,
     IFormFileCollection? Files // <--- Native koleksiyon tipi
-) : IRequest<Result<string>>;
+) : IRequest<Result<Guid>>;
 
 public sealed class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
@@ -102,19 +102,19 @@ public sealed class CreateProductCommandHandler(
     IUnitOfWork unitOfWork,
     IFileService fileService, // Infrastructure'dan gelen servis
     ITenantContext tenantContext
-) : IRequestHandler<CreateProductCommand, Result<string>>
+) : IRequestHandler<CreateProductCommand, Result<Guid>>
 {
-    public async Task<Result<string>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         // 1. Validasyonlar & Tenant
         Guid? companyId = tenantContext.CompanyId;
-        if (!companyId.HasValue) return Result<string>.Failure("Şirket bilgisi yok.");
+        if (!companyId.HasValue) return Result<Guid>.Failure("Şirket bilgisi yok.");
 
         // SKU Unique Kontrolü (DB)
         bool isSkuExists = await productRepository.AnyAsync(
             p => p.Sku == request.Sku && p.CompanyId == companyId.Value,
             cancellationToken);
-        if (isSkuExists) return Result<string>.Failure("Bu SKU zaten kullanımda.");
+        if (isSkuExists) return Result<Guid>.Failure("Bu SKU zaten kullanımda.");
 
         // MARKANIN GEÇERLİLİĞİNİ KONTROL ET
         bool isBrandValid = await brandRepository.AnyAsync(
@@ -122,7 +122,7 @@ public sealed class CreateProductCommandHandler(
             cancellationToken);
 
         if (!isBrandValid)
-            return Result<string>.Failure("Geçersiz marka seçimi.");
+            return Result<Guid>.Failure("Geçersiz marka seçimi.");
 
         // 2. Entity Oluşturma
         var currency = Enum.Parse<Currency>(request.CurrencyCode);
@@ -168,7 +168,7 @@ public sealed class CreateProductCommandHandler(
             await productRepository.AddAsync(product, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return "Ürün başarıyla oluşturuldu.";
+            return Result<Guid>.Succeed(product.Id);
         }
         catch (Exception)
         {

@@ -32,5 +32,24 @@ public static class CompanyModule
             var result = await sender.Send(new DeleteCompanyCommand());
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         });
+
+        group.MapPut("/shipping-settings", async (
+            [FromBody] UpdateShippingSettingsCommand command,
+            ISender sender,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await sender.Send(command, cancellationToken);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        }).RequireAuthorization();
+
+        // 2. GET SETTINGS
+        // GET /api/companies/shipping-settings
+        group.MapGet("/shipping-settings", async (
+            ISender sender,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await sender.Send(new GetShippingSettingsQuery(), cancellationToken);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        }); // Tenant Header'ı olduğu sürece Anonymous olabilir, ama güvenli olsun diye şimdilik Auth'lu kalsın.
     }
 }
