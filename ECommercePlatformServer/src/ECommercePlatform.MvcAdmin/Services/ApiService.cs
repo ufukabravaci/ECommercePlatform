@@ -87,6 +87,13 @@ public class ApiService : IApiService
         return await HandleResponse<T>(response);
     }
 
+    public async Task<Result<T>> PutMultipartAsync<T>(string endpoint, MultipartFormDataContent content)
+    {
+        await AddAuthorizationHeaderAsync();
+        var response = await _httpClient.PutAsync(endpoint, content);
+        return await HandleResponse<T>(response);
+    }
+
     // API'den gelen cevabı Result<T>'ye çevir
     private async Task<Result<T>> HandleResponse<T>(HttpResponseMessage response)
     {

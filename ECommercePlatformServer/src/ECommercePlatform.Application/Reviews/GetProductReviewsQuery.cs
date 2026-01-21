@@ -8,15 +8,7 @@ using TS.Result;
 
 namespace ECommercePlatform.Application.Reviews;
 
-public sealed record ReviewDto(
-    Guid Id,
-    string CustomerName,
-    int Rating,
-    string Comment,
-    DateTimeOffset CreatedAt,
-    string? SellerReply,
-    DateTimeOffset? SellerRepliedAt
-);
+
 
 // Public erişim olabilir veya Read yetkisi
 public sealed record GetProductReviewsQuery(

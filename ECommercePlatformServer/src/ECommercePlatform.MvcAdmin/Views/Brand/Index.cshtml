@@ -1,0 +1,364 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Brands.BrandListViewModel
+
+@{
+    ViewData["Title"] = "Markalar";
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active">Markalar</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Marka Yönetimi</h1>
+        <p class="page-subtitle mb-0">Ürün markalarını görüntüleyin ve yönetin</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-primary-gradient">
+            <i class="fas fa-plus me-2"></i>Yeni Marka
+        </a>
+    </div>
+</div>
+
+<!-- Filters Card -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label for="searchInput" class="form-label small text-muted fw-semibold">Marka Ara</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text"
+                           id="searchInput"
+                           name="search"
+                           class="form-control border-start-0 ps-0"
+                           placeholder="Marka adı ile ara..."
+                           value="@Model.SearchTerm"
+                           style="border-radius: 0 10px 10px 0;">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary-gradient w-100">
+                    <i class="fas fa-search me-2"></i>Ara
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100" style="border-radius: 10px;">
+                    <i class="fas fa-times me-2"></i>Temizle
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="card border-0 bg-primary bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-primary bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-tags text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold text-primary">@Model.Brands.TotalCount</h5>
+                        <small class="text-muted">Toplam Marka</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Brands Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Marka Listesi
+        </h5>
+        <span class="badge bg-primary rounded-pill">@Model.Brands.TotalCount marka</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Brands.Items != null && Model.Brands.Items.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4" style="width: 50%;">Marka</th>
+                            <th style="width: 30%;">Logo URL</th>
+                            <th class="text-end pe-4" style="width: 20%;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var brand in Model.Brands.Items)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="brand-logo rounded d-flex align-items-center justify-content-center"
+                                             style="width: 45px; height: 45px; min-width: 45px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            @if (!string.IsNullOrEmpty(brand.LogoUrl))
+                                            {
+                                                <img src="@brand.LogoUrl" alt="@brand.Name"
+                                                     class="img-fluid rounded"
+                                                     style="max-width: 40px; max-height: 40px; object-fit: contain;"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                <span class="text-white fw-bold" style="display: none; font-size: 1rem;">
+                                                    @brand.Name.FirstOrDefault().ToString().ToUpper()
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-white fw-bold" style="font-size: 1rem;">
+                                                    @brand.Name.FirstOrDefault().ToString().ToUpper()
+                                                </span>
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@brand.Name</div>
+                                            <small class="text-muted">ID: @brand.Id.ToString().Substring(0, 8)...</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(brand.LogoUrl))
+                                    {
+                                        <a href="@brand.LogoUrl" target="_blank" class="text-decoration-none text-truncate d-block" style="max-width: 250px;" title="@brand.LogoUrl">
+                                            <i class="fas fa-external-link-alt me-1 text-muted"></i>
+                                            @brand.LogoUrl
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@brand.Id"
+                                           class="btn btn-sm btn-outline-primary"
+                                           style="border-radius: 8px 0 0 8px;"
+                                           title="Düzenle">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                style="border-radius: 0 8px 8px 0;"
+                                                title="Sil"
+                                                onclick="confirmDelete('@brand.Id', '@brand.Name')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.Brands.TotalPages > 1)
+            {
+                <div class="card-footer bg-transparent border-top">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="text-muted small">
+                            Toplam <strong>@Model.Brands.TotalCount</strong> markadan
+                            <strong>@((Model.Brands.PageNumber - 1) * Model.Brands.PageSize + 1)</strong> -
+                            <strong>@Math.Min(Model.Brands.PageNumber * Model.Brands.PageSize, Model.Brands.TotalCount)</strong> arası gösteriliyor
+                        </div>
+                        <nav aria-label="Marka sayfaları">
+                            <ul class="pagination pagination-sm mb-0">
+                                @if (Model.Brands.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-page="@(Model.Brands.PageNumber - 1)"
+                                           asp-route-search="@Model.SearchTerm"
+                                           style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </span>
+                                    </li>
+                                }
+
+                                @{
+                                    var startPage = Math.Max(1, Model.Brands.PageNumber - 2);
+                                    var endPage = Math.Min(Model.Brands.TotalPages, Model.Brands.PageNumber + 2);
+                                }
+
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    var pageNum = i;
+                                    if (pageNum == Model.Brands.PageNumber)
+                                    {
+                                        <li class="page-item active">
+                                            <span class="page-link">@pageNum</span>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="Index"
+                                               asp-route-page="@pageNum"
+                                               asp-route-search="@Model.SearchTerm">
+                                                @pageNum
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
+                                @if (Model.Brands.HasNextPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-page="@(Model.Brands.PageNumber + 1)"
+                                           asp-route-search="@Model.SearchTerm"
+                                           style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-tags fa-4x text-muted opacity-50"></i>
+                </div>
+                <h5 class="text-muted">Marka Bulunamadı</h5>
+                <p class="text-muted mb-4">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span>"@Model.SearchTerm" aramasına uygun marka bulunamadı.</span>
+                    }
+                    else
+                    {
+                        <span>Henüz hiç marka eklenmemiş.</span>
+                    }
+                </p>
+                <a asp-action="Create" class="btn btn-primary-gradient">
+                    <i class="fas fa-plus me-2"></i>İlk Markayı Ekle
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Markayı Sil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    <strong id="deleteBrandName"></strong> markasını silmek istediğinize emin misiniz?
+                </p>
+                <div class="alert alert-warning mt-3 mb-0" style="border-radius: 10px;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>Bu markaya ait ürünler varsa, önce ürünlerin markası değiştirilmelidir.</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    Vazgeç
+                </button>
+                <form id="deleteForm" method="post" asp-action="Delete" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteBrandId" />
+                    <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                        <i class="fas fa-trash-alt me-2"></i>Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .table > :not(caption) > * > * {
+            padding: 1rem 0.75rem;
+        }
+
+        .pagination .page-link {
+            border: 1px solid var(--border-color, #e2e8f0);
+            margin: 0 2px;
+            color: var(--text-secondary, #64748b);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        .brand-logo {
+            transition: transform 0.2s ease;
+        }
+
+        .table tbody tr:hover .brand-logo {
+            transform: scale(1.1);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function confirmDelete(brandId, brandName) {
+            document.getElementById('deleteBrandName').textContent = brandName;
+            document.getElementById('deleteBrandId').value = brandId;
+            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+    </script>
+}

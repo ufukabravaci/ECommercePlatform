@@ -8,7 +8,7 @@ using TS.Result;
 
 namespace ECommercePlatform.Application.Customers;
 
-[Permission(PermissionConsts.DeleteCustomer)] // Bu permission'ı consts'a ekle
+[Permission(PermissionConsts.DeleteCustomer)]
 public sealed record RemoveCustomerCommand(Guid CustomerId) : IRequest<Result<string>>;
 
 public sealed class RemoveCustomerCommandHandler(

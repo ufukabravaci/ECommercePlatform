@@ -4,8 +4,7 @@ namespace ECommercePlatform.MvcAdmin.Models;
 
 public class CustomerListViewModel
 {
-    public List<CustomerDto> Customers { get; set; } = new();
-    public int PageNumber { get; set; }
-    public int TotalPages { get; set; }
-    public string Search { get; set; } = string.Empty;
+    public PageResult<CustomerDto> Customers { get; set; } = new();
+    public string? SearchTerm { get; set; }
+    public string? StatusFilter { get; set; } // "active", "inactive", or null for all
 }

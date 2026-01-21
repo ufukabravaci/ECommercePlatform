@@ -1,25 +1,30 @@
-﻿@{
+﻿@model ECommercePlatform.MvcAdmin.DTOs.Dashboard.DashboardStatsDto
+@using ECommercePlatform.MvcAdmin.DTOs.Orders
+
+@{
     ViewData["Title"] = "Dashboard";
+    var apiBaseUrl = ViewBag.ApiBaseUrl as string ?? "";
 }
 
 <!-- Page Header -->
-<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
         <h1 class="page-title">Dashboard</h1>
         <p class="page-subtitle mb-0">Hoş geldiniz, @ViewBag.UserName! İşte bugünkü özet.</p>
     </div>
     <div class="d-flex gap-2">
-        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;">
-            <i class="fas fa-download me-2"></i>Rapor İndir
+        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;" onclick="location.reload()">
+            <i class="fas fa-sync-alt me-2"></i>Yenile
         </button>
-        <button type="button" class="btn btn-primary-gradient">
+        <a asp-controller="Product" asp-action="Create" class="btn btn-primary-gradient">
             <i class="fas fa-plus me-2"></i>Yeni Ürün
-        </button>
+        </a>
     </div>
 </div>
 
-<!-- Stats Cards -->
+<!-- Ana İstatistik Kartları -->
 <div class="row g-4 mb-4">
+    <!-- Toplam Sipariş -->
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100">
             <div class="card-body">
@@ -27,16 +32,25 @@
                     <div class="stat-icon primary">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-arrow-up me-1"></i>12.5%
-                    </span>
+                    @if (Model.PendingOrders > 0)
+                    {
+                        <span class="badge bg-warning text-dark" style="border-radius: 8px;">
+                            <i class="fas fa-clock me-1"></i>@Model.PendingOrders bekleyen
+                        </span>
+                    }
                 </div>
-                <div class="stat-value">1,284</div>
+                <div class="stat-value">@Model.TotalOrders.ToString("N0")</div>
                 <div class="stat-label">Toplam Sipariş</div>
+                <div class="mt-2">
+                    <a asp-controller="Order" asp-action="Index" class="text-primary small text-decoration-none">
+                        Siparişleri Gör <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Toplam Gelir -->
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100">
             <div class="card-body">
@@ -44,16 +58,23 @@
                     <div class="stat-icon success">
                         <i class="fas fa-lira-sign"></i>
                     </div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-arrow-up me-1"></i>8.2%
-                    </span>
+                    @if (Model.DeliveredOrders > 0)
+                    {
+                        <span class="badge bg-success" style="border-radius: 8px;">
+                            <i class="fas fa-check me-1"></i>@Model.DeliveredOrders teslim
+                        </span>
+                    }
                 </div>
-                <div class="stat-value">₺245,680</div>
+                <div class="stat-value">₺@Model.TotalRevenue.ToString("N0")</div>
                 <div class="stat-label">Toplam Gelir</div>
+                <div class="mt-2 text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>Teslim edilen siparişlerden
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Toplam Ürün -->
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100">
             <div class="card-body">
@@ -61,16 +82,31 @@
                     <div class="stat-icon warning">
                         <i class="fas fa-box"></i>
                     </div>
-                    <span class="stat-change negative">
-                        <i class="fas fa-arrow-down me-1"></i>3.1%
-                    </span>
+                    @if (Model.OutOfStockProducts > 0)
+                    {
+                        <span class="badge bg-danger" style="border-radius: 8px;">
+                            <i class="fas fa-exclamation me-1"></i>@Model.OutOfStockProducts tükenen
+                        </span>
+                    }
+                    else if (Model.LowStockProducts > 0)
+                    {
+                        <span class="badge bg-warning text-dark" style="border-radius: 8px;">
+                            <i class="fas fa-exclamation me-1"></i>@Model.LowStockProducts düşük
+                        </span>
+                    }
                 </div>
-                <div class="stat-value">456</div>
+                <div class="stat-value">@Model.TotalProducts.ToString("N0")</div>
                 <div class="stat-label">Toplam Ürün</div>
+                <div class="mt-2">
+                    <a asp-controller="Product" asp-action="Index" class="text-primary small text-decoration-none">
+                        Ürünleri Gör <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Toplam Müşteri -->
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card h-100">
             <div class="card-body">
@@ -78,70 +114,139 @@
                     <div class="stat-icon danger">
                         <i class="fas fa-users"></i>
                     </div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-arrow-up me-1"></i>15.3%
-                    </span>
                 </div>
-                <div class="stat-value">2,845</div>
+                <div class="stat-value">@Model.TotalCustomers.ToString("N0")</div>
                 <div class="stat-label">Toplam Müşteri</div>
+                <div class="mt-2">
+                    <a asp-controller="Customer" asp-action="Index" class="text-primary small text-decoration-none">
+                        Müşterileri Gör <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts Row -->
+<!-- İkinci Satır - Detay İstatistikler -->
 <div class="row g-4 mb-4">
-    <!-- Sales Chart -->
+    <!-- Sipariş Durumları -->
     <div class="col-lg-8">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Satış Grafiği</h5>
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        Son 7 Gün
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Son 7 Gün</a></li>
-                        <li><a class="dropdown-item" href="#">Son 30 Gün</a></li>
-                        <li><a class="dropdown-item" href="#">Son 3 Ay</a></li>
-                        <li><a class="dropdown-item" href="#">Bu Yıl</a></li>
-                    </ul>
-                </div>
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2 text-primary"></i>Sipariş Durumları
+                </h5>
             </div>
             <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="salesChart"></canvas>
+                <div class="row g-3">
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="text-center p-3 rounded-3" style="background: rgba(245, 158, 11, 0.1);">
+                            <div class="fs-4 fw-bold text-warning">@Model.PendingOrders</div>
+                            <small class="text-muted">Beklemede</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="text-center p-3 rounded-3" style="background: rgba(59, 130, 246, 0.1);">
+                            <div class="fs-4 fw-bold text-info">@Model.ConfirmedOrders</div>
+                            <small class="text-muted">Onaylanan</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="text-center p-3 rounded-3" style="background: rgba(245, 158, 11, 0.1);">
+                            <div class="fs-4 fw-bold text-warning">@Model.ProcessingOrders</div>
+                            <small class="text-muted">Hazırlanan</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="text-center p-3 rounded-3" style="background: rgba(102, 126, 234, 0.1);">
+                            <div class="fs-4 fw-bold text-primary">@Model.ShippedOrders</div>
+                            <small class="text-muted">Kargoda</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="text-center p-3 rounded-3" style="background: rgba(16, 185, 129, 0.1);">
+                            <div class="fs-4 fw-bold text-success">@Model.DeliveredOrders</div>
+                            <small class="text-muted">Teslim Edilen</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="text-center p-3 rounded-3" style="background: rgba(239, 68, 68, 0.1);">
+                            <div class="fs-4 fw-bold text-danger">@Model.CancelledOrders</div>
+                            <small class="text-muted">İptal Edilen</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="text-center p-3 rounded-3" style="background: rgba(139, 92, 246, 0.1);">
+                            <div class="fs-4 fw-bold" style="color: #8b5cf6;">@Model.RefundedOrders</div>
+                            <small class="text-muted">İade Edilen</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="text-center p-3 rounded-3" style="background: rgba(102, 126, 234, 0.1);">
+                            <div class="fs-4 fw-bold text-primary">@Model.TotalOrders</div>
+                            <small class="text-muted">Toplam</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Category Distribution -->
+    <!-- Hızlı İstatistikler -->
     <div class="col-lg-4">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="card-title mb-0">Kategori Dağılımı</h5>
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2 text-success"></i>Hızlı Bakış
+                </h5>
             </div>
             <div class="card-body">
-                <div class="chart-container" style="height: 250px;">
-                    <canvas id="categoryChart"></canvas>
+                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-info bg-opacity-15 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-tags text-info"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold">@Model.TotalBrands</h5>
+                        <small class="text-muted">Marka</small>
+                    </div>
+                    <a asp-controller="Brand" asp-action="Index" class="btn btn-sm btn-outline-info" style="border-radius: 8px;">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
-                <div class="mt-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span><i class="fas fa-circle text-primary me-2" style="font-size: 0.5rem;"></i>Elektronik</span>
-                        <span class="fw-semibold">35%</span>
+                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(139, 92, 246, 0.15);">
+                            <i class="fas fa-layer-group" style="color: #8b5cf6;"></i>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span><i class="fas fa-circle text-success me-2" style="font-size: 0.5rem;"></i>Giyim</span>
-                        <span class="fw-semibold">28%</span>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold">@Model.TotalCategories</h5>
+                        <small class="text-muted">Kategori</small>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span><i class="fas fa-circle text-warning me-2" style="font-size: 0.5rem;"></i>Ev & Yaşam</span>
-                        <span class="fw-semibold">22%</span>
+                    <a asp-controller="Category" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-warning bg-opacity-15 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-circle text-danger me-2" style="font-size: 0.5rem;"></i>Diğer</span>
-                        <span class="fw-semibold">15%</span>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold">
+                            @Model.TotalReviews
+                            <small class="fw-normal text-muted">(@Model.AverageRating.ToString("0.0") ★)</small>
+                        </h5>
+                        <small class="text-muted">
+                            Yorum
+                            @if (Model.PendingReviews > 0)
+                            {
+                                <span class="badge bg-warning text-dark ms-1">@Model.PendingReviews bekleyen</span>
+                            }
+                        </small>
                     </div>
                 </div>
             </div>
@@ -149,345 +254,240 @@
     </div>
 </div>
 
-<!-- Recent Orders & Top Products -->
+<!-- Üçüncü Satır - Son Siparişler & Düşük Stok -->
 <div class="row g-4">
-    <!-- Recent Orders -->
+    <!-- Son Siparişler -->
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Son Siparişler</h5>
-                <a href="#" class="btn btn-sm btn-outline-primary">Tümünü Gör</a>
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2 text-primary"></i>Son Siparişler
+                </h5>
+                <a asp-controller="Order" asp-action="Index" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                    Tümünü Gör
+                </a>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Sipariş No</th>
-                                <th>Müşteri</th>
-                                <th>Ürün</th>
-                                <th>Tutar</th>
-                                <th>Durum</th>
-                                <th>Tarih</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="fw-medium">#ORD-2024001</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <span class="text-primary fw-medium" style="font-size: 0.75rem;">AY</span>
-                                        </div>
-                                        <span>Ahmet Yılmaz</span>
-                                    </div>
-                                </td>
-                                <td>iPhone 15 Pro</td>
-                                <td class="fw-semibold">₺64,999</td>
-                                <td><span class="badge-status active">Tamamlandı</span></td>
-                                <td class="text-muted">2 saat önce</td>
-                            </tr>
-                            <tr>
-                                <td><span class="fw-medium">#ORD-2024002</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-sm bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <span class="text-success fw-medium" style="font-size: 0.75rem;">MK</span>
-                                        </div>
-                                        <span>Mehmet Kaya</span>
-                                    </div>
-                                </td>
-                                <td>Samsung Galaxy S24</td>
-                                <td class="fw-semibold">₺49,999</td>
-                                <td><span class="badge-status pending">Beklemede</span></td>
-                                <td class="text-muted">3 saat önce</td>
-                            </tr>
-                            <tr>
-                                <td><span class="fw-medium">#ORD-2024003</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-sm bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <span class="text-warning fw-medium" style="font-size: 0.75rem;">ZD</span>
-                                        </div>
-                                        <span>Zeynep Demir</span>
-                                    </div>
-                                </td>
-                                <td>MacBook Air M3</td>
-                                <td class="fw-semibold">₺54,999</td>
-                                <td><span class="badge-status active">Tamamlandı</span></td>
-                                <td class="text-muted">5 saat önce</td>
-                            </tr>
-                            <tr>
-                                <td><span class="fw-medium">#ORD-2024004</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-sm bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <span class="text-danger fw-medium" style="font-size: 0.75rem;">EÖ</span>
-                                        </div>
-                                        <span>Elif Özkan</span>
-                                    </div>
-                                </td>
-                                <td>iPad Pro 12.9"</td>
-                                <td class="fw-semibold">₺42,999</td>
-                                <td><span class="badge-status inactive">İptal</span></td>
-                                <td class="text-muted">1 gün önce</td>
-                            </tr>
-                            <tr>
-                                <td><span class="fw-medium">#ORD-2024005</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-sm bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <span class="text-info fw-medium" style="font-size: 0.75rem;">CA</span>
-                                        </div>
-                                        <span>Can Arslan</span>
-                                    </div>
-                                </td>
-                                <td>AirPods Pro 2</td>
-                                <td class="fw-semibold">₺8,999</td>
-                                <td><span class="badge-status pending">Kargoda</span></td>
-                                <td class="text-muted">1 gün önce</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                @if (Model.RecentOrders != null && Model.RecentOrders.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Sipariş No</th>
+                                    <th>Müşteri</th>
+                                    <th>Tutar</th>
+                                    <th>Durum</th>
+                                    <th>Tarih</th>
+                                    <th class="text-end pe-4">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model.RecentOrders)
+                                {
+                                    var initials = !string.IsNullOrEmpty(order.CustomerName)
+                                    ? string.Join("", order.CustomerName.Split(' ').Take(2).Select(x => x.FirstOrDefault())).ToUpper()
+                                    : "??";
+
+                                    <tr>
+                                        <td class="ps-4">
+                                            <span class="fw-semibold text-primary">#@order.OrderNumber</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                                     style="width: 32px; height: 32px; min-width: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                    <span class="text-white fw-medium" style="font-size: 0.7rem;">@initials</span>
+                                                </div>
+                                                <span class="text-truncate" style="max-width: 120px;">@order.CustomerName</span>
+                                            </div>
+                                        </td>
+                                        <td class="fw-semibold">
+                                            @(order.CurrencyCode == "TRY" ? "₺" : order.CurrencyCode)@order.TotalAmount.ToString("N2")
+                                        </td>
+                                        <td>
+                                            <span class="badge-status @OrderStatusHelper.GetStatusBadgeClass(order.Status)">
+                                                <i class="fas @OrderStatusHelper.GetStatusIcon(order.Status) me-1"></i>
+                                                @OrderStatusHelper.GetStatusDisplayText(order.Status)
+                                            </span>
+                                        </td>
+                                        <td class="text-muted">
+                                            @{
+                                                var timeAgo = DateTime.Now - order.OrderDate;
+                                                string timeText;
+                                                if (timeAgo.TotalMinutes < 60)
+                                                    timeText = $"{(int)timeAgo.TotalMinutes} dk önce";
+                                                else if (timeAgo.TotalHours < 24)
+                                                    timeText = $"{(int)timeAgo.TotalHours} saat önce";
+                                                else
+                                                    timeText = $"{(int)timeAgo.TotalDays} gün önce";
+                                            }
+                                            @timeText
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a asp-controller="Order" asp-action="Detail" asp-route-orderNumber="@order.OrderNumber"
+                                               class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3 opacity-50"></i>
+                        <p class="text-muted mb-0">Henüz sipariş bulunmuyor.</p>
+                    </div>
+                }
             </div>
         </div>
     </div>
 
-    <!-- Top Products -->
+    <!-- Düşük Stoklu Ürünler -->
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">En Çok Satanlar</h5>
-                <a href="#" class="btn btn-sm btn-outline-primary">Tümü</a>
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Düşük Stok
+                </h5>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-sm btn-outline-warning" style="border-radius: 8px;">
+                    Tümü
+                </a>
             </div>
             <div class="card-body">
-                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        <i class="fas fa-mobile-alt text-muted"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">iPhone 15 Pro</h6>
-                        <small class="text-muted">Elektronik</small>
-                    </div>
-                    <div class="text-end">
-                        <div class="fw-semibold">₺64,999</div>
-                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>245 satış</small>
-                    </div>
-                </div>
+                @if (Model.LowStockProductsList != null && Model.LowStockProductsList.Any())
+                {
+                    @foreach (var product in Model.LowStockProductsList)
+                    {
+                        var imageUrl = !string.IsNullOrEmpty(product.ImageUrl)
+                        ? (product.ImageUrl.StartsWith("http") ? product.ImageUrl : $"{apiBaseUrl}/{product.ImageUrl.TrimStart('/')}")
+                        : "";
+                        var isLast = product == Model.LowStockProductsList.Last();
 
-                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        <i class="fas fa-laptop text-muted"></i>
+                        <div class="d-flex align-items-center gap-3 @(!isLast ? "mb-3 pb-3 border-bottom" : "")">
+                            <div class="flex-shrink-0">
+                                @if (!string.IsNullOrEmpty(imageUrl))
+                                {
+                                    <img src="@imageUrl" alt="@product.Name"
+                                         class="rounded" style="width: 45px; height: 45px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="rounded d-flex align-items-center justify-content-center bg-light"
+                                         style="width: 45px; height: 45px;">
+                                        <i class="fas fa-box text-muted"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <h6 class="mb-0 text-truncate">@product.Name</h6>
+                                <small class="text-muted">@product.Sku</small>
+                            </div>
+                            <div class="text-end">
+                                @if (product.Stock == 0)
+                                {
+                                    <span class="badge bg-danger">Tükendi</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">@product.Stock adet</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2 opacity-50"></i>
+                        <p class="text-muted mb-0 small">Düşük stoklu ürün yok</p>
                     </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">MacBook Air M3</h6>
-                        <small class="text-muted">Elektronik</small>
-                    </div>
-                    <div class="text-end">
-                        <div class="fw-semibold">₺54,999</div>
-                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>189 satış</small>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        <i class="fas fa-headphones text-muted"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">AirPods Pro 2</h6>
-                        <small class="text-muted">Aksesuar</small>
-                    </div>
-                    <div class="text-end">
-                        <div class="fw-semibold">₺8,999</div>
-                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>156 satış</small>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        <i class="fas fa-tablet-alt text-muted"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">iPad Pro 12.9"</h6>
-                        <small class="text-muted">Elektronik</small>
-                    </div>
-                    <div class="text-end">
-                        <div class="fw-semibold">₺42,999</div>
-                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>134 satış</small>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center gap-3">
-                    <div class="product-img bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        <i class="fas fa-tv text-muted"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">Samsung QLED 65"</h6>
-                        <small class="text-muted">Elektronik</small>
-                    </div>
-                    <div class="text-end">
-                        <div class="fw-semibold">₺34,999</div>
-                        <small class="text-success"><i class="fas fa-arrow-up me-1"></i>98 satış</small>
-                    </div>
-                </div>
+                }
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Sales Chart
-            const salesCtx = document.getElementById('salesChart');
-            if (salesCtx) {
-                new Chart(salesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'],
-                        datasets: [{
-                            label: 'Satış (₺)',
-                            data: [32000, 45000, 38000, 52000, 48000, 61000, 55000],
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: '#667eea',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 5,
-                            pointHoverRadius: 7
-                        }, {
-                            label: 'Sipariş',
-                            data: [120, 165, 142, 198, 175, 225, 205],
-                            borderColor: '#10b981',
-                            backgroundColor: 'transparent',
-                            borderWidth: 3,
-                            borderDash: [5, 5],
-                            tension: 0.4,
-                            pointBackgroundColor: '#10b981',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            yAxisID: 'y1'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false
-                        },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                align: 'end',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 20
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(30, 41, 59, 0.9)',
-                                padding: 12,
-                                cornerRadius: 8,
-                                titleFont: { size: 14, weight: 'bold' },
-                                bodyFont: { size: 13 },
-                                callbacks: {
-                                    label: function(context) {
-                                        if (context.datasetIndex === 0) {
-                                            return '  Satış: ₺' + context.raw.toLocaleString('tr-TR');
-                                        }
-                                        return '  Sipariş: ' + context.raw;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            y: {
-                                type: 'linear',
-                                display: true,
-                                position: 'left',
-                                beginAtZero: true,
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return '₺' + (value / 1000) + 'K';
-                                    }
-                                }
-                            },
-                            y1: {
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                beginAtZero: true,
-                                grid: {
-                                    drawOnChartArea: false
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return value + ' adet';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
+@section Styles {
+    <style>
+        .badge-status {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+            .badge-status.pending {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
             }
 
-            // Category Chart
-            const categoryCtx = document.getElementById('categoryChart');
-            if (categoryCtx) {
-                new Chart(categoryCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Elektronik', 'Giyim', 'Ev & Yaşam', 'Diğer'],
-                        datasets: [{
-                            data: [35, 28, 22, 15],
-                            backgroundColor: [
-                                '#667eea',
-                                '#10b981',
-                                '#f59e0b',
-                                '#ef4444'
-                            ],
-                            borderWidth: 0,
-                            hoverOffset: 10
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '70%',
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(30, 41, 59, 0.9)',
-                                padding: 12,
-                                cornerRadius: 8,
-                                callbacks: {
-                                    label: function(context) {
-                                        return ' ' + context.label + ': %' + context.raw;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
+            .badge-status.info {
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
             }
-        });
-    </script>
+
+            .badge-status.warning {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+            }
+
+            .badge-status.primary {
+                background: rgba(102, 126, 234, 0.15);
+                color: #667eea;
+            }
+
+            .badge-status.active {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .badge-status.inactive {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+            .badge-status.refunded {
+                background: rgba(139, 92, 246, 0.15);
+                color: #8b5cf6;
+            }
+
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .stat-card .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .stat-card .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .min-width-0 {
+            min-width: 0;
+        }
+
+        .table > :not(caption) > * > * {
+            padding: 0.875rem 0.75rem;
+        }
+    </style>
 }

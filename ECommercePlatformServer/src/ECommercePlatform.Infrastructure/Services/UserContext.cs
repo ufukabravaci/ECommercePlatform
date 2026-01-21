@@ -41,6 +41,15 @@ internal sealed class UserContext(
         // SuperAdmin her şeye yetkilidir
         if (userRoles.Contains(RoleConsts.SuperAdmin)) return true;
 
+        // 1. ÖNCE TOKEN CLAIM KONTROLÜ (Kişiye Özel Yetkiler Burada)
+        // Eğer JwtProvider ile kişiye özel yetkiyi token'a bastıysak, burada direkt yakalarız.
+        // Veritabanı veya Cache'e gitmeye gerek kalmaz.
+        var hasDirectPermission = context.User.Claims.Any(c =>
+            c.Type == ClaimTypesConst.Permission &&
+            c.Value == permissionCode);
+
+        if (hasDirectPermission) return true;
+
         // Lazy Loading ile RoleManager'ı al (Circular Dependency önlemek için)
         // ctordan alsaydık uygulama ayağa kalkarken döngüye girerdi.Onun yerine servis kutusu istedik onun içinden manuel çektik.
         var roleManager = _serviceProvider.GetRequiredService<RoleManager<AppRole>>();

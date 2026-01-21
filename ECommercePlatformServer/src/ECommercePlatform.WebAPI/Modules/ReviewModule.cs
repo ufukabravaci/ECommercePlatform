@@ -11,6 +11,15 @@ public static class ReviewModule
         var group = app.MapGroup("/api/reviews")
             .WithTags("Reviews")
             .DisableAntiforgery();
+        // TÜM YORUMLAR
+        group.MapGet("/", async (
+            [AsParameters] GetAllReviewsQuery query,
+            ISender sender,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await sender.Send(query, cancellationToken);
+            return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
+        }).RequireAuthorization();
 
         // 1. CREATE (Müşteri)
         group.MapPost("/", async (

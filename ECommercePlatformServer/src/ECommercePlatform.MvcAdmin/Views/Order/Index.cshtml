@@ -1,0 +1,514 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Orders.OrderListViewModel
+@using ECommercePlatform.MvcAdmin.DTOs.Orders
+
+@{
+    ViewData["Title"] = "Siparişler";
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active">Siparişler</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Sipariş Yönetimi</h1>
+        <p class="page-subtitle mb-0">Tüm siparişleri görüntüleyin ve yönetin</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;" onclick="exportOrders()">
+            <i class="fas fa-download me-2"></i>Dışa Aktar
+        </button>
+    </div>
+</div>
+
+<!-- Filters Card -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="searchInput" class="form-label small text-muted fw-semibold">Sipariş Ara</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text"
+                           id="searchInput"
+                           name="search"
+                           class="form-control border-start-0 ps-0"
+                           placeholder="Sipariş no, müşteri adı..."
+                           value="@Model.SearchTerm"
+                           style="border-radius: 0 10px 10px 0;">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label small text-muted fw-semibold">Durum</label>
+                <select id="statusFilter" name="status" class="form-select" style="border-radius: 10px;">
+                    <option value="">Tüm Durumlar</option>
+                    @foreach (var (value, text) in OrderStatusHelper.GetAllStatuses())
+                    {
+                        var isSelected = Model.StatusFilter == value.ToString();
+                        if (isSelected)
+                        {
+                            <option value="@value" selected>@text</option>
+                        }
+                        else
+                        {
+                            <option value="@value">@text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="dateFilter" class="form-label small text-muted fw-semibold">Tarih Aralığı</label>
+                <input type="date" id="dateFilter" name="date" class="form-control" style="border-radius: 10px;">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary-gradient w-100">
+                    <i class="fas fa-filter me-2"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats Row -->
+@{
+    var pendingCount = Model.Orders.Items?.Count(o => o.Status?.ToLowerInvariant() == "pending") ?? 0;
+    var shippedCount = Model.Orders.Items?.Count(o => o.Status?.ToLowerInvariant() == "shipped") ?? 0;
+    var deliveredCount = Model.Orders.Items?.Count(o => o.Status?.ToLowerInvariant() == "delivered") ?? 0;
+}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 bg-primary bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-primary bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-shopping-bag text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0 fw-bold text-primary">@Model.Orders.TotalCount</h6>
+                        <small class="text-muted">Toplam Sipariş</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 bg-warning bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-warning bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-clock text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0 fw-bold text-warning">@pendingCount</h6>
+                        <small class="text-muted">Bekleyen</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 bg-info bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-info bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-truck text-info"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0 fw-bold text-info">@shippedCount</h6>
+                        <small class="text-muted">Kargoda</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 bg-success bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-success bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-check-double text-success"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0 fw-bold text-success">@deliveredCount</h6>
+                        <small class="text-muted">Teslim Edildi</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Sipariş Listesi
+        </h5>
+        <span class="badge bg-primary rounded-pill">@Model.Orders.TotalCount sipariş</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Orders.Items != null && Model.Orders.Items.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4" style="width: 15%;">Sipariş No</th>
+                            <th style="width: 22%;">Müşteri</th>
+                            <th style="width: 13%;">Tutar</th>
+                            <th style="width: 10%;">Ürün</th>
+                            <th style="width: 13%;">Durum</th>
+                            <th style="width: 14%;">Tarih</th>
+                            <th class="text-end pe-4" style="width: 13%;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders.Items)
+                        {
+                            var initials = !string.IsNullOrEmpty(order.CustomerName)
+                            ? string.Join("", order.CustomerName.Split(' ').Take(2).Select(x => x.FirstOrDefault())).ToUpper()
+                            : "??";
+                            var statusValue = OrderStatusHelper.GetStatusValue(order.Status);
+
+                            <tr>
+                                <td class="ps-4">
+                                    <a asp-action="Detail" asp-route-orderNumber="@order.OrderNumber"
+                                       class="fw-semibold text-decoration-none text-primary">
+                                        #@order.OrderNumber
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center"
+                                             style="width: 36px; height: 36px; min-width: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <span class="text-white fw-medium" style="font-size: 0.75rem;">
+                                                @initials
+                                            </span>
+                                        </div>
+                                        <div class="text-truncate">
+                                            <div class="fw-medium text-truncate" style="max-width: 150px;">@order.CustomerName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-success">
+                                        ₺@order.TotalAmount.ToString("N2")
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">
+                                        @order.ItemCount ürün
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-status @OrderStatusHelper.GetStatusBadgeClass(order.Status)">
+                                        <i class="fas @OrderStatusHelper.GetStatusIcon(order.Status) me-1"></i>
+                                        @OrderStatusHelper.GetStatusDisplayText(order.Status)
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>@order.OrderDate.ToString("dd MMM yyyy")</div>
+                                    <small class="text-muted">@order.OrderDate.ToString("HH:mm")</small>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a asp-action="Detail" asp-route-orderNumber="@order.OrderNumber"
+                                           class="btn btn-sm btn-outline-primary"
+                                           style="border-radius: 8px 0 0 8px;"
+                                           title="Detay">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                style="border-radius: 0 8px 8px 0;">
+                                            <span class="visually-hidden">Menü</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" style="border-radius: 12px;">
+                                            <li>
+                                                <a class="dropdown-item" asp-action="Detail" asp-route-orderNumber="@order.OrderNumber">
+                                                    <i class="fas fa-eye me-2 text-primary"></i>Detayları Gör
+                                                </a>
+                                            </li>
+                                            @if (statusValue < 5)
+                                            {
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-danger"
+                                                            onclick="confirmDelete('@order.OrderNumber')">
+                                                        <i class="fas fa-times-circle me-2"></i>İptal Et
+                                                    </button>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.Orders.TotalPages > 1)
+            {
+                <div class="card-footer bg-transparent border-top">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="text-muted small">
+                            Toplam <strong>@Model.Orders.TotalCount</strong> siparişten
+                            <strong>@((Model.Orders.PageNumber - 1) * Model.Orders.PageSize + 1)</strong> -
+                            <strong>@Math.Min(Model.Orders.PageNumber * Model.Orders.PageSize, Model.Orders.TotalCount)</strong> arası gösteriliyor
+                        </div>
+                        <nav aria-label="Sipariş sayfaları">
+                            <ul class="pagination pagination-sm mb-0">
+                                @if (Model.Orders.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-page="@(Model.Orders.PageNumber - 1)"
+                                           asp-route-search="@Model.SearchTerm"
+                                           asp-route-status="@Model.StatusFilter"
+                                           aria-label="Önceki sayfa"
+                                           style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </span>
+                                    </li>
+                                }
+
+                                @{
+                                    var startPage = Math.Max(1, Model.Orders.PageNumber - 2);
+                                    var endPage = Math.Min(Model.Orders.TotalPages, Model.Orders.PageNumber + 2);
+                                }
+
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    var pageNum = i;
+                                    if (pageNum == Model.Orders.PageNumber)
+                                    {
+                                        <li class="page-item active" aria-current="page">
+                                            <span class="page-link">@pageNum</span>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="Index"
+                                               asp-route-page="@pageNum"
+                                               asp-route-search="@Model.SearchTerm"
+                                               asp-route-status="@Model.StatusFilter">
+                                                @pageNum
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
+                                @if (Model.Orders.HasNextPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-page="@(Model.Orders.PageNumber + 1)"
+                                           asp-route-search="@Model.SearchTerm"
+                                           asp-route-status="@Model.StatusFilter"
+                                           aria-label="Sonraki sayfa"
+                                           style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-shopping-cart fa-4x text-muted opacity-50"></i>
+                </div>
+                <h5 class="text-muted">Sipariş Bulunamadı</h5>
+                <p class="text-muted mb-0">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span>"@Model.SearchTerm" aramasına uygun sipariş bulunamadı.</span>
+                    }
+                    else
+                    {
+                        <span>Henüz hiç sipariş yok.</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Siparişi İptal Et
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    <strong id="deleteOrderNumber"></strong> numaralı siparişi iptal etmek istediğinize emin misiniz?
+                </p>
+                <p class="text-muted small mt-2 mb-0">
+                    Bu işlem geri alınamaz. Stoklar otomatik olarak iade edilecektir.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    Vazgeç
+                </button>
+                <form id="deleteForm" method="post" asp-action="Delete" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderNumber" id="deleteOrderNumberInput" />
+                    <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                        <i class="fas fa-times-circle me-2"></i>İptal Et
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .badge-status {
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+            .badge-status.pending {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+            }
+
+            .badge-status.info {
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
+            }
+
+            .badge-status.warning {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+            }
+
+            .badge-status.primary {
+                background: rgba(102, 126, 234, 0.15);
+                color: #667eea;
+            }
+
+            .badge-status.active {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .badge-status.inactive {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+            .badge-status.refunded {
+                background: rgba(139, 92, 246, 0.15);
+                color: #8b5cf6;
+            }
+
+            .badge-status.secondary {
+                background: rgba(100, 116, 139, 0.15);
+                color: #64748b;
+            }
+
+        .table > :not(caption) > * > * {
+            padding: 1rem 0.75rem;
+        }
+
+        .pagination .page-link {
+            border: 1px solid var(--border-color, #e2e8f0);
+            margin: 0 2px;
+            color: var(--text-secondary, #64748b);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        .pagination .page-link:hover:not(.active) {
+            background: var(--body-bg, #f1f5f9);
+        }
+
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function confirmDelete(orderNumber) {
+            document.getElementById('deleteOrderNumber').textContent = '#' + orderNumber;
+            document.getElementById('deleteOrderNumberInput').value = orderNumber;
+            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        function exportOrders() {
+            toastr.info('Dışa aktarma özelliği yakında eklenecek.');
+        }
+    </script>
+}

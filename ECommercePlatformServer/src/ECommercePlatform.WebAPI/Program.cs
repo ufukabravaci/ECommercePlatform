@@ -61,5 +61,7 @@ app.MapBasketEndpoints();
 app.MapBrandEndpoints();
 app.MapBannerEndpoints();
 app.MapReviewEndpoints();
+app.MapDashboardEndpoints();
+app.MapEmployeeEndpoints();
 await app.ApplySeedDataAsync();
 app.Run();

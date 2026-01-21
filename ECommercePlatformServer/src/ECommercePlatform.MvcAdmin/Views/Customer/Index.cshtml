@@ -1,0 +1,481 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.CustomerListViewModel
+@using ECommercePlatform.MvcAdmin.DTOs
+
+@{
+    ViewData["Title"] = "Müşteriler";
+    var activeCount = Model.Customers.Items?.Count(c => c.IsActive) ?? 0;
+    var inactiveCount = Model.Customers.Items?.Count(c => !c.IsActive) ?? 0;
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active">Müşteriler</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Müşteri Yönetimi</h1>
+        <p class="page-subtitle mb-0">Şirketinize kayıtlı müşterileri görüntüleyin ve yönetin</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;" onclick="exportCustomers()">
+            <i class="fas fa-download me-2"></i>Dışa Aktar
+        </button>
+    </div>
+</div>
+
+<!-- Filters Card -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label for="searchInput" class="form-label small text-muted fw-semibold">Müşteri Ara</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text"
+                           id="searchInput"
+                           name="search"
+                           class="form-control border-start-0 ps-0"
+                           placeholder="İsim, soyisim veya e-posta..."
+                           value="@Model.SearchTerm"
+                           style="border-radius: 0 10px 10px 0;">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label small text-muted fw-semibold">Durum</label>
+                <select id="statusFilter" name="status" class="form-select" style="border-radius: 10px;">
+                    <option value="">Tüm Müşteriler</option>
+                    @{
+                        var isActiveSelected = Model.StatusFilter == "active";
+                        var isInactiveSelected = Model.StatusFilter == "inactive";
+                    }
+                    @if (isActiveSelected)
+                    {
+                        <option value="active" selected>Aktif</option>
+                    }
+                    else
+                    {
+                        <option value="active">Aktif</option>
+                    }
+                    @if (isInactiveSelected)
+                    {
+                        <option value="inactive" selected>Pasif</option>
+                    }
+                    else
+                    {
+                        <option value="inactive">Pasif</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary-gradient w-100">
+                    <i class="fas fa-filter me-2"></i>Filtrele
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100" style="border-radius: 10px;">
+                    <i class="fas fa-times me-2"></i>Temizle
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-4">
+        <div class="card border-0 bg-primary bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-primary bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-users text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold text-primary">@Model.Customers.TotalCount</h5>
+                        <small class="text-muted">Toplam Müşteri</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4">
+        <div class="card border-0 bg-success bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-success bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-user-check text-success"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold text-success">@activeCount</h5>
+                        <small class="text-muted">Aktif Müşteri</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 bg-danger bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-danger bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-user-times text-danger"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold text-danger">@inactiveCount</h5>
+                        <small class="text-muted">Pasif Müşteri</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customers Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-user-friends me-2 text-primary"></i>Müşteri Listesi
+        </h5>
+        <span class="badge bg-primary rounded-pill">@Model.Customers.TotalCount müşteri</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Customers.Items != null && Model.Customers.Items.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4" style="width: 30%;">Müşteri</th>
+                            <th style="width: 25%;">E-posta</th>
+                            <th style="width: 15%;">Kayıt Tarihi</th>
+                            <th style="width: 10%;">Durum</th>
+                            <th class="text-end pe-4" style="width: 20%;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var customer in Model.Customers.Items)
+                        {
+                            var initials = $"{customer.FirstName?.FirstOrDefault()}{customer.LastName?.FirstOrDefault()}".ToUpper();
+                            if (string.IsNullOrWhiteSpace(initials)) initials = "??";
+
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar rounded-circle d-flex align-items-center justify-content-center"
+                                             style="width: 42px; height: 42px; min-width: 42px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <span class="text-white fw-semibold" style="font-size: 0.85rem;">
+                                                @initials
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@customer.FullName</div>
+                                            <small class="text-muted">ID: @customer.Id.ToString().Substring(0, 8)...</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="mailto:@customer.Email" class="text-decoration-none">
+                                        <i class="fas fa-envelope me-1 text-muted"></i>
+                                        @customer.Email
+                                    </a>
+                                </td>
+                                <td>
+                                    <div>@customer.CreatedAt.ToString("dd MMM yyyy")</div>
+                                    <small class="text-muted">@customer.CreatedAt.ToString("HH:mm")</small>
+                                </td>
+                                <td>
+                                    @if (customer.IsActive)
+                                    {
+                                        <span class="badge-status active">
+                                            <i class="fas fa-check-circle me-1"></i>Aktif
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status inactive">
+                                            <i class="fas fa-times-circle me-1"></i>Pasif
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a asp-controller="Order" asp-action="Index" asp-route-search="@customer.FullName"
+                                           class="btn btn-sm btn-outline-info"
+                                           style="border-radius: 8px 0 0 8px;"
+                                           title="Siparişleri Gör">
+                                            <i class="fas fa-shopping-bag"></i>
+                                        </a>
+                                        <a href="mailto:@customer.Email"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="E-posta Gönder">
+                                            <i class="fas fa-envelope"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                style="border-radius: 0 8px 8px 0;"
+                                                title="Müşteriyi Sil"
+                                                onclick="confirmDelete('@customer.Id', '@customer.FullName')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.Customers.TotalPages > 1)
+            {
+                <div class="card-footer bg-transparent border-top">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="text-muted small">
+                            Toplam <strong>@Model.Customers.TotalCount</strong> müşteriden
+                            <strong>@((Model.Customers.PageNumber - 1) * Model.Customers.PageSize + 1)</strong> -
+                            <strong>@Math.Min(Model.Customers.PageNumber * Model.Customers.PageSize, Model.Customers.TotalCount)</strong> arası gösteriliyor
+                        </div>
+                        <nav aria-label="Müşteri sayfaları">
+                            <ul class="pagination pagination-sm mb-0">
+                                @if (Model.Customers.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-page="@(Model.Customers.PageNumber - 1)"
+                                           asp-route-search="@Model.SearchTerm"
+                                           asp-route-status="@Model.StatusFilter"
+                                           aria-label="Önceki sayfa"
+                                           style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </span>
+                                    </li>
+                                }
+
+                                @{
+                                    var startPage = Math.Max(1, Model.Customers.PageNumber - 2);
+                                    var endPage = Math.Min(Model.Customers.TotalPages, Model.Customers.PageNumber + 2);
+                                }
+
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    var pageNum = i;
+                                    if (pageNum == Model.Customers.PageNumber)
+                                    {
+                                        <li class="page-item active" aria-current="page">
+                                            <span class="page-link">@pageNum</span>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="Index"
+                                               asp-route-page="@pageNum"
+                                               asp-route-search="@Model.SearchTerm"
+                                               asp-route-status="@Model.StatusFilter">
+                                                @pageNum
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
+                                @if (Model.Customers.HasNextPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-page="@(Model.Customers.PageNumber + 1)"
+                                           asp-route-search="@Model.SearchTerm"
+                                           asp-route-status="@Model.StatusFilter"
+                                           aria-label="Sonraki sayfa"
+                                           style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-users fa-4x text-muted opacity-50"></i>
+                </div>
+                <h5 class="text-muted">Müşteri Bulunamadı</h5>
+                <p class="text-muted mb-0">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span>"@Model.SearchTerm" aramasına uygun müşteri bulunamadı.</span>
+                    }
+                    else
+                    {
+                        <span>Henüz kayıtlı müşteri yok.</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Müşteriyi Sil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    <strong id="deleteCustomerName"></strong> adlı müşteriyi şirketinizden silmek istediğinize emin misiniz?
+                </p>
+                <div class="alert alert-warning mt-3 mb-0" style="border-radius: 10px;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>Bu işlem müşterinin şirketinize olan erişimini kaldırır. Müşteri hesabı silinmez, sadece şirketinizle bağlantısı kopar.</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    Vazgeç
+                </button>
+                <form id="deleteForm" method="post" asp-action="Delete" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteCustomerId" />
+                    <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                        <i class="fas fa-trash-alt me-2"></i>Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .badge-status {
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+            .badge-status.active {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .badge-status.inactive {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+        .table > :not(caption) > * > * {
+            padding: 1rem 0.75rem;
+        }
+
+        .pagination .page-link {
+            border: 1px solid var(--border-color, #e2e8f0);
+            margin: 0 2px;
+            color: var(--text-secondary, #64748b);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        .pagination .page-link:hover:not(.active) {
+            background: var(--body-bg, #f1f5f9);
+        }
+
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .btn-group .btn {
+            padding: 0.4rem 0.6rem;
+        }
+
+            .btn-group .btn i {
+                font-size: 0.85rem;
+            }
+
+        /* Hover effect for table rows */
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            .table tbody tr:hover {
+                background-color: rgba(102, 126, 234, 0.05);
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function confirmDelete(customerId, customerName) {
+            document.getElementById('deleteCustomerName').textContent = customerName;
+            document.getElementById('deleteCustomerId').value = customerId;
+            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        function exportCustomers() {
+            toastr.info('Dışa aktarma özelliği yakında eklenecek.');
+        }
+
+        // Search input - Enter tuşu ile arama
+        document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.closest('form').submit();
+            }
+        });
+    </script>
+}

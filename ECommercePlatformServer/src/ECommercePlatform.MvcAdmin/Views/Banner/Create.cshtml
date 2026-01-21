@@ -1,0 +1,333 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Banners.CreateBannerViewModel
+
+@{
+    ViewData["Title"] = "Yeni Banner";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Bannerlar</a></li>
+            <li class="breadcrumb-item active">Yeni Banner</li>
+        </ol>
+    </nav>
+    <h1 class="page-title">Yeni Banner Oluştur</h1>
+    <p class="page-subtitle mb-0">Ana sayfa için yeni bir banner ekleyin</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-image me-2 text-primary"></i>Banner Bilgileri
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="Create" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-3">
+                        <!-- Title -->
+                        <div class="col-12">
+                            <label for="Title" class="form-label fw-semibold">
+                                Başlık <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   id="Title"
+                                   name="Title"
+                                   class="form-control @(ViewData.ModelState["Title"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                   value="@Model.Title"
+                                   placeholder="Banner başlığını girin"
+                                   style="border-radius: 10px;">
+                            <span asp-validation-for="Title" class="invalid-feedback"></span>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label for="Description" class="form-label fw-semibold">
+                                Açıklama <span class="text-danger">*</span>
+                            </label>
+                            <textarea id="Description"
+                                      name="Description"
+                                      class="form-control @(ViewData.ModelState["Description"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                      rows="3"
+                                      placeholder="Banner açıklamasını girin"
+                                      style="border-radius: 10px;">@Model.Description</textarea>
+                            <span asp-validation-for="Description" class="invalid-feedback"></span>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="col-12">
+                            <label for="Image" class="form-label fw-semibold">
+                                Banner Görseli <span class="text-danger">*</span>
+                            </label>
+                            <div class="upload-area @(ViewData.ModelState["Image"]?.Errors.Any() == true ? "border-danger" : "")" id="uploadArea">
+                                <input type="file"
+                                       id="Image"
+                                       name="Image"
+                                       class="d-none"
+                                       accept="image/jpeg,image/png,image/gif,image/webp">
+                                <div class="upload-content text-center py-4" id="uploadContent">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-1">Görsel yüklemek için tıklayın veya sürükleyin</p>
+                                    <small class="text-muted">JPG, PNG, GIF, WebP - Maksimum 5MB</small>
+                                </div>
+                                <div class="preview-content d-none" id="previewContent">
+                                    <img id="imagePreview" src="" alt="Preview" class="img-fluid rounded">
+                                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeImage()">
+                                        <i class="fas fa-times me-1"></i>Kaldır
+                                    </button>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Image" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Target URL -->
+                        <div class="col-12">
+                            <label for="TargetUrl" class="form-label fw-semibold">
+                                Hedef URL <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light" style="border-radius: 10px 0 0 10px;">
+                                    <i class="fas fa-link text-muted"></i>
+                                </span>
+                                <input type="url"
+                                       id="TargetUrl"
+                                       name="TargetUrl"
+                                       class="form-control @(ViewData.ModelState["TargetUrl"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                       value="@Model.TargetUrl"
+                                       placeholder="https://example.com/kampanya"
+                                       style="border-radius: 0 10px 10px 0;">
+                                <span asp-validation-for="TargetUrl" class="invalid-feedback"></span>
+                            </div>
+                            <small class="text-muted">Banner'a tıklandığında yönlendirilecek URL</small>
+                        </div>
+
+                        <!-- Order -->
+                        <div class="col-md-6">
+                            <label for="Order" class="form-label fw-semibold">
+                                Sıralama <span class="text-danger">*</span>
+                            </label>
+                            <input type="number"
+                                   id="Order"
+                                   name="Order"
+                                   class="form-control @(ViewData.ModelState["Order"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                   value="@Model.Order"
+                                   min="1"
+                                   max="100"
+                                   style="border-radius: 10px;">
+                            <span asp-validation-for="Order" class="invalid-feedback"></span>
+                            <small class="text-muted">Düşük numara önce gösterilir</small>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary-gradient">
+                            <i class="fas fa-save me-2"></i>Banner Oluştur
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+                            <i class="fas fa-times me-2"></i>İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-eye me-2 text-info"></i>Önizleme
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="preview-banner bg-light rounded-3 p-3 text-center">
+                    <div class="preview-image-placeholder mb-3" id="previewPlaceholder" style="height: 150px; display: flex; align-items: center; justify-content: center; background: #e2e8f0; border-radius: 10px;">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                    <img id="cardPreviewImage" src="" alt="" class="img-fluid rounded mb-3 d-none" style="max-height: 150px; object-fit: cover;">
+                    <h6 class="fw-semibold mb-1" id="previewTitle">Banner Başlığı</h6>
+                    <p class="text-muted small mb-0" id="previewDescription">Banner açıklaması burada görünecek...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>İpuçları
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <small>Önerilen görsel boyutu: 1920x600 piksel</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <small>Yüksek kaliteli ve net görseller kullanın</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <small>Başlık kısa ve dikkat çekici olmalı</small>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <small>Hedef URL'in çalıştığından emin olun</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .upload-area {
+            border: 2px dashed var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+            .upload-area:hover {
+                border-color: #667eea;
+                background: rgba(102, 126, 234, 0.05);
+            }
+
+            .upload-area.dragover {
+                border-color: #667eea;
+                background: rgba(102, 126, 234, 0.1);
+            }
+
+            .upload-area.border-danger {
+                border-color: #ef4444 !important;
+            }
+
+        .preview-content {
+            padding: 1rem;
+            text-align: center;
+        }
+
+            .preview-content img {
+                max-height: 200px;
+                object-fit: contain;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('Image');
+            const uploadContent = document.getElementById('uploadContent');
+            const previewContent = document.getElementById('previewContent');
+            const imagePreview = document.getElementById('imagePreview');
+            const cardPreviewImage = document.getElementById('cardPreviewImage');
+            const previewPlaceholder = document.getElementById('previewPlaceholder');
+            const titleInput = document.getElementById('Title');
+            const descInput = document.getElementById('Description');
+            const previewTitle = document.getElementById('previewTitle');
+            const previewDescription = document.getElementById('previewDescription');
+
+            // Click to upload
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    fileInput.files = files;
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            // File input change
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (!file.type.startsWith('image/')) {
+                    toastr.error('Lütfen bir görsel dosyası seçin.');
+                    return;
+                }
+
+                if (file.size > 5 * 1024 * 1024) {
+                    toastr.error('Dosya boyutu 5MB\'dan küçük olmalıdır.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    cardPreviewImage.src = e.target.result;
+                    uploadContent.classList.add('d-none');
+                    previewContent.classList.remove('d-none');
+                    previewPlaceholder.classList.add('d-none');
+                    cardPreviewImage.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Live preview for title and description
+            titleInput.addEventListener('input', () => {
+                previewTitle.textContent = titleInput.value || 'Banner Başlığı';
+            });
+
+            descInput.addEventListener('input', () => {
+                previewDescription.textContent = descInput.value || 'Banner açıklaması burada görünecek...';
+            });
+        });
+
+        function removeImage() {
+            const fileInput = document.getElementById('Image');
+            const uploadContent = document.getElementById('uploadContent');
+            const previewContent = document.getElementById('previewContent');
+            const previewPlaceholder = document.getElementById('previewPlaceholder');
+            const cardPreviewImage = document.getElementById('cardPreviewImage');
+
+            fileInput.value = '';
+            uploadContent.classList.remove('d-none');
+            previewContent.classList.add('d-none');
+            previewPlaceholder.classList.remove('d-none');
+            cardPreviewImage.classList.add('d-none');
+        }
+    </script>
+}

@@ -59,6 +59,10 @@ public static class RoleSeeder
             //Customer
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadCustomer);
             isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.DeleteCustomer);
+            //Employee
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ReadEmployee);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.InviteEmployee);
+            isAdded |= await AddPermissionToRole(roleManager, companyOwnerRole, PermissionConsts.ManagePermissions);
 
             if (isAdded) // Sadece yeni bir claim eklendiyse cache'i uçur
             {

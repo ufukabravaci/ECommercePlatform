@@ -1,0 +1,727 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Company.CompanySettingsViewModel
+@{
+    ViewData["Title"] = "Şirket Ayarları";
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="page-title">Şirket Ayarları</h1>
+        <p class="page-subtitle mb-0">Şirket bilgilerinizi ve ayarlarınızı yönetin</p>
+    </div>
+    @if (Model.Company != null)
+    {
+        <div class="text-muted small">
+            <i class="fas fa-clock me-1"></i>
+            Kayıt Tarihi: @Model.Company.CreatedAt.ToString("dd.MM.yyyy")
+        </div>
+    }
+</div>
+
+<div class="row">
+    <!-- Sol Menü -->
+    <div class="col-lg-3 mb-4">
+        <div class="card" style="border-radius: 16px;">
+            <div class="card-body p-0">
+                <nav class="nav nav-pills flex-column settings-nav">
+                    <a class="nav-link @(Model.ActiveTab == "general" ? "active" : "")"
+                       href="@Url.Action("Index", new { tab = "general" })">
+                        <i class="fas fa-building me-2"></i>Genel Bilgiler
+                    </a>
+                    <a class="nav-link @(Model.ActiveTab == "shipping" ? "active" : "")"
+                       href="@Url.Action("Index", new { tab = "shipping" })">
+                        <i class="fas fa-truck me-2"></i>Kargo Ayarları
+                    </a>
+                    <a class="nav-link text-danger @(Model.ActiveTab == "danger" ? "active" : "")"
+                       href="@Url.Action("Index", new { tab = "danger" })">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Tehlikeli Bölge
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ İçerik -->
+    <div class="col-lg-9">
+
+        @* ==================== GENEL BİLGİLER ==================== *@
+        @if (Model.ActiveTab == "general")
+        {
+            <div class="card" style="border-radius: 16px;">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="settings-icon primary">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Şirket Bilgileri</h5>
+                            <small class="text-muted">Temel şirket ve adres bilgileriniz</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.Company != null)
+                    {
+                        <form asp-action="Update" method="post">
+                            <div class="row g-3">
+                                <!-- Şirket Adı -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Şirket Adı</label>
+                                    <div class="input-group input-group-custom">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-building"></i>
+                                        </span>
+                                        <input type="text" class="form-control" name="Name"
+                                               value="@Model.Company.Name" required minlength="3">
+                                    </div>
+                                </div>
+
+                                <!-- Vergi Numarası -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Vergi Numarası</label>
+                                    <div class="input-group input-group-custom">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </span>
+                                        <input type="text" class="form-control" name="TaxNumber"
+                                               value="@Model.Company.TaxNumber" required
+                                               minlength="10" maxlength="11" pattern="[0-9]*">
+                                    </div>
+                                </div>
+
+                                <!-- Şehir -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-medium">İl</label>
+                                    <div class="input-group input-group-custom">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-city"></i>
+                                        </span>
+                                        <input type="text" class="form-control" name="City"
+                                               value="@Model.Company.City" required>
+                                    </div>
+                                </div>
+
+                                <!-- İlçe -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-medium">İlçe</label>
+                                    <div class="input-group input-group-custom">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </span>
+                                        <input type="text" class="form-control" name="District"
+                                               value="@Model.Company.District">
+                                    </div>
+                                </div>
+
+                                <!-- Posta Kodu -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-medium">Posta Kodu</label>
+                                    <div class="input-group input-group-custom">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-mail-bulk"></i>
+                                        </span>
+                                        <input type="text" class="form-control" name="ZipCode"
+                                               value="" maxlength="5" pattern="[0-9]*">
+                                    </div>
+                                </div>
+
+                                <!-- Sokak -->
+                                <div class="col-12">
+                                    <label class="form-label fw-medium">Sokak/Cadde</label>
+                                    <div class="input-group input-group-custom">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-road"></i>
+                                        </span>
+                                        <input type="text" class="form-control" name="Street"
+                                               value="@Model.Company.Street">
+                                    </div>
+                                </div>
+
+                                <!-- Tam Adres -->
+                                <div class="col-12">
+                                    <label class="form-label fw-medium">Tam Adres</label>
+                                    <textarea class="form-control" name="FullAddress" rows="3"
+                                      style="border-radius: 10px;">@Model.Company.FullAddress</textarea>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                                <button type="submit" class="btn btn-primary-gradient">
+                                    <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                                </button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+                            <p class="text-muted">Şirket bilgileri yüklenemedi.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @* ==================== KARGO AYARLARI ==================== *@
+        @if (Model.ActiveTab == "shipping")
+        {
+            <div class="card" style="border-radius: 16px;">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="settings-icon success">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Kargo Ayarları</h5>
+                            <small class="text-muted">Kargo ücretlendirme kurallarını belirleyin</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateShipping" method="post">
+                        <!-- Bilgi Kutusu -->
+                        <div class="alert alert-info d-flex gap-3 mb-4" style="border-radius: 12px;">
+                            <i class="fas fa-info-circle fa-lg mt-1"></i>
+                            <div>
+                                <strong>Kargo Ücreti Hesaplama</strong>
+                                <p class="mb-0 small">
+                                    Müşterinin sepet tutarı <strong>Ücretsiz Kargo Limiti</strong>'nin üzerindeyse kargo ücretsizdir.
+                                    Altındaysa <strong>Sabit Kargo Ücreti</strong> uygulanır.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Ücretsiz Kargo Limiti -->
+                            <div class="col-md-6">
+                                <div class="card h-100 border" style="border-radius: 12px;">
+                                    <div class="card-body text-center p-4">
+                                        <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3"
+                                             style="width: 60px; height: 60px; background: rgba(16, 185, 129, 0.15);">
+                                            <i class="fas fa-gift fa-lg text-success"></i>
+                                        </div>
+                                        <h6 class="fw-semibold mb-3">Ücretsiz Kargo Limiti</h6>
+                                        <div class="input-group input-group-lg">
+                                            <span class="input-group-text" style="border-radius: 10px 0 0 10px;">₺</span>
+                                            <input type="number" class="form-control text-center fw-bold"
+                                                   name="FreeShippingThreshold"
+                                                   id="thresholdInput"
+                                                   value="@Model.ShippingSettings?.FreeShippingThreshold"
+                                                   min="0" step="0.01" required
+                                                   style="border-radius: 0 10px 10px 0; font-size: 1.25rem;">
+                                        </div>
+                                        <small class="text-muted d-block mt-2">
+                                            Bu tutarın üzerindeki siparişlerde kargo ücretsiz
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sabit Kargo Ücreti -->
+                            <div class="col-md-6">
+                                <div class="card h-100 border" style="border-radius: 12px;">
+                                    <div class="card-body text-center p-4">
+                                        <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3"
+                                             style="width: 60px; height: 60px; background: rgba(245, 158, 11, 0.15);">
+                                            <i class="fas fa-truck fa-lg text-warning"></i>
+                                        </div>
+                                        <h6 class="fw-semibold mb-3">Sabit Kargo Ücreti</h6>
+                                        <div class="input-group input-group-lg">
+                                            <span class="input-group-text" style="border-radius: 10px 0 0 10px;">₺</span>
+                                            <input type="number" class="form-control text-center fw-bold"
+                                                   name="FlatRate"
+                                                   id="flatRateInput"
+                                                   value="@Model.ShippingSettings?.FlatRate"
+                                                   min="0" step="0.01" required
+                                                   style="border-radius: 0 10px 10px 0; font-size: 1.25rem;">
+                                        </div>
+                                        <small class="text-muted d-block mt-2">
+                                            Limit altındaki siparişlere uygulanacak ücret
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Örnek Hesaplama -->
+                        <div class="card mt-4 example-calc-card" style="border-radius: 12px;">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3">
+                                    <i class="fas fa-calculator me-2 text-primary"></i>Örnek Hesaplama
+                                    <small class="text-muted fw-normal ms-2">(Yukarıdaki değerlere göre otomatik güncellenir)</small>
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered mb-0" style="border-radius: 8px; overflow: hidden;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-center" style="width: 25%;">Sepet Tutarı</th>
+                                                <th class="text-center" style="width: 25%;">Limit Karşılaştırma</th>
+                                                <th class="text-center" style="width: 25%;">Kargo Ücreti</th>
+                                                <th class="text-center" style="width: 25%;">Toplam Tutar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="exampleTableBody">
+                                            <!-- JavaScript ile doldurulacak -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary-gradient">
+                                <i class="fas fa-save me-2"></i>Ayarları Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+
+        @* ==================== TEHLİKELİ BÖLGE ==================== *@
+        @if (Model.ActiveTab == "danger")
+        {
+            <div class="card border-danger" style="border-radius: 16px;">
+                <div class="card-header bg-transparent border-danger">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="settings-icon danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0 text-danger">Tehlikeli Bölge</h5>
+                            <small class="text-muted">Bu işlemler geri alınamaz</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Uyarı -->
+                    <div class="alert alert-danger d-flex gap-3" style="border-radius: 12px;">
+                        <i class="fas fa-skull-crossbones fa-lg mt-1"></i>
+                        <div>
+                            <strong>Dikkat!</strong>
+                            <p class="mb-0">
+                                Şirket hesabını silmek, tüm verilerinizin (ürünler, siparişler, müşteriler, çalışanlar)
+                                kalıcı olarak silinmesine neden olur. Bu işlem <strong>geri alınamaz</strong>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Hesap Silme Kartı -->
+                    <div class="card border mt-4" style="border-radius: 12px;">
+                        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div>
+                                <h6 class="fw-semibold text-danger mb-1">
+                                    <i class="fas fa-trash-alt me-2"></i>Şirket Hesabını Sil
+                                </h6>
+                                <p class="text-muted mb-0 small">
+                                    Tüm veriler silinecek ve hesaba erişim kapatılacak.
+                                </p>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger" style="border-radius: 10px;"
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash me-2"></i>Hesabı Sil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header border-0 bg-danger text-white" style="border-radius: 16px 16px 0 0;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fas fa-exclamation-triangle fa-lg"></i>
+                    <h5 class="modal-title mb-0" id="deleteModalLabel">Hesap Silme Onayı</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                         style="width: 80px; height: 80px; background: rgba(239, 68, 68, 0.15);">
+                        <i class="fas fa-building fa-2x text-danger"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-2">@Model.Company?.Name</h5>
+                <p class="text-muted mb-4">
+                    Bu şirket hesabını silmek istediğinizden emin misiniz?
+                    <br><strong class="text-danger">Bu işlem geri alınamaz!</strong>
+                </p>
+
+                <div class="alert alert-warning text-start" style="border-radius: 10px;">
+                    <small>
+                        <strong>Silinecek veriler:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li>Tüm ürünler ve kategoriler</li>
+                            <li>Tüm siparişler ve müşteri bilgileri</li>
+                            <li>Tüm çalışan hesapları</li>
+                            <li>Tüm ayarlar ve yapılandırmalar</li>
+                        </ul>
+                    </small>
+                </div>
+
+                <!-- Onay Input -->
+                <div class="mt-4">
+                    <label class="form-label text-muted small">
+                        Onaylamak için <strong class="text-danger">SİL</strong> yazın:
+                    </label>
+                    <input type="text" class="form-control text-center" id="deleteConfirmInput"
+                           placeholder="SİL" autocomplete="off" style="border-radius: 10px;">
+                    <small class="text-muted">Büyük harfle "SİL" yazmanız gerekmektedir</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"
+                        style="border-radius: 10px;">
+                    <i class="fas fa-times me-2"></i>İptal
+                </button>
+                <form asp-action="Delete" method="post" id="deleteCompanyForm">
+                    @Html.AntiForgeryToken()
+                    <button type="button" class="btn btn-danger px-4" id="confirmDeleteBtn" disabled
+                            style="border-radius: 10px;" onclick="submitDeleteForm()">
+                        <i class="fas fa-trash me-2"></i>Evet, Hesabı Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Settings Navigation */
+        .settings-nav {
+            padding: 0.5rem;
+        }
+
+            .settings-nav .nav-link {
+                color: var(--bs-body-color);
+                padding: 0.75rem 1rem;
+                border-radius: 10px;
+                margin-bottom: 0.25rem;
+                transition: all 0.2s ease;
+            }
+
+                .settings-nav .nav-link:hover {
+                    background: var(--bs-tertiary-bg);
+                }
+
+                .settings-nav .nav-link.active {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                }
+
+                    .settings-nav .nav-link.active.text-danger {
+                        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                        color: white !important;
+                    }
+
+        /* Settings Icon */
+        .settings-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+            .settings-icon.primary {
+                background: rgba(102, 126, 234, 0.15);
+                color: #667eea;
+            }
+
+            .settings-icon.success {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .settings-icon.danger {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+        /* Input Group Custom */
+        .input-group-custom .input-group-text {
+            background: var(--bs-tertiary-bg);
+            border: 1px solid var(--bs-border-color);
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            color: var(--bs-secondary-color);
+        }
+
+        .input-group-custom .form-control {
+            border-radius: 0 10px 10px 0;
+            border-left: none;
+        }
+
+            .input-group-custom .form-control:focus {
+                border-color: var(--bs-border-color);
+                box-shadow: none;
+            }
+
+        .input-group-custom:focus-within .input-group-text,
+        .input-group-custom:focus-within .form-control {
+            border-color: #667eea;
+        }
+
+        .input-group-custom:focus-within .form-control {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        /* Primary Gradient Button */
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 0.625rem 1.5rem;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        /* Example Calculation Card */
+        .example-calc-card {
+            background: var(--bs-tertiary-bg);
+            border: none;
+        }
+
+            .example-calc-card .table {
+                margin-bottom: 0;
+            }
+
+                .example-calc-card .table th {
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    color: var(--bs-secondary-color);
+                }
+
+                .example-calc-card .table td {
+                    vertical-align: middle;
+                    padding: 0.875rem;
+                }
+
+        /* Dark mode table fix */
+        [data-bs-theme="dark"] .example-calc-card .table-light {
+            --bs-table-bg: var(--bs-tertiary-bg);
+            --bs-table-border-color: var(--bs-border-color);
+        }
+
+        [data-bs-theme="dark"] .example-calc-card .table {
+            --bs-table-bg: var(--bs-body-bg);
+        }
+
+        /* Validation states */
+        .form-control.is-valid {
+            border-color: #10b981 !important;
+            background-image: none;
+        }
+
+        .form-control.is-invalid {
+            border-color: #ef4444 !important;
+            background-image: none;
+        }
+
+        /* Badge subtle backgrounds */
+        .bg-success-subtle {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+        }
+
+        .bg-warning-subtle {
+            background-color: rgba(245, 158, 11, 0.15) !important;
+        }
+
+        /* Card hover effect */
+        .card {
+            transition: box-shadow 0.2s ease;
+        }
+
+        /* Modal dark mode */
+        [data-bs-theme="dark"] .modal-content {
+            background: var(--bs-body-bg);
+        }
+
+        [data-bs-theme="dark"] #deleteModal .modal-header {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Sayfa yüklendiğinde örnek hesaplamayı güncelle
+            updateExampleCalculation();
+        });
+
+        // ==================== ÖRNEK HESAPLAMA ====================
+        function updateExampleCalculation() {
+            var threshold = parseFloat($('#thresholdInput').val()) || 0;
+            var flatRate = parseFloat($('#flatRateInput').val()) || 0;
+
+            var tbody = $('#exampleTableBody');
+            tbody.empty();
+
+            // Limit 0 ise özel mesaj göster
+            if (threshold === 0) {
+                tbody.append(
+                    '<tr>' +
+                        '<td colspan="4" class="text-center text-muted py-4">' +
+                            '<i class="fas fa-info-circle me-2"></i>' +
+                            'Ücretsiz kargo limiti 0 olduğunda tüm siparişlere sabit kargo ücreti (₺' + flatRate.toFixed(2) + ') uygulanır.' +
+                        '</td>' +
+                    '</tr>'
+                );
+                return;
+            }
+
+            // 3 farklı örnek sepet tutarı oluştur
+            var examples = [];
+
+            // Örnek 1: Limitin altında (%50'si)
+            var belowLimit = Math.floor(threshold * 0.5);
+            if (belowLimit < 1) belowLimit = 1;
+            examples.push({
+                cart: belowLimit,
+                isFree: false
+            });
+
+            // Örnek 2: Limite eşit
+            examples.push({
+                cart: threshold,
+                isFree: true
+            });
+
+            // Örnek 3: Limitin üstünde (%150'si)
+            var aboveLimit = Math.floor(threshold * 1.5);
+            if (aboveLimit <= threshold) aboveLimit = threshold + 100;
+            examples.push({
+                cart: aboveLimit,
+                isFree: true
+            });
+
+            // Tabloyu doldur
+            examples.forEach(function(ex) {
+                var shippingCost = ex.isFree ? 0 : flatRate;
+                var total = ex.cart + shippingCost;
+                var comparison = ex.cart >= threshold ? '≥' : '<';
+                var comparisonClass = ex.cart >= threshold ? 'text-success fw-bold' : 'text-danger fw-bold';
+
+                var shippingBadge = ex.isFree
+                    ? '<span class="badge bg-success-subtle text-success" style="border-radius: 6px; padding: 0.4rem 0.75rem;"><i class="fas fa-gift me-1"></i>Ücretsiz</span>'
+                    : '<span class="badge bg-warning-subtle text-warning" style="border-radius: 6px; padding: 0.4rem 0.75rem;"><i class="fas fa-truck me-1"></i>₺' + flatRate.toFixed(2) + '</span>';
+
+                var row = '<tr>' +
+                    '<td class="text-center"><span class="fw-semibold">₺' + ex.cart.toFixed(2) + '</span></td>' +
+                    '<td class="text-center"><span class="' + comparisonClass + '">' + comparison + '</span> ₺' + threshold.toFixed(2) + '</td>' +
+                    '<td class="text-center">' + shippingBadge + '</td>' +
+                    '<td class="text-center"><span class="fw-bold text-primary">₺' + total.toFixed(2) + '</span></td>' +
+                '</tr>';
+
+                tbody.append(row);
+            });
+        }
+
+        // Input değiştiğinde güncelle
+        $('#thresholdInput, #flatRateInput').on('input', function() {
+            updateExampleCalculation();
+        });
+
+        // ==================== HESAP SİLME ONAYI ====================
+        // "SİL" yazıldığında butonu aktif et
+        $('#deleteConfirmInput').on('input', function() {
+            var value = $(this).val();
+            var isValid = value === 'SİL';
+            $('#confirmDeleteBtn').prop('disabled', !isValid);
+
+            // Görsel geri bildirim
+            if (value.length > 0) {
+                if (isValid) {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                } else {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                }
+            } else {
+                $(this).removeClass('is-valid is-invalid');
+            }
+        });
+
+        // Form submit fonksiyonu - SweetAlert ile son onay
+        function submitDeleteForm() {
+            var confirmValue = $('#deleteConfirmInput').val();
+
+            if (confirmValue !== 'SİL') {
+                toastr.error('Lütfen onay kutusuna "SİL" yazın.');
+                return;
+            }
+
+            // SweetAlert ile son onay
+            Swal.fire({
+                title: 'Son Onay',
+                html: '<p>Şirket hesabınız ve <strong>tüm verileriniz</strong> kalıcı olarak silinecek.</p><p class="text-danger fw-bold mb-0">Bu işlem geri alınamaz!</p>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-trash me-2"></i>Evet, Kalıcı Olarak Sil',
+                cancelButtonText: '<i class="fas fa-times me-2"></i>Vazgeç',
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-danger px-4',
+                    cancelButton: 'btn btn-secondary px-4'
+                },
+                buttonsStyling: false,
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Loading göster
+                    Swal.fire({
+                        title: 'Siliniyor...',
+                        html: 'Şirket hesabı ve tüm veriler siliniyor. Lütfen bekleyin.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Formu submit et
+                    $('#deleteCompanyForm').submit();
+                }
+            });
+        }
+
+        // Modal kapandığında input'u sıfırla
+        $('#deleteModal').on('hidden.bs.modal', function() {
+            $('#deleteConfirmInput').val('').removeClass('is-valid is-invalid');
+            $('#confirmDeleteBtn').prop('disabled', true);
+        });
+
+        // Enter tuşu ile form submit'i engelle (modal içinde)
+        $('#deleteConfirmInput').on('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                if (!$('#confirmDeleteBtn').prop('disabled')) {
+                    submitDeleteForm();
+                }
+            }
+        });
+    </script>
+}

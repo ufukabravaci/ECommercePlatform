@@ -1,0 +1,551 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Reviews.ReviewListViewModel
+
+@{
+    ViewData["Title"] = $"Yorumlar - {Model.ProductName ?? "Ürün"}";
+    var reviews = Model.Reviews;
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Ürünler</a></li>
+                <li class="breadcrumb-item active">Yorumlar</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">
+            <i class="fas fa-comments me-2 text-primary"></i>Ürün Yorumları
+        </h1>
+        <p class="page-subtitle mb-0">
+            @if (!string.IsNullOrEmpty(Model.ProductName))
+            {
+                <span><strong>@Model.ProductName</strong> ürününe ait yorumları yönetin</span>
+            }
+            else
+            {
+                <span>Müşteri yorumlarını görüntüleyin ve yönetin</span>
+            }
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+            <i class="fas fa-arrow-left me-2"></i>Ürünlere Dön
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 bg-primary bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-primary bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-comments text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold text-primary">@reviews.TotalCount</h5>
+                        <small class="text-muted">Toplam Yorum</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 bg-warning bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-warning bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        @{
+                            var avgRating = reviews.Items?.Any() == true
+                            ? reviews.Items.Average(r => r.Rating).ToString("0.0")
+                            : "0";
+                        }
+                        <h5 class="mb-0 fw-bold text-warning">@avgRating</h5>
+                        <small class="text-muted">Ortalama Puan</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 bg-success bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-success bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-reply text-success"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold text-success">@(reviews.Items?.Count(r => !string.IsNullOrEmpty(r.SellerReply)) ?? 0)</h5>
+                        <small class="text-muted">Yanıtlanan</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 bg-info bg-opacity-10">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-info bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="fas fa-clock text-info"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-0 fw-bold text-info">@(reviews.Items?.Count(r => string.IsNullOrEmpty(r.SellerReply)) ?? 0)</h5>
+                        <small class="text-muted">Bekleyen</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reviews List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Yorum Listesi
+        </h5>
+        <span class="badge bg-primary rounded-pill">@reviews.TotalCount yorum</span>
+    </div>
+    <div class="card-body p-0">
+        @if (reviews.Items != null && reviews.Items.Any())
+        {
+            <div class="review-list">
+                @foreach (var review in reviews.Items)
+                {
+                    var initials = !string.IsNullOrEmpty(review.CustomerName)
+                    ? string.Join("", review.CustomerName.Split(' ').Take(2).Select(x => x.FirstOrDefault())).ToUpper()
+                    : "??";
+
+                    <div class="review-item p-4 border-bottom">
+                        <div class="d-flex gap-3">
+                            <!-- Avatar -->
+                            <div class="flex-shrink-0">
+                                <div class="avatar rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <span class="text-white fw-bold">@initials</span>
+                                </div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">@review.CustomerName</h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <!-- Rating Stars -->
+                                            <div class="rating-stars">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= review.Rating)
+                                                    {
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star text-muted"></i>
+                                                    }
+                                                }
+                                            </div>
+                                            <span class="badge bg-warning bg-opacity-10 text-warning" style="border-radius: 8px;">
+                                                @review.Rating/5
+                                            </span>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                @review.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="d-flex gap-1">
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary"
+                                                style="border-radius: 8px;"
+                                                title="Yanıtla"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#replyModal"
+                                                onclick="setReplyData('@review.Id', '@review.CustomerName')">
+                                            <i class="fas fa-reply"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-success"
+                                                style="border-radius: 8px;"
+                                                title="Onayla"
+                                                onclick="confirmApprove('@review.Id')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-warning"
+                                                style="border-radius: 8px;"
+                                                title="Reddet"
+                                                onclick="confirmReject('@review.Id')">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                style="border-radius: 8px;"
+                                                title="Sil"
+                                                onclick="confirmDelete('@review.Id')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Comment -->
+                                <div class="review-comment p-3 bg-light rounded-3 mb-3">
+                                    <p class="mb-0">@review.Comment</p>
+                                </div>
+
+                                <!-- Seller Reply -->
+                                @if (!string.IsNullOrEmpty(review.SellerReply))
+                                {
+                                    <div class="seller-reply ms-4 p-3 rounded-3" style="background: rgba(102, 126, 234, 0.1); border-left: 3px solid #667eea;">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <i class="fas fa-store text-primary"></i>
+                                            <strong class="text-primary">Satıcı Yanıtı</strong>
+                                            @if (review.SellerRepliedAt.HasValue)
+                                            {
+                                                <small class="text-muted">- @review.SellerRepliedAt.Value.ToString("dd MMM yyyy HH:mm")</small>
+                                            }
+                                        </div>
+                                        <p class="mb-0">@review.SellerReply</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (reviews.TotalPages > 1)
+            {
+                <div class="card-footer bg-transparent border-top">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="text-muted small">
+                            Toplam <strong>@reviews.TotalCount</strong> yorumdan
+                            <strong>@((reviews.PageNumber - 1) * reviews.PageSize + 1)</strong> -
+                            <strong>@Math.Min(reviews.PageNumber * reviews.PageSize, reviews.TotalCount)</strong> arası gösteriliyor
+                        </div>
+                        <nav aria-label="Yorum sayfaları">
+                            <ul class="pagination pagination-sm mb-0">
+                                @if (reviews.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-productId="@Model.ProductId"
+                                           asp-route-productName="@Model.ProductName"
+                                           asp-route-page="@(reviews.PageNumber - 1)"
+                                           style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </span>
+                                    </li>
+                                }
+
+                                @{
+                                    var startPage = Math.Max(1, reviews.PageNumber - 2);
+                                    var endPage = Math.Min(reviews.TotalPages, reviews.PageNumber + 2);
+                                }
+
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    var pageNum = i;
+                                    if (pageNum == reviews.PageNumber)
+                                    {
+                                        <li class="page-item active">
+                                            <span class="page-link">@pageNum</span>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="Index"
+                                               asp-route-productId="@Model.ProductId"
+                                               asp-route-productName="@Model.ProductName"
+                                               asp-route-page="@pageNum">
+                                                @pageNum
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
+                                @if (reviews.HasNextPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-productId="@Model.ProductId"
+                                           asp-route-productName="@Model.ProductName"
+                                           asp-route-page="@(reviews.PageNumber + 1)"
+                                           style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-comments fa-4x text-muted opacity-50"></i>
+                </div>
+                <h5 class="text-muted">Henüz Yorum Yok</h5>
+                <p class="text-muted mb-0">Bu ürüne henüz yorum yapılmamış.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="replyModalLabel">
+                    <i class="fas fa-reply text-primary me-2"></i>Yoruma Yanıt Ver
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <form method="post" asp-action="Reply" asp-route-productName="@Model.ProductName">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ReviewId" id="replyReviewId" />
+                <input type="hidden" name="ProductId" value="@Model.ProductId" />
+
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        <strong id="replyCustomerName"></strong> adlı müşterinin yorumuna yanıt veriyorsunuz.
+                    </p>
+                    <div class="mb-3">
+                        <label for="replyText" class="form-label fw-semibold">Yanıtınız</label>
+                        <textarea id="replyText"
+                                  name="Reply"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Yanıtınızı yazın..."
+                                  required
+                                  minlength="10"
+                                  maxlength="1000"
+                                  style="border-radius: 10px;"></textarea>
+                        <small class="text-muted">Minimum 10, maksimum 1000 karakter</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary-gradient">
+                        <i class="fas fa-paper-plane me-2"></i>Yanıtı Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Forms for Actions -->
+<form id="approveForm" method="post" asp-action="Approve" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="approveId" />
+    <input type="hidden" name="productId" value="@Model.ProductId" />
+    <input type="hidden" name="productName" value="@Model.ProductName" />
+</form>
+
+<form id="rejectForm" method="post" asp-action="Reject" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="rejectId" />
+    <input type="hidden" name="productId" value="@Model.ProductId" />
+    <input type="hidden" name="productName" value="@Model.ProductName" />
+</form>
+
+<form id="deleteForm" method="post" asp-action="Delete" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="deleteId" />
+    <input type="hidden" name="productId" value="@Model.ProductId" />
+    <input type="hidden" name="productName" value="@Model.ProductName" />
+</form>
+
+@section Styles {
+    <style>
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .review-item {
+            transition: all 0.2s ease;
+        }
+
+            .review-item:hover {
+                background: rgba(102, 126, 234, 0.03);
+            }
+
+            .review-item:last-child {
+                border-bottom: none !important;
+            }
+
+        .rating-stars {
+            font-size: 0.9rem;
+        }
+
+            .rating-stars i {
+                margin-right: 2px;
+            }
+
+        .review-comment {
+            border-left: 3px solid #e2e8f0;
+        }
+
+        .pagination .page-link {
+            border: 1px solid var(--border-color, #e2e8f0);
+            margin: 0 2px;
+            color: var(--text-secondary, #64748b);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* Dark mode */
+        [data-bs-theme="dark"] .review-comment {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-left-color: #334155;
+        }
+
+        [data-bs-theme="dark"] .seller-reply {
+            background: rgba(102, 126, 234, 0.15) !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function setReplyData(reviewId, customerName) {
+            document.getElementById('replyReviewId').value = reviewId;
+            document.getElementById('replyCustomerName').textContent = customerName;
+            document.getElementById('replyText').value = '';
+        }
+
+        function confirmApprove(id) {
+            Swal.fire({
+                title: 'Yorumu Onayla',
+                text: 'Bu yorumu onaylamak istediğinize emin misiniz?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-check me-2"></i>Onayla',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-success px-4',
+                    cancelButton: 'btn btn-secondary px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('approveId').value = id;
+                    document.getElementById('approveForm').submit();
+                }
+            });
+        }
+
+        function confirmReject(id) {
+            Swal.fire({
+                title: 'Yorumu Reddet',
+                text: 'Bu yorumu reddetmek istediğinize emin misiniz?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-ban me-2"></i>Reddet',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-warning px-4',
+                    cancelButton: 'btn btn-secondary px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('rejectId').value = id;
+                    document.getElementById('rejectForm').submit();
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Yorumu Sil',
+                text: 'Bu yorumu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>Sil',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-danger px-4',
+                    cancelButton: 'btn btn-secondary px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteId').value = id;
+                    document.getElementById('deleteForm').submit();
+                }
+            });
+        }
+    </script>
+}

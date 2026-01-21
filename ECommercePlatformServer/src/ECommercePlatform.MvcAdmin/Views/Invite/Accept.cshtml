@@ -1,0 +1,269 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Invite.AcceptInviteViewModel
+@{
+    ViewData["Title"] = "Daveti Kabul Et";
+    Layout = "_AuthLayout";
+}
+
+<div class="auth-card wide">
+    <div class="auth-header">
+        <div class="logo" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <i class="fas fa-handshake"></i>
+        </div>
+        <h1>Ekibe Katılın</h1>
+        <p>Şirkete katılmak için bir yol seçin</p>
+        @if (!string.IsNullOrEmpty(Model.Role))
+        {
+            <div class="mt-2">
+                <span class="badge bg-primary" style="border-radius: 20px; padding: 0.5rem 1rem;">
+                    <i class="fas fa-user-tag me-1"></i>@Model.Role olarak davet edildiniz
+                </span>
+            </div>
+        }
+    </div>
+
+    <div class="auth-body p-0">
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+            <div class="alert alert-danger m-3 d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span>@ViewBag.Error</span>
+            </div>
+        }
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs nav-justified" id="inviteTabs" role="tablist" style="border-bottom: 2px solid #e2e8f0;">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(Model.ActiveTab == "register" ? "active" : "")"
+                        id="register-tab" data-bs-toggle="tab" data-bs-target="#register-pane"
+                        type="button" role="tab">
+                    <i class="fas fa-user-plus me-2"></i>Yeni Hesap Oluştur
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(Model.ActiveTab == "login" ? "active" : "")"
+                        id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane"
+                        type="button" role="tab">
+                    <i class="fas fa-sign-in-alt me-2"></i>Mevcut Hesapla Giriş
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="inviteTabContent">
+
+            <!-- Tab A: Yeni Hesap Oluştur -->
+            <div class="tab-pane fade @(Model.ActiveTab == "register" ? "show active" : "")"
+                 id="register-pane" role="tabpanel">
+                <div class="register-section">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 60px; height: 60px; background: rgba(102, 126, 234, 0.1); border-radius: 50%;">
+                            <i class="fas fa-user-plus fa-xl" style="color: #667eea;"></i>
+                        </div>
+                        <h6 class="mb-1">Hesabınız Yok mu?</h6>
+                        <p class="text-muted small mb-0">Hızlıca kayıt olun ve ekibe katılın</p>
+                    </div>
+
+                    <form asp-controller="Invite" asp-action="Register" method="post" id="registerForm">
+                        <input type="hidden" name="Token" value="@Model.Token" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group-icon form-floating">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input type="text" class="form-control" id="RegisterFirstName"
+                                           name="RegisterForm.FirstName" placeholder="Ad"
+                                           value="@Model.RegisterForm.FirstName" required>
+                                    <label for="RegisterFirstName">Ad</label>
+                                </div>
+                                <span asp-validation-for="RegisterForm.FirstName" class="field-validation-error"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group-icon form-floating">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input type="text" class="form-control" id="RegisterLastName"
+                                           name="RegisterForm.LastName" placeholder="Soyad"
+                                           value="@Model.RegisterForm.LastName" required>
+                                    <label for="RegisterLastName">Soyad</label>
+                                </div>
+                                <span asp-validation-for="RegisterForm.LastName" class="field-validation-error"></span>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.InvitedEmail))
+                        {
+                            <div class="alert alert-info d-flex align-items-center mt-3" style="border-radius: 10px;">
+                                <i class="fas fa-envelope me-2"></i>
+                                <span>Email: <strong>@Model.InvitedEmail</strong></span>
+                            </div>
+                        }
+
+                        <div class="input-group-icon form-floating">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" class="form-control" id="RegisterPassword"
+                                   name="RegisterForm.Password" placeholder="Şifre" required>
+                            <label for="RegisterPassword">Şifre</label>
+                            <button type="button" class="password-toggle" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="RegisterForm.Password" class="field-validation-error"></span>
+
+                        <div class="input-group-icon form-floating">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" class="form-control" id="RegisterConfirmPassword"
+                                   name="RegisterForm.ConfirmPassword" placeholder="Şifre Tekrar" required>
+                            <label for="RegisterConfirmPassword">Şifre Tekrar</label>
+                            <button type="button" class="password-toggle" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="RegisterForm.ConfirmPassword" class="field-validation-error"></span>
+
+                        <button type="submit" class="btn btn-primary-gradient w-100 mt-3" id="registerBtn">
+                            <span class="btn-text">
+                                <i class="fas fa-user-plus me-2"></i>Hesap Oluştur ve Katıl
+                            </span>
+                            <span class="btn-loading d-none">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab B: Mevcut Hesapla Giriş -->
+            <div class="tab-pane fade @(Model.ActiveTab == "login" ? "show active" : "")"
+                 id="login-pane" role="tabpanel">
+                <div class="register-section">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 60px; height: 60px; background: rgba(16, 185, 129, 0.1); border-radius: 50%;">
+                            <i class="fas fa-sign-in-alt fa-xl" style="color: #10b981;"></i>
+                        </div>
+                        <h6 class="mb-1">Zaten Hesabınız Var mı?</h6>
+                        <p class="text-muted small mb-0">Giriş yapın, daveti otomatik kabul edin</p>
+                    </div>
+
+                    <form asp-controller="Invite" asp-action="LoginAndAccept" method="post" id="loginForm">
+                        <input type="hidden" name="Token" value="@Model.Token" />
+
+                        <div class="input-group-icon form-floating">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" class="form-control" id="LoginEmail"
+                                   name="LoginForm.Email" placeholder="Email"
+                                   value="@Model.LoginForm.Email" required>
+                            <label for="LoginEmail">Email Adresi</label>
+                        </div>
+                        <span asp-validation-for="LoginForm.Email" class="field-validation-error"></span>
+
+                        <div class="input-group-icon form-floating">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" class="form-control" id="LoginPassword"
+                                   name="LoginForm.Password" placeholder="Şifre" required>
+                            <label for="LoginPassword">Şifre</label>
+                            <button type="button" class="password-toggle" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="LoginForm.Password" class="field-validation-error"></span>
+
+                        <button type="submit" class="btn w-100 mt-3" id="loginBtn"
+                                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: white; border-radius: 12px; padding: 0.75rem;">
+                            <span class="btn-text">
+                                <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap ve Daveti Kabul Et
+                            </span>
+                            <span class="btn-loading d-none">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Giriş yapılıyor...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="register-section border-top text-center">
+            <p class="text-muted mb-0">
+                <i class="fas fa-shield-alt me-1"></i>
+                Bu davet linki size özel oluşturulmuştur ve bir kez kullanılabilir.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .nav-tabs .nav-link {
+            border: none;
+            color: #64748b;
+            padding: 1rem;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+        }
+
+            .nav-tabs .nav-link:hover {
+                color: #667eea;
+                background: rgba(102, 126, 234, 0.05);
+            }
+
+            .nav-tabs .nav-link.active {
+                color: #667eea;
+                background: transparent;
+                border-bottom-color: #667eea;
+            }
+
+        .register-section {
+            padding: 1.5rem;
+        }
+
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 12px;
+            padding: 0.75rem;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .auth-card.wide {
+            max-width: 550px;
+        }
+    </style>
+}
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        // Form loading states
+        initFormLoading('registerForm', 'registerBtn');
+        initFormLoading('loginForm', 'loginBtn');
+
+        // Password toggle
+        document.querySelectorAll('.password-toggle').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var container = this.closest('.input-group-icon');
+                var input = container.querySelector('input');
+                var icon = this.querySelector('i');
+
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+    </script>
+}

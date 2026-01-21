@@ -40,4 +40,24 @@ public sealed class CompanyUser : Entity
             _roles.Remove(role);
         }
     }
+
+    // Kullanıcının BU ŞİRKETTEKİ Ekstra Permissionları (Rollerden bağımsız)
+    private List<string> _permissions = new();
+    public IReadOnlyCollection<string> Permissions => _permissions.AsReadOnly();
+
+    public void AddPermission(string permission)
+    {
+        if (!string.IsNullOrWhiteSpace(permission) && !_permissions.Contains(permission))
+        {
+            _permissions.Add(permission);
+        }
+    }
+
+    public void RemovePermission(string permission)
+    {
+        if (_permissions.Contains(permission))
+        {
+            _permissions.Remove(permission);
+        }
+    }
 }

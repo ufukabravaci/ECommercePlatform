@@ -1,6 +1,4 @@
-﻿using ECommercePlatform.Application.Banners;
-using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Reviews;
+﻿using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Domain.Banners;
 using ECommercePlatform.Domain.Brands;
 using ECommercePlatform.Domain.Categories;
@@ -67,5 +65,19 @@ public sealed class MapsterConfig : IRegister
             .Map(dest => dest.BrandName, src => src.Brand.Name)
             .Map(dest => dest.MainImageUrl, src => src.Images.Where(i => i.IsMain).Select(i => i.ImageUrl).FirstOrDefault())
             .RequireDestinationMemberSource(true);
+
+        // DashboardRecentOrderDto Eşleştirmesi
+        config.NewConfig<Order, DashboardRecentOrderDto>()
+            .Map(dest => dest.CustomerName, src => src.Customer != null
+                ? src.Customer.FirstName + " " + src.Customer.LastName
+                : "Bilinmiyor")
+            .Map(dest => dest.TotalAmount, src => src.Items.Sum(i => i.Price.Amount * i.Quantity))
+            .Map(dest => dest.CurrencyCode, src => src.Items.AsQueryable().Select(i => i.Price.Currency.ToString()).FirstOrDefault() ?? "TRY")
+            .Map(dest => dest.Status, src => src.Status.ToString())
+            .Map(dest => dest.ItemCount, src => src.Items.Count);
+
+        // DashboardLowStockProductDto Eşleştirmesi
+        config.NewConfig<Product, DashboardLowStockProductDto>()
+            .Map(dest => dest.ImageUrl, src => src.Images.Where(i => i.IsMain).Select(i => i.ImageUrl).FirstOrDefault());
     }
 }

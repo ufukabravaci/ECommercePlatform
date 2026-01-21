@@ -2,10 +2,11 @@
 
 public enum OrderStatus
 {
-    Pending = 0,    // Ödeme Bekleniyor
-    Approved = 1,   // Onaylandı / Hazırlanıyor
-    Shipped = 2,    // Kargoda
-    Delivered = 3,  // Teslim Edildi
-    Cancelled = 4,  // İptal
-    Refunded = 5    // İade
+    Pending = 0,        // Beklemede
+    Confirmed = 1,      // Onaylandı
+    Processing = 2,     // Hazırlanıyor
+    Shipped = 3,        // Kargoya Verildi
+    Delivered = 4,      // Teslim Edildi
+    Cancelled = 5,      // İptal Edildi
+    Refunded = 6        // İade Edildi
 }

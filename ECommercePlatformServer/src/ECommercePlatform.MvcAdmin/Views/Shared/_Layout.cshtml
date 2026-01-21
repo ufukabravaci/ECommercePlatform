@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - E-Commerce Admin</title>
 
-    <!-- THEME FLASH ÖNLEME - EN ÜSTTE OLMALI -->
+    <!-- THEME FLASH ÖNLEME -->
     <script>
         (function() {
             var theme = localStorage.getItem('theme') || 'light';
@@ -73,7 +73,7 @@
 </head>
 <body>
     @{
-        var userName = Context.Session.GetString("UserName") ?? "User";
+        var userName = Context.Session.GetString("UserName") ?? "Kullanıcı";
         var companyId = Context.Session.GetString("CompanyId");
         var initials = string.Join("", userName.Split(' ').Take(2).Select(x => x.FirstOrDefault())).ToUpper();
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
@@ -92,8 +92,9 @@
             <span class="sidebar-brand">E-Commerce</span>
         </div>
 
+        <!-- Sidebar Navigation -->
         <nav class="sidebar-nav">
-            <!-- Main Navigation -->
+            <!-- Ana Menü -->
             <div class="nav-section-title">Ana Menü</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -105,99 +106,130 @@
                 </li>
             </ul>
 
-            <!-- E-Commerce -->
+            <!-- E-Ticaret -->
             <div class="nav-section-title">E-Ticaret</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link @(currentController == "Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
+                    <a class="nav-link @(currentController == "Product" ? "active" : "")"
+                       asp-controller="Product" asp-action="Index">
                         <i class="fas fa-box"></i>
                         <span>Ürünler</span>
-                        <span class="badge bg-primary ms-auto">124</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(currentController == "Category" ? "active" : "")" asp-controller="Category" asp-action="Index">
+                    <a class="nav-link @(currentController == "Category" ? "active" : "")"
+                       asp-controller="Category" asp-action="Index">
                         <i class="fas fa-layer-group"></i>
                         <span>Kategoriler</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(currentController == "Order" ? "active" : "")" asp-controller="Order" asp-action="Index">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>Siparişler</span>
-                        <span class="badge bg-danger ms-auto">5</span>
+                    <a class="nav-link @(currentController == "Brand" ? "active" : "")"
+                       asp-controller="Brand" asp-action="Index">
+                        <i class="fas fa-tags"></i>
+                        <span>Markalar</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(currentController == "Customer" ? "active" : "")" asp-controller="Customer" asp-action="Index">
+                    <a class="nav-link @(currentController == "Order" ? "active" : "")"
+                       asp-controller="Order" asp-action="Index">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Siparişler</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Customer" ? "active" : "")"
+                       asp-controller="Customer" asp-action="Index">
                         <i class="fas fa-users"></i>
                         <span>Müşteriler</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Coupon" ? "active" : "")" asp-controller="Coupon" asp-action="Index">
-                        <i class="fas fa-tags"></i>
-                        <span>Kuponlar</span>
-                    </a>
-                </li>
             </ul>
 
-            <!-- Analytics -->
-            <div class="nav-section-title">Analiz</div>
+            <!-- İçerik Yönetimi -->
+            <div class="nav-section-title">İçerik Yönetimi</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link @(currentController == "Report" ? "active" : "")" asp-controller="Report" asp-action="Sales">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Satış Raporları</span>
+                    <a class="nav-link @(currentController == "Banner" ? "active" : "")"
+                       asp-controller="Banner" asp-action="Index">
+                        <i class="fas fa-images"></i>
+                        <span>Bannerlar</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(currentController == "Analytics" ? "active" : "")" asp-controller="Analytics" asp-action="Index">
-                        <i class="fas fa-chart-pie"></i>
-                        <span>İstatistikler</span>
+                    <a class="nav-link @(currentController == "Review" && currentAction == "All" ? "active" : "")"
+                       asp-controller="Review" asp-action="All">
+                        <i class="fas fa-star"></i>
+                        <span>Yorumlar</span>
                     </a>
                 </li>
             </ul>
 
-            <!-- Settings -->
+
+            <!-- Yönetim -->
+            <div class="nav-section-title">Yönetim</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Employee" ? "active" : "")"
+                       asp-controller="Employee" asp-action="Index">
+                        <i class="fas fa-user-friends"></i>
+                        <span>Çalışanlar</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Ayarlar -->
             <div class="nav-section-title">Ayarlar</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link @(currentController == "Company" ? "active" : "")" asp-controller="Company" asp-action="Index">
+                    <a class="nav-link @(currentController == "Company" ? "active" : "")"
+                       asp-controller="Company" asp-action="Index">
                         <i class="fas fa-building"></i>
-                        <span>Şirket Bilgileri</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Settings" ? "active" : "")" asp-controller="Settings" asp-action="Index">
-                        <i class="fas fa-cog"></i>
-                        <span>Genel Ayarlar</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentAction == "Privacy" ? "active" : "")" asp-controller="Home" asp-action="Privacy">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Gizlilik</span>
+                        <span>Şirket Ayarları</span>
                     </a>
                 </li>
             </ul>
         </nav>
 
+        <!-- Sidebar Footer - User Info -->
         <div class="sidebar-footer">
-            <div class="user-info" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="user-avatar">@initials</div>
-                <div class="user-details">
-                    <div class="user-name">@userName</div>
-                    <div class="user-role">@(string.IsNullOrEmpty(companyId) ? "Admin" : "Şirket Yöneticisi")</div>
-                </div>
-                <i class="fas fa-chevron-right ms-auto" style="font-size: 0.75rem; color: #94a3b8;"></i>
+            <div class="dropdown dropup w-100">
+                <button class="user-info-btn w-100" type="button" data-bs-toggle="dropdown" data-bs-placement="top">
+                    <div class="user-avatar">@initials</div>
+                    <div class="user-details">
+                        <div class="user-name">@userName</div>
+                        <div class="user-role">
+                            @if (string.IsNullOrEmpty(companyId))
+                            {
+                                <span>Admin</span>
+                            }
+                            else
+                            {
+                                <span><i class="fas fa-building me-1"></i>Şirket Yöneticisi</span>
+                            }
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-up ms-auto chevron-icon"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark w-100 mb-2" style="border-radius: 12px;">
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Company" asp-action="Index">
+                            <i class="fas fa-building me-2 opacity-75"></i>Şirket Ayarları
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Employee" asp-action="Index">
+                            <i class="fas fa-user-friends me-2 opacity-75"></i>Çalışanlar
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item py-2 text-danger" asp-controller="Auth" asp-action="Logout">
+                            <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <ul class="dropdown-menu dropdown-menu-end mb-2" style="min-width: 200px; border-radius: 12px;">
-                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-user me-2 text-muted"></i>Profilim</a></li>
-                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-cog me-2 text-muted"></i>Ayarlar</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item py-2 text-danger" asp-controller="Auth" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap</a></li>
-            </ul>
         </div>
     </aside>
 
@@ -210,9 +242,9 @@
                     <i class="fas fa-bars"></i>
                 </button>
 
-                <div class="search-box d-none d-md-block">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="globalSearch" placeholder="Ara... (Ctrl+K)" autocomplete="off">
+                <!-- Page Title -->
+                <div class="header-title d-none d-md-block">
+                    <h6 class="mb-0 fw-semibold">@ViewData["Title"]</h6>
                 </div>
             </div>
 
@@ -224,73 +256,77 @@
 
                 <!-- Notifications -->
                 <div class="dropdown">
-                    <button class="header-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="header-btn notification-btn" type="button" data-bs-toggle="dropdown">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
+                        <span class="notification-badge">3</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px; border-radius: 12px;">
-                        <div class="p-3 border-bottom">
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown p-0">
+                        <div class="notification-header">
                             <h6 class="mb-0 fw-semibold">Bildirimler</h6>
+                            <a href="#" class="text-primary small">Tümünü Okundu İşaretle</a>
                         </div>
-                        <div class="notification-list" style="max-height: 300px; overflow-y: auto;">
-                            <a href="#" class="dropdown-item d-flex gap-3 p-3">
-                                <div class="flex-shrink-0">
-                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2">
-                                        <i class="fas fa-shopping-cart text-primary"></i>
-                                    </div>
+                        <div class="notification-list">
+                            <a href="#" class="notification-item unread">
+                                <div class="notification-icon bg-primary-subtle">
+                                    <i class="fas fa-shopping-cart text-primary"></i>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <p class="mb-0 fw-medium">Yeni sipariş alındı</p>
-                                    <small class="text-muted">2 dakika önce</small>
+                                <div class="notification-content">
+                                    <p class="notification-text">Yeni sipariş alındı</p>
+                                    <span class="notification-time">2 dakika önce</span>
                                 </div>
                             </a>
-                            <a href="#" class="dropdown-item d-flex gap-3 p-3">
-                                <div class="flex-shrink-0">
-                                    <div class="rounded-circle bg-success bg-opacity-10 p-2">
-                                        <i class="fas fa-check text-success"></i>
-                                    </div>
+                            <a href="#" class="notification-item unread">
+                                <div class="notification-icon bg-success-subtle">
+                                    <i class="fas fa-check text-success"></i>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <p class="mb-0 fw-medium">Ödeme onaylandı</p>
-                                    <small class="text-muted">15 dakika önce</small>
+                                <div class="notification-content">
+                                    <p class="notification-text">Ödeme onaylandı</p>
+                                    <span class="notification-time">15 dakika önce</span>
                                 </div>
                             </a>
-                            <a href="#" class="dropdown-item d-flex gap-3 p-3">
-                                <div class="flex-shrink-0">
-                                    <div class="rounded-circle bg-warning bg-opacity-10 p-2">
-                                        <i class="fas fa-exclamation text-warning"></i>
-                                    </div>
+                            <a href="#" class="notification-item">
+                                <div class="notification-icon bg-warning-subtle">
+                                    <i class="fas fa-exclamation text-warning"></i>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <p class="mb-0 fw-medium">Stok uyarısı</p>
-                                    <small class="text-muted">1 saat önce</small>
+                                <div class="notification-content">
+                                    <p class="notification-text">Stok uyarısı: 5 ürün tükenmek üzere</p>
+                                    <span class="notification-time">1 saat önce</span>
                                 </div>
                             </a>
                         </div>
-                        <div class="p-2 border-top text-center">
-                            <a href="#" class="text-decoration-none small">Tümünü Gör</a>
+                        <div class="notification-footer">
+                            <a href="#">Tüm Bildirimleri Gör</a>
                         </div>
                     </div>
                 </div>
 
-                <!-- User Menu -->
+                <!-- User Dropdown -->
                 <div class="dropdown">
-                    <button class="header-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user-circle"></i>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end" style="min-width: 200px; border-radius: 12px;">
-                        <div class="px-3 py-2 border-bottom">
-                            <p class="mb-0 fw-semibold">@userName</p>
-                            <small class="text-muted">@(string.IsNullOrEmpty(companyId) ? "Admin" : $"Şirket: {companyId}")</small>
+                    <button class="header-user-btn" type="button" data-bs-toggle="dropdown">
+                        <div class="header-user-avatar">@initials</div>
+                        <div class="header-user-info d-none d-md-block">
+                            <span class="header-user-name">@userName</span>
+                            <span class="header-user-role">Şirket Yöneticisi</span>
                         </div>
-                        <a class="dropdown-item py-2" href="#">
-                            <i class="fas fa-user me-2 text-muted"></i>Profilim
+                        <i class="fas fa-chevron-down ms-2 d-none d-md-block" style="font-size: 0.7rem; opacity: 0.7;"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end user-dropdown">
+                        <div class="user-dropdown-header">
+                            <div class="user-dropdown-avatar">@initials</div>
+                            <div>
+                                <div class="fw-semibold">@userName</div>
+                                <small class="text-muted">Şirket Yöneticisi</small>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" asp-controller="Company" asp-action="Index">
+                            <i class="fas fa-building me-2 text-muted"></i>Şirket Ayarları
                         </a>
-                        <a class="dropdown-item py-2" href="#">
-                            <i class="fas fa-cog me-2 text-muted"></i>Ayarlar
+                        <a class="dropdown-item" asp-controller="Employee" asp-action="Index">
+                            <i class="fas fa-user-friends me-2 text-muted"></i>Çalışanlar
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item py-2 text-danger" asp-controller="Auth" asp-action="Logout">
+                        <a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">
                             <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
                         </a>
                     </div>
@@ -303,8 +339,7 @@
             @RenderBody()
         </div>
     </main>
-
-    <!-- jQuery -->
+    !-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -312,23 +347,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <!-- Dashboard JS -->
-    <script src="~/js/dashboard.js" asp-append-version="true"></script>
 
     <script>
-        // Toastr Options
+        // ==================== TOASTR OPTIONS ====================
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
             "positionClass": "toast-top-right",
             "showDuration": "300",
             "hideDuration": "1000",
-            "timeOut": "3000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
+            "timeOut": "3000"
         };
 
         @if (TempData["SuccessMessage"] != null)
@@ -347,63 +375,97 @@
         {
                 <text>toastr.info('@Html.Raw(TempData["InfoMessage"])');</text>
         }
+    </script>
 
-        $(document).ready(function() {
-            // ==================== SIDEBAR TOGGLE ====================
-            $('#sidebarToggle').on('click', function() {
-                var $sidebar = $('#sidebar');
+    <script>
+        // ==================== SIDEBAR TOGGLE ====================
+        (function() {
+            var sidebarToggle = document.getElementById('sidebarToggle');
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('sidebarOverlay');
 
-                // Desktop
-                if (window.innerWidth > 992) {
-                    $sidebar.toggleClass('collapsed');
+            if (!sidebarToggle || !sidebar) return;
+
+            // Sayfa yüklendiğinde localStorage'dan state'i oku (Desktop)
+            if (window.innerWidth > 992) {
+                var isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (isCollapsed) {
+                    sidebar.classList.add('collapsed');
                 }
-                // Mobile
-                else {
-                    $sidebar.toggleClass('mobile-open');
-                    $('#sidebarOverlay').toggleClass('active');
-                }
-            });
-
-            // Sidebar Overlay Click (Mobile)
-            $('#sidebarOverlay').on('click', function() {
-                $('#sidebar').removeClass('mobile-open');
-                $(this).removeClass('active');
-            });
-
-            // ==================== THEME TOGGLE ====================
-            // Theme icon'unu güncelle (theme zaten head'de yüklendi)
-            var savedTheme = localStorage.getItem('theme') || 'light';
-            if (savedTheme === 'dark') {
-                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
             }
 
-            // Theme toggle butonuna tıklama
-            $('#themeToggle').on('click', function() {
-                var $html = $('html');
-                var $icon = $(this).find('i');
-                var currentTheme = $html.attr('data-bs-theme');
+            // Toggle butonuna tıklama
+            sidebarToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (window.innerWidth > 992) {
+                    // Desktop - collapse/expand
+                    sidebar.classList.toggle('collapsed');
+                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+                } else {
+                    // Mobile - slide in/out
+                    sidebar.classList.toggle('mobile-open');
+                    if (overlay) overlay.classList.toggle('active');
+                }
+            });
+
+            // Overlay'a tıklayınca kapat (Mobile)
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    overlay.classList.remove('active');
+                });
+            }
+
+            // Window resize'da mobile state'i sıfırla
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 992) {
+                    sidebar.classList.remove('mobile-open');
+                    if (overlay) overlay.classList.remove('active');
+                }
+            });
+        })();
+
+        // ==================== THEME TOGGLE ====================
+        (function() {
+            var themeToggle = document.getElementById('themeToggle');
+            if (!themeToggle) return;
+
+            var html = document.documentElement;
+            var icon = themeToggle.querySelector('i');
+
+            // Sayfa yüklendiğinde icon'u güncelle
+            var savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark' && icon) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+
+            // Toggle butonuna tıklama
+            themeToggle.addEventListener('click', function() {
+                var currentTheme = html.getAttribute('data-bs-theme');
 
                 if (currentTheme === 'dark') {
-                    $html.attr('data-bs-theme', 'light');
-                    $icon.removeClass('fa-sun').addClass('fa-moon');
+                    html.setAttribute('data-bs-theme', 'light');
                     localStorage.setItem('theme', 'light');
+                    if (icon) {
+                        icon.classList.remove('fa-sun');
+                        icon.classList.add('fa-moon');
+                    }
                 } else {
-                    $html.attr('data-bs-theme', 'dark');
-                    $icon.removeClass('fa-moon').addClass('fa-sun');
+                    html.setAttribute('data-bs-theme', 'dark');
                     localStorage.setItem('theme', 'dark');
+                    if (icon) {
+                        icon.classList.remove('fa-moon');
+                        icon.classList.add('fa-sun');
+                    }
                 }
             });
+        })();
 
-            // ==================== KEYBOARD SHORTCUTS ====================
-            // Ctrl+K ile arama
-            $(document).on('keydown', function(e) {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    $('#globalSearch').focus();
-                }
-            });
-
-            // ==================== TOOLTIPS ====================
+        // ==================== TOOLTIPS ====================
+        document.addEventListener('DOMContentLoaded', function() {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);

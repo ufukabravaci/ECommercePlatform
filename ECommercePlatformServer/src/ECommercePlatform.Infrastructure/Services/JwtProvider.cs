@@ -33,6 +33,11 @@ public sealed class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
+        foreach (var permission in companyUser.Permissions)
+        {
+            claims.Add(new Claim(ClaimTypesConst.Permission, permission));
+        }
+
         return CreateToken(claims, options.Value);
     }
 

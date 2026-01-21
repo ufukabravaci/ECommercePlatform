@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Services;
+﻿using ECommercePlatform.Application.Options;
+using ECommercePlatform.Application.Services;
 using ECommercePlatform.Domain.Users;
 using ECommercePlatform.Infrastructure.BackgroundJobs;
 using ECommercePlatform.Infrastructure.Context;
@@ -24,6 +25,7 @@ public static class ServiceRegistrar
         services.ConfigureOptions<JwtSetupOptions>();
         services.ConfigureOptions<IdentitySetupOptions>();
         services.Configure<MailSettingOptions>(configuration.GetSection("MailSettings"));
+        services.Configure<ClientSettings>(configuration.GetSection("ClientSettings"));
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

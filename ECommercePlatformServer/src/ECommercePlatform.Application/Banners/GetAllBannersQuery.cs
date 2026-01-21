@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Domain.Banners;
+﻿using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Domain.Banners;
 using GenericRepository;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -6,15 +7,6 @@ using TS.MediatR;
 using TS.Result;
 
 namespace ECommercePlatform.Application.Banners;
-
-public sealed record BannerDto(
-    Guid Id,
-    string Title,
-    string Description,
-    string ImageUrl,
-    string TargetUrl,
-    int Order);
-
 // Bu endpoint Public de olabilir (Anasayfa için) veya Auth gerektirebilir.
 // Yönetim paneli için Auth şart, Storefront için şart değil.
 public sealed record GetAllBannersQuery() : IRequest<Result<List<BannerDto>>>;

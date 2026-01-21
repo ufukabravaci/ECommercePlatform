@@ -1,0 +1,327 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Banners.UpdateBannerViewModel
+
+@{
+    ViewData["Title"] = "Banner Düzenle";
+    var apiBaseUrl = ViewBag.ApiBaseUrl as string ?? "";
+    var currentImageUrl = !string.IsNullOrEmpty(Model.CurrentImageUrl)
+        ? (Model.CurrentImageUrl.StartsWith("http") ? Model.CurrentImageUrl : $"{apiBaseUrl}/{Model.CurrentImageUrl.TrimStart('/')}")
+        : "";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Bannerlar</a></li>
+            <li class="breadcrumb-item active">Düzenle</li>
+        </ol>
+    </nav>
+    <h1 class="page-title">Banner Düzenle</h1>
+    <p class="page-subtitle mb-0">Banner bilgilerini güncelleyin</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2 text-primary"></i>Banner Bilgileri
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="Edit" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" value="@Model.Id" />
+                    <input type="hidden" name="CurrentImageUrl" value="@Model.CurrentImageUrl" />
+
+                    <div class="row g-3">
+                        <!-- Title -->
+                        <div class="col-12">
+                            <label for="Title" class="form-label fw-semibold">
+                                Başlık <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   id="Title"
+                                   name="Title"
+                                   class="form-control @(ViewData.ModelState["Title"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                   value="@Model.Title"
+                                   placeholder="Banner başlığını girin"
+                                   style="border-radius: 10px;">
+                            <span asp-validation-for="Title" class="invalid-feedback"></span>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label for="Description" class="form-label fw-semibold">
+                                Açıklama <span class="text-danger">*</span>
+                            </label>
+                            <textarea id="Description"
+                                      name="Description"
+                                      class="form-control @(ViewData.ModelState["Description"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                      rows="3"
+                                      placeholder="Banner açıklamasını girin"
+                                      style="border-radius: 10px;">@Model.Description</textarea>
+                            <span asp-validation-for="Description" class="invalid-feedback"></span>
+                        </div>
+
+                        <!-- Current Image -->
+                        @if (!string.IsNullOrEmpty(currentImageUrl))
+                        {
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Mevcut Görsel</label>
+                                <div class="current-image-container p-3 bg-light rounded-3">
+                                    <img src="@currentImageUrl" alt="@Model.Title" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">
+                                </div>
+                            </div>
+                        }
+
+                        <!-- New Image Upload -->
+                        <div class="col-12">
+                            <label for="Image" class="form-label fw-semibold">
+                                Yeni Görsel <span class="text-muted">(Opsiyonel)</span>
+                            </label>
+                            <div class="upload-area" id="uploadArea">
+                                <input type="file"
+                                       id="Image"
+                                       name="Image"
+                                       class="d-none"
+                                       accept="image/jpeg,image/png,image/gif,image/webp">
+                                <div class="upload-content text-center py-4" id="uploadContent">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                    <p class="mb-1 small">Yeni görsel yüklemek için tıklayın</p>
+                                    <small class="text-muted">Yüklerseniz mevcut görsel değiştirilir</small>
+                                </div>
+                                <div class="preview-content d-none" id="previewContent">
+                                    <img id="imagePreview" src="" alt="Preview" class="img-fluid rounded">
+                                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeImage()">
+                                        <i class="fas fa-times me-1"></i>Kaldır
+                                    </button>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Image" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Target URL -->
+                        <div class="col-12">
+                            <label for="TargetUrl" class="form-label fw-semibold">
+                                Hedef URL <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light" style="border-radius: 10px 0 0 10px;">
+                                    <i class="fas fa-link text-muted"></i>
+                                </span>
+                                <input type="url"
+                                       id="TargetUrl"
+                                       name="TargetUrl"
+                                       class="form-control @(ViewData.ModelState["TargetUrl"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                       value="@Model.TargetUrl"
+                                       placeholder="https://example.com/kampanya"
+                                       style="border-radius: 0 10px 10px 0;">
+                                <span asp-validation-for="TargetUrl" class="invalid-feedback"></span>
+                            </div>
+                        </div>
+
+                        <!-- Order -->
+                        <div class="col-md-6">
+                            <label for="Order" class="form-label fw-semibold">
+                                Sıralama <span class="text-danger">*</span>
+                            </label>
+                            <input type="number"
+                                   id="Order"
+                                   name="Order"
+                                   class="form-control @(ViewData.ModelState["Order"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                   value="@Model.Order"
+                                   min="1"
+                                   max="100"
+                                   style="border-radius: 10px;">
+                            <span asp-validation-for="Order" class="invalid-feedback"></span>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary-gradient">
+                            <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+                            <i class="fas fa-times me-2"></i>İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2 text-info"></i>Banner Bilgisi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">ID:</span>
+                    <span class="fw-medium text-truncate ms-2" style="max-width: 150px;" title="@Model.Id">@Model.Id.ToString().Substring(0, 8)...</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Sıralama:</span>
+                    <span class="badge bg-primary">#@Model.Order</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card mt-4 border-danger">
+            <div class="card-header bg-danger bg-opacity-10">
+                <h5 class="card-title mb-0 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Tehlikeli Bölge
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Bu banner'ı kalıcı olarak silmek için aşağıdaki butonu kullanın.</p>
+                <button type="button" class="btn btn-outline-danger w-100" style="border-radius: 10px;"
+                        onclick="confirmDelete('@Model.Id', '@Model.Title')">
+                    <i class="fas fa-trash-alt me-2"></i>Banner'ı Sil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Banner'ı Sil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    <strong id="deleteBannerTitle"></strong> başlıklı banner'ı silmek istediğinize emin misiniz?
+                </p>
+                <p class="text-muted small mt-2 mb-0">
+                    Bu işlem geri alınamaz.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    Vazgeç
+                </button>
+                <form id="deleteForm" method="post" asp-action="Delete" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteBannerId" />
+                    <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                        <i class="fas fa-trash-alt me-2"></i>Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .upload-area {
+            border: 2px dashed var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+            .upload-area:hover {
+                border-color: #667eea;
+                background: rgba(102, 126, 234, 0.05);
+            }
+
+        .preview-content {
+            padding: 1rem;
+            text-align: center;
+        }
+
+            .preview-content img {
+                max-height: 150px;
+                object-fit: contain;
+            }
+
+        .current-image-container {
+            text-align: center;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('Image');
+            const uploadContent = document.getElementById('uploadContent');
+            const previewContent = document.getElementById('previewContent');
+            const imagePreview = document.getElementById('imagePreview');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (!file.type.startsWith('image/')) {
+                    toastr.error('Lütfen bir görsel dosyası seçin.');
+                    return;
+                }
+
+                if (file.size > 5 * 1024 * 1024) {
+                    toastr.error('Dosya boyutu 5MB\'dan küçük olmalıdır.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    uploadContent.classList.add('d-none');
+                    previewContent.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function removeImage() {
+            const fileInput = document.getElementById('Image');
+            const uploadContent = document.getElementById('uploadContent');
+            const previewContent = document.getElementById('previewContent');
+
+            fileInput.value = '';
+            uploadContent.classList.remove('d-none');
+            previewContent.classList.add('d-none');
+        }
+
+        function confirmDelete(bannerId, bannerTitle) {
+            document.getElementById('deleteBannerTitle').textContent = bannerTitle;
+            document.getElementById('deleteBannerId').value = bannerId;
+            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+    </script>
+}

@@ -1,0 +1,222 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Brands.UpdateBrandViewModel
+
+@{
+    ViewData["Title"] = "Marka Düzenle";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Markalar</a></li>
+            <li class="breadcrumb-item active">Düzenle</li>
+        </ol>
+    </nav>
+    <h1 class="page-title">Marka Düzenle</h1>
+    <p class="page-subtitle mb-0">Marka bilgilerini güncelleyin</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2 text-primary"></i>Marka Bilgileri
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="Edit">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" value="@Model.Id" />
+
+                    <div class="row g-3">
+                        <!-- Name -->
+                        <div class="col-12">
+                            <label for="Name" class="form-label fw-semibold">
+                                Marka Adı <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   id="Name"
+                                   name="Name"
+                                   class="form-control @(ViewData.ModelState["Name"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                   value="@Model.Name"
+                                   placeholder="Örn: Apple, Samsung, Nike..."
+                                   style="border-radius: 10px;">
+                            <span asp-validation-for="Name" class="invalid-feedback"></span>
+                        </div>
+
+                        <!-- Logo URL -->
+                        <div class="col-12">
+                            <label for="LogoUrl" class="form-label fw-semibold">
+                                Logo URL <span class="text-muted">(Opsiyonel)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light" style="border-radius: 10px 0 0 10px;">
+                                    <i class="fas fa-image text-muted"></i>
+                                </span>
+                                <input type="url"
+                                       id="LogoUrl"
+                                       name="LogoUrl"
+                                       class="form-control @(ViewData.ModelState["LogoUrl"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                       value="@Model.LogoUrl"
+                                       placeholder="https://example.com/logo.png"
+                                       style="border-radius: 0 10px 10px 0;">
+                                <span asp-validation-for="LogoUrl" class="invalid-feedback"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary-gradient">
+                            <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+                            <i class="fas fa-times me-2"></i>İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info & Danger Zone -->
+    <div class="col-lg-4">
+        <!-- Preview Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-eye me-2 text-info"></i>Önizleme
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="brand-preview mx-auto mb-3 rounded d-flex align-items-center justify-content-center"
+                     style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                    {
+                        <img id="logoPreview" src="@Model.LogoUrl" alt="@Model.Name" class="img-fluid"
+                             style="max-width: 70px; max-height: 70px; object-fit: contain;"
+                             onerror="this.classList.add('d-none'); document.getElementById('letterPreview').classList.remove('d-none');">
+                        <span id="letterPreview" class="text-white fw-bold d-none" style="font-size: 2rem;">
+                            @Model.Name?.FirstOrDefault().ToString().ToUpper()
+                        </span>
+                    }
+                    else
+                    {
+                        <img id="logoPreview" src="" alt="" class="img-fluid d-none" style="max-width: 70px; max-height: 70px; object-fit: contain;">
+                        <span id="letterPreview" class="text-white fw-bold" style="font-size: 2rem;">
+                            @(Model.Name?.FirstOrDefault().ToString().ToUpper() ?? "?")
+                        </span>
+                    }
+                </div>
+                <h5 class="fw-semibold mb-1" id="namePreview">@Model.Name</h5>
+                <small class="text-muted">ID: @Model.Id.ToString().Substring(0, 8)...</small>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card border-danger">
+            <div class="card-header bg-danger bg-opacity-10">
+                <h5 class="card-title mb-0 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Tehlikeli Bölge
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Bu markayı kalıcı olarak silmek için aşağıdaki butonu kullanın.</p>
+                <button type="button" class="btn btn-outline-danger w-100" style="border-radius: 10px;"
+                        onclick="confirmDelete('@Model.Id', '@Model.Name')">
+                    <i class="fas fa-trash-alt me-2"></i>Markayı Sil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Markayı Sil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0"><strong id="deleteBrandName"></strong> markasını silmek istediğinize emin misiniz?</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">Vazgeç</button>
+                <form method="post" asp-action="Delete" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteBrandId" />
+                    <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                        <i class="fas fa-trash-alt me-2"></i>Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.getElementById('Name');
+            const logoUrlInput = document.getElementById('LogoUrl');
+            const namePreview = document.getElementById('namePreview');
+            const letterPreview = document.getElementById('letterPreview');
+            const logoPreview = document.getElementById('logoPreview');
+
+            nameInput.addEventListener('input', function() {
+                const name = this.value.trim();
+                namePreview.textContent = name || 'Marka Adı';
+                if (letterPreview) {
+                    letterPreview.textContent = name ? name.charAt(0).toUpperCase() : '?';
+                }
+            });
+
+            logoUrlInput.addEventListener('input', function() {
+                const url = this.value.trim();
+                if (url && logoPreview && letterPreview) {
+                    logoPreview.src = url;
+                    logoPreview.classList.remove('d-none');
+                    letterPreview.classList.add('d-none');
+
+                    logoPreview.onerror = function() {
+                        logoPreview.classList.add('d-none');
+                        letterPreview.classList.remove('d-none');
+                    };
+                } else if (logoPreview && letterPreview) {
+                    logoPreview.classList.add('d-none');
+                    letterPreview.classList.remove('d-none');
+                }
+            });
+        });
+
+        function confirmDelete(brandId, brandName) {
+            document.getElementById('deleteBrandName').textContent = brandName;
+            document.getElementById('deleteBrandId').value = brandId;
+            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+    </script>
+}

@@ -1,0 +1,575 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Orders.OrderDetailViewModel
+@using ECommercePlatform.MvcAdmin.DTOs.Orders
+
+@{
+    ViewData["Title"] = $"Sipariş #{Model.Order.OrderNumber}";
+    var order = Model.Order;
+    var currentStatusValue = OrderStatusHelper.GetStatusValue(order.Status);
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Siparişler</a></li>
+                <li class="breadcrumb-item active">#@order.OrderNumber</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">
+            Sipariş #@order.OrderNumber
+            <span class="badge-status @OrderStatusHelper.GetStatusBadgeClass(order.Status) ms-2" style="font-size: 0.9rem;">
+                <i class="fas @OrderStatusHelper.GetStatusIcon(order.Status) me-1"></i>
+                @OrderStatusHelper.GetStatusDisplayText(order.Status)
+            </span>
+        </h1>
+        <p class="page-subtitle mb-0">
+            <i class="fas fa-calendar-alt me-1"></i>
+            @order.OrderDate.ToString("dd MMMM yyyy, HH:mm")
+        </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">
+            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+        </a>
+        <button type="button" class="btn btn-outline-primary" style="border-radius: 10px;" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Yazdır
+        </button>
+        @if (currentStatusValue != 5 && currentStatusValue != 6)
+        {
+            if (currentStatusValue == 4)
+            {
+                <button type="button" class="btn btn-warning" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#refundModal">
+                    <i class="fas fa-undo me-2"></i>İade Et
+                </button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-danger" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                    <i class="fas fa-times-circle me-2"></i>İptal Et
+                </button>
+            }
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sol Kolon -->
+    <div class="col-lg-8">
+        <!-- Sipariş Kalemleri -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shopping-basket me-2 text-primary"></i>Sipariş Kalemleri
+                </h5>
+                <span class="badge bg-primary rounded-pill">@order.Items.Count ürün</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Ürün</th>
+                                <th class="text-center">Birim Fiyat</th>
+                                <th class="text-center">Adet</th>
+                                <th class="text-end pe-4">Toplam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in order.Items)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="product-image bg-light rounded d-flex align-items-center justify-content-center"
+                                                 style="width: 60px; height: 60px; min-width: 60px;">
+                                                <i class="fas fa-box text-muted fa-lg"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">@item.ProductName</h6>
+                                                <small class="text-muted">ID: @item.ProductId.ToString().Substring(0, 8)...</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @item.PriceAmount.ToString("N2") @item.PriceCurrency
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">
+                                            @item.Quantity
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4 fw-semibold">
+                                        @item.Total.ToString("N2") @item.PriceCurrency
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="bg-light">
+                            <tr>
+                                <td colspan="3" class="text-end pe-3 fw-semibold">Ara Toplam:</td>
+                                <td class="text-end pe-4 fw-semibold">₺@order.TotalAmount.ToString("N2")</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end pe-3 text-muted">Kargo:</td>
+                                <td class="text-end pe-4 text-muted">Ücretsiz</td>
+                            </tr>
+                            <tr style="background: rgba(102, 126, 234, 0.15);">
+                                <td colspan="3" class="text-end pe-3 fw-bold fs-5">Genel Toplam:</td>
+                                <td class="text-end pe-4 fw-bold fs-5 text-primary">₺@order.TotalAmount.ToString("N2")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teslimat Adresi -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-map-marker-alt me-2 text-danger"></i>Teslimat Adresi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold">İl / İlçe</label>
+                            <p class="mb-0 fw-medium">@order.ShippingCity / @order.ShippingDistrict</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold">Posta Kodu</label>
+                            <p class="mb-0 fw-medium">@order.ShippingZipCode</p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold">Sokak / Cadde</label>
+                            <p class="mb-0 fw-medium">@order.ShippingStreet</p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small fw-semibold">Açık Adres</label>
+                        <div class="p-3 rounded-3" style="background: var(--body-bg, #f1f5f9); border: 1px solid var(--border-color, #e2e8f0);">
+                            <p class="mb-0" style="color: var(--text-primary);">@order.ShippingFullAddress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ Kolon -->
+    <div class="col-lg-4">
+        <!-- Sipariş Durumu Güncelleme -->
+        @if (currentStatusValue != 5 && currentStatusValue != 6)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-sync-alt me-2 text-warning"></i>Durum Güncelle
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="UpdateStatus" id="statusForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="orderNumber" value="@order.OrderNumber" />
+
+                        <div class="mb-3">
+                            <label for="statusSelect" class="form-label small text-muted fw-semibold">Yeni Durum</label>
+                            <select name="status" id="statusSelect" class="form-select" style="border-radius: 10px;">
+                                @foreach (var status in Model.AvailableStatuses)
+                                {
+                                    if (status.IsSelected)
+                                    {
+                                        <option value="@status.Value" selected disabled>@status.Text (Mevcut)</option>
+                                    }
+                                    else if (status.IsDisabled)
+                                    {
+                                        <option value="@status.Value" disabled>@status.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@status.Value">@status.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-gradient w-100" id="updateStatusBtn" disabled>
+                            <i class="fas fa-check me-2"></i>Durumu Güncelle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card mb-4">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        @if (currentStatusValue == 5)
+                        {
+                            <i class="fas fa-times-circle fa-3x text-danger"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-undo fa-3x text-secondary"></i>
+                        }
+                    </div>
+                    <h6 class="fw-semibold">Sipariş @OrderStatusHelper.GetStatusDisplayText(order.Status)</h6>
+                    <p class="text-muted small mb-0">Bu sipariş için durum değişikliği yapılamaz.</p>
+                </div>
+            </div>
+        }
+
+        <!-- Sipariş Özeti -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-receipt me-2 text-success"></i>Sipariş Özeti
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Sipariş No:</span>
+                    <span class="fw-medium">#@order.OrderNumber</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Tarih:</span>
+                    <span class="fw-medium">@order.OrderDate.ToString("dd.MM.yyyy HH:mm")</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Ürün Sayısı:</span>
+                    <span class="fw-medium">@order.Items.Sum(i => i.Quantity) adet</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Durum:</span>
+                    <span class="badge-status @OrderStatusHelper.GetStatusBadgeClass(order.Status)" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                        @OrderStatusHelper.GetStatusDisplayText(order.Status)
+                    </span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Toplam:</span>
+                    <span class="fw-bold text-primary fs-5">₺@order.TotalAmount.ToString("N2")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sipariş Geçmişi / Timeline -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2 text-info"></i>Sipariş Geçmişi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-0">Sipariş Oluşturuldu</h6>
+                            <small class="text-muted">@order.OrderDate.ToString("dd.MM.yyyy HH:mm")</small>
+                        </div>
+                    </div>
+                    @if (currentStatusValue >= 1 && currentStatusValue != 5)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Sipariş Onaylandı</h6>
+                                <small class="text-muted">Onay alındı</small>
+                            </div>
+                        </div>
+                    }
+                    @if (currentStatusValue >= 2 && currentStatusValue != 5)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Hazırlanıyor</h6>
+                                <small class="text-muted">Paketleniyor</small>
+                            </div>
+                        </div>
+                    }
+                    @if (currentStatusValue >= 3 && currentStatusValue != 5)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Kargoya Verildi</h6>
+                                <small class="text-muted">Yolda</small>
+                            </div>
+                        </div>
+                    }
+                    @if (currentStatusValue == 4)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Teslim Edildi</h6>
+                                <small class="text-muted">Tamamlandı</small>
+                            </div>
+                        </div>
+                    }
+                    @if (currentStatusValue == 5)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">İptal Edildi</h6>
+                                <small class="text-muted">Sipariş iptal edildi</small>
+                            </div>
+                        </div>
+                    }
+                    @if (currentStatusValue == 6)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-secondary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">İade Edildi</h6>
+                                <small class="text-muted">Ürün iade alındı</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="cancelModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Siparişi İptal Et
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    <strong>#@order.OrderNumber</strong> numaralı siparişi iptal etmek istediğinize emin misiniz?
+                </p>
+                <p class="text-muted small mt-2 mb-0">
+                    Bu işlem geri alınamaz. Stoklar otomatik olarak iade edilecektir.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    Vazgeç
+                </button>
+                <form method="post" asp-action="Delete" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderNumber" value="@order.OrderNumber" />
+                    <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                        <i class="fas fa-times-circle me-2"></i>İptal Et
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Refund Modal -->
+<div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="refundModalLabel">
+                    <i class="fas fa-undo text-warning me-2"></i>İade İşlemi
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    <strong>#@order.OrderNumber</strong> numaralı siparişi iade etmek istediğinize emin misiniz?
+                </p>
+                <p class="text-muted small mt-2 mb-0">
+                    Toplam <strong>₺@order.TotalAmount.ToString("N2")</strong> tutarında iade işlemi başlatılacaktır.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    Vazgeç
+                </button>
+                <form method="post" asp-action="Refund" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderNumber" value="@order.OrderNumber" />
+                    <button type="submit" class="btn btn-warning" style="border-radius: 10px;">
+                        <i class="fas fa-undo me-2"></i>İade Et
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .badge-status {
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+            .badge-status.pending {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+            }
+
+            .badge-status.info {
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
+            }
+
+            .badge-status.warning {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+            }
+
+            .badge-status.primary {
+                background: rgba(102, 126, 234, 0.15);
+                color: #667eea;
+            }
+
+            .badge-status.active {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .badge-status.inactive {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+            .badge-status.refunded {
+                background: rgba(139, 92, 246, 0.15);
+                color: #8b5cf6;
+            }
+
+            .badge-status.secondary {
+                background: rgba(100, 116, 139, 0.15);
+                color: #64748b;
+            }
+
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+            .btn-primary-gradient:disabled {
+                opacity: 0.6;
+                transform: none;
+                box-shadow: none;
+            }
+
+        .table > :not(caption) > * > * {
+            padding: 1rem 0.75rem;
+        }
+
+        /* Timeline Styles */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+            .timeline::before {
+                content: '';
+                position: absolute;
+                left: 8px;
+                top: 5px;
+                bottom: 5px;
+                width: 2px;
+                background: var(--border-color, #e2e8f0);
+            }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.25rem;
+        }
+
+            .timeline-item:last-child {
+                padding-bottom: 0;
+            }
+
+        .timeline-marker {
+            position: absolute;
+            left: -26px;
+            top: 3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px var(--border-color, #e2e8f0);
+        }
+
+        .timeline-content h6 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .timeline-content small {
+            font-size: 0.75rem;
+        }
+
+        /* Print Styles */
+        @@media print {
+            .sidebar, .main-header, .btn, form, .modal, .page-header > div:last-child {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .col-lg-4 {
+                display: none !important;
+            }
+
+            .col-lg-8 {
+                width: 100% !important;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var statusSelect = document.getElementById('statusSelect');
+            var updateBtn = document.getElementById('updateStatusBtn');
+
+            if (statusSelect && updateBtn) {
+                statusSelect.addEventListener('change', function() {
+                    var selectedOption = this.options[this.selectedIndex];
+                    // Eğer seçilen option disabled değilse ve mevcut değilse butonu aktif et
+                    if (!selectedOption.disabled && !selectedOption.textContent.includes('Mevcut')) {
+                        updateBtn.disabled = false;
+                    } else {
+                        updateBtn.disabled = true;
+                    }
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,790 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Employee.EmployeeListViewModel
+@{
+    ViewData["Title"] = "Çalışanlar";
+
+    var groupColors = new Dictionary<string, string>
+    {
+        { "Company", "primary" },
+        { "Category", "info" },
+        { "Product", "success" },
+        { "Order", "warning" },
+        { "Brand", "secondary" },
+        { "Banner", "info" },
+        { "Review", "warning" },
+        { "Customer", "primary" },
+        { "Employee", "danger" }
+    };
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="page-title">Çalışan Yönetimi</h1>
+        <p class="page-subtitle mb-0">Ekibinizi yönetin ve yetkilendirin</p>
+    </div>
+    <button type="button" class="btn btn-primary-gradient" data-bs-toggle="modal" data-bs-target="#inviteModal">
+        <i class="fas fa-user-plus me-2"></i>Yeni Çalışan Davet Et
+    </button>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                <div class="stat-value mt-3">@Model.Employees.Count</div>
+                <div class="stat-label">Toplam Çalışan</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="stat-icon success"><i class="fas fa-user-tie"></i></div>
+                <div class="stat-value mt-3">@Model.Employees.Count(e => e.Roles.Contains("Manager"))</div>
+                <div class="stat-label">Yönetici</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="stat-icon warning"><i class="fas fa-user-cog"></i></div>
+                <div class="stat-value mt-3">@Model.Employees.Count(e => e.Roles.Contains("Employee"))</div>
+                <div class="stat-label">Çalışan</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="stat-icon danger"><i class="fas fa-key"></i></div>
+                <div class="stat-value mt-3">@Model.PermissionGroups.Sum(g => g.Permissions.Count)</div>
+                <div class="stat-label">Toplam Yetki</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employees Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Çalışan Listesi
+        </h5>
+        <div class="input-group" style="width: 250px;">
+            <span class="input-group-text bg-transparent border-end-0">
+                <i class="fas fa-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" id="searchEmployee"
+                   placeholder="Ara..." style="border-radius: 0 10px 10px 0;">
+        </div>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Employees.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="employeesTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Çalışan</th>
+                            <th>Email</th>
+                            <th>Roller</th>
+                            <th>Özel Yetkiler</th>
+                            <th class="text-end pe-4">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var employee in Model.Employees)
+                        {
+                            var initials = $"{employee.FirstName.FirstOrDefault()}{employee.LastName.FirstOrDefault()}".ToUpper();
+                            <tr data-user-id="@employee.UserId"
+                                data-user-name="@employee.FirstName @employee.LastName"
+                                data-permissions="@string.Join(",", employee.Permissions)">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-circle">
+                                            <span>@initials</span>
+                                        </div>
+                                        <div class="fw-semibold">@employee.FirstName @employee.LastName</div>
+                                    </div>
+                                </td>
+                                <td class="text-muted">@employee.Email</td>
+                                <td>
+                                    @foreach (var role in employee.Roles)
+                                    {
+                                        var badgeClass = role switch
+                                        {
+                                            "CompanyOwner" => "bg-danger",
+                                            "Manager" => "bg-primary",
+                                            "Accountant" => "bg-success",
+                                            _ => "bg-secondary"
+                                        };
+                                        <span class="badge @badgeClass me-1" style="border-radius: 6px;">@role</span>
+                                    }
+                                </td>
+                                <td class="permission-count-cell">
+                                    @if (employee.Permissions.Any())
+                                    {
+                                        <span class="badge bg-info" style="border-radius: 6px;">@employee.Permissions.Count yetki</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    @if (!employee.Roles.Contains("CompanyOwner"))
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                style="border-radius: 8px;" onclick="openPermissionModal(this)">
+                                            <i class="fas fa-key me-1"></i>Yetkiler
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge" style="border-radius: 6px; background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                                            <i class="fas fa-crown me-1"></i>Şirket Sahibi
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3 opacity-50"></i>
+                <h5 class="text-muted">Henüz çalışan yok</h5>
+                <p class="text-muted mb-4">Ekibinize ilk çalışanı davet edin.</p>
+                <button type="button" class="btn btn-primary-gradient" data-bs-toggle="modal" data-bs-target="#inviteModal">
+                    <i class="fas fa-user-plus me-2"></i>Çalışan Davet Et
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ==================== INVITE MODAL ==================== -->
+<div class="modal fade" id="inviteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="modal-icon primary">
+                        <i class="fas fa-user-plus text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title mb-0">Yeni Çalışan Davet Et</h5>
+                        <small class="text-muted">Email ile davet gönderin</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <form id="inviteForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Email Adresi</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="border-radius: 10px 0 0 10px; background: var(--bs-tertiary-bg);">
+                                <i class="fas fa-envelope" style="color: var(--bs-secondary-color);"></i>
+                            </span>
+                            <input type="email" class="form-control" id="inviteEmail"
+                                   placeholder="ornek@email.com" required style="border-radius: 0 10px 10px 0;">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Rol</label>
+                        <select class="form-select" id="inviteRole" required style="border-radius: 10px;">
+                            <option value="">Rol seçiniz...</option>
+                            @foreach (var role in Model.AvailableRoles)
+                            {
+                                <option value="@role.Code">@role.Label</option>
+                            }
+                        </select>
+                        <small class="text-muted mt-1 d-block">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Seçilen rol, kullanıcının temel yetkilerini belirler. Ek yetkiler sonradan verilebilir.
+                        </small>
+                    </div>
+                    <div class="alert alert-info d-flex gap-2" style="border-radius: 10px;">
+                        <i class="fas fa-info-circle mt-1"></i>
+                        <small>Davet linki içeren bir email gönderilecektir. Kullanıcı linke tıklayarak kayıt olabilir veya mevcut hesabıyla giriş yapabilir.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    İptal
+                </button>
+                <button type="button" class="btn btn-primary-gradient" id="sendInviteBtn" onclick="sendInvitation()">
+                    <span class="btn-text"><i class="fas fa-paper-plane me-2"></i>Davet Gönder</span>
+                    <span class="btn-loading d-none">
+                        <span class="spinner-border spinner-border-sm me-2"></span>Gönderiliyor...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ==================== PERMISSION MODAL ==================== -->
+<div class="modal fade" id="permissionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="modal-icon warning">
+                        <i class="fas fa-key text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title mb-0">Yetki Yönetimi</h5>
+                        <small class="text-muted" id="permissionEmployeeName"></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <input type="hidden" id="permissionUserId" />
+
+                <!-- Hızlı İşlemler -->
+                <div class="d-flex gap-2 mb-4">
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="selectAllPermissions()">
+                        <i class="fas fa-check-double me-1"></i>Tümünü Seç
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deselectAllPermissions()">
+                        <i class="fas fa-times me-1"></i>Tümünü Kaldır
+                    </button>
+                </div>
+
+                <!-- Permission Grupları -->
+                <div class="row g-3">
+                    @foreach (var group in Model.PermissionGroups)
+                    {
+                        var color = groupColors.TryGetValue(group.GroupName, out var c) ? c : "secondary";
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 permission-group-card" style="border-radius: 12px;">
+                                <div class="card-header bg-light py-2 d-flex align-items-center gap-2">
+                                    <i class="fas @group.GroupIcon text-@color"></i>
+                                    <h6 class="mb-0 fw-semibold">@group.GroupLabel</h6>
+                                    <span class="badge bg-@color ms-auto" style="border-radius: 6px;">@group.Permissions.Count</span>
+                                </div>
+                                <div class="card-body py-2">
+                                    @foreach (var permission in group.Permissions)
+                                    {
+                                        var permissionId = permission.Code.Replace(".", "_");
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input permission-checkbox" type="checkbox"
+                                                   id="perm_@permissionId" data-permission="@permission.Code">
+                                            <label class="form-check-label small" for="perm_@permissionId">
+                                                @permission.Label
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Değişiklik Özeti -->
+                <div id="changesPreview" class="alert alert-warning mt-4 d-none" style="border-radius: 10px;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Bekleyen Değişiklikler</strong>
+                    </div>
+                    <div id="changesContent" class="small"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                    İptal
+                </button>
+                <button type="button" class="btn btn-primary-gradient" id="savePermissionsBtn" onclick="savePermissions()">
+                    <span class="btn-text"><i class="fas fa-save me-2"></i>Değişiklikleri Kaydet</span>
+                    <span class="btn-loading d-none">
+                        <span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .stat-card .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.primary {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        .stat-icon.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .stat-icon.warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        .stat-icon.danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .stat-card .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-icon.primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .modal-icon.warning {
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            }
+
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .permission-group-card {
+            transition: all 0.2s ease;
+        }
+
+            .permission-group-card:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+        .form-check-input {
+            width: 1.1em;
+            height: 1.1em;
+            cursor: pointer;
+        }
+
+            .form-check-input:checked {
+                background-color: #667eea;
+                border-color: #667eea;
+            }
+
+        .form-check-label {
+            cursor: pointer;
+        }
+
+        .permission-checkbox.changed {
+            outline: 2px solid #f59e0b;
+            outline-offset: 2px;
+        }
+
+        .table > :not(caption) > * > * {
+            padding: 1rem 0.75rem;
+        }
+
+        .badge-owner {
+            border-radius: 6px;
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            font-weight: 500;
+            padding: 0.35rem 0.65rem;
+        }
+
+        /* Dark mode desteği */
+        [data-bs-theme="dark"] .badge-owner {
+            background: rgba(245, 158, 11, 0.25);
+            color: #fbbf24;
+        }
+
+        /* Input Group Custom (Modal için) */
+        .input-group-custom .input-group-text {
+            background: var(--bs-tertiary-bg);
+            border: 1px solid var(--bs-border-color);
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            color: var(--bs-secondary-color);
+        }
+
+        .input-group-custom .form-control {
+            border-radius: 0 10px 10px 0;
+            border-left: none;
+        }
+
+            .input-group-custom .form-control:focus {
+                border-color: var(--bs-border-color);
+                box-shadow: none;
+            }
+
+        .input-group-custom:focus-within .input-group-text {
+            border-color: #667eea;
+        }
+
+        .input-group-custom:focus-within .form-control {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        /* Modal Content - Dark Mode */
+        [data-bs-theme="dark"] .modal-content {
+            background: var(--bs-body-bg);
+        }
+
+        /* Stat Icons */
+        .stat-card .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.primary {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        .stat-icon.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .stat-icon.warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        .stat-icon.danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .stat-card .stat-label {
+            color: var(--bs-secondary-color);
+            font-size: 0.875rem;
+        }
+
+        /* Avatar */
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        /* Modal Icon */
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-icon.primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .modal-icon.warning {
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            }
+
+        /* Primary Gradient Button */
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        /* Permission Cards */
+        .permission-group-card {
+            transition: all 0.2s ease;
+        }
+
+            .permission-group-card:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+        .form-check-input {
+            width: 1.1em;
+            height: 1.1em;
+            cursor: pointer;
+        }
+
+            .form-check-input:checked {
+                background-color: #667eea;
+                border-color: #667eea;
+            }
+
+        .form-check-label {
+            cursor: pointer;
+        }
+
+        .permission-checkbox.changed {
+            outline: 2px solid #f59e0b;
+            outline-offset: 2px;
+        }
+
+        /* Table */
+        .table > :not(caption) > * > * {
+            padding: 1rem 0.75rem;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        var currentUserId = null;
+        var currentRow = null;
+        var originalPermissions = [];
+
+        // ==================== SEARCH ====================
+        $('#searchEmployee').on('input', function () {
+            var text = $(this).val().toLowerCase();
+            $('#employeesTable tbody tr').each(function () {
+                var name = $(this).find('td:first').text().toLowerCase();
+                var email = $(this).find('td:eq(1)').text().toLowerCase();
+                $(this).toggle(name.includes(text) || email.includes(text));
+            });
+        });
+
+        // ==================== INVITE ====================
+        function sendInvitation() {
+            var email = $('#inviteEmail').val().trim();
+            var role = $('#inviteRole').val();
+
+            if (!email || !role) {
+                toastr.error('Lütfen tüm alanları doldurunuz.');
+                return;
+            }
+
+            toggleBtn('#sendInviteBtn', true);
+
+            $.ajax({
+                url: '@Url.Action("Invite", "Employee")',
+                type: 'POST',
+                contentType: 'application/json',
+                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                data: JSON.stringify({ email: email, role: role }),
+                success: function (res) {
+                    res.success ? toastr.success(res.message) : toastr.error(res.message);
+                    if (res.success) {
+                        $('#inviteModal').modal('hide');
+                        $('#inviteForm')[0].reset();
+                    }
+                },
+                error: function () { toastr.error('Bir hata oluştu.'); },
+                complete: function () { toggleBtn('#sendInviteBtn', false); }
+            });
+        }
+
+        // ==================== PERMISSION MODAL ====================
+        function openPermissionModal(button) {
+            currentRow = $(button).closest('tr');
+            currentUserId = currentRow.data('user-id');
+            var permsStr = currentRow.data('permissions') || '';
+            originalPermissions = permsStr ? permsStr.toString().split(',').filter(p => p) : [];
+
+            $('#permissionEmployeeName').text(currentRow.data('user-name'));
+            $('#permissionUserId').val(currentUserId);
+
+            // Reset
+            $('.permission-checkbox').prop('checked', false).removeClass('changed');
+            originalPermissions.forEach(function (p) {
+                $('#perm_' + p.replace(/\./g, '_')).prop('checked', true);
+            });
+
+            $('#changesPreview').addClass('d-none');
+            $('#permissionModal').modal('show');
+        }
+
+        // Checkbox değişiklik takibi
+        $(document).on('change', '.permission-checkbox', updateChangesPreview);
+
+        function updateChangesPreview() {
+            var changes = getChanges();
+            var $preview = $('#changesPreview');
+
+            if (changes.length === 0) {
+                $preview.addClass('d-none');
+                $('.permission-checkbox').removeClass('changed');
+                return;
+            }
+
+            var html = '<ul class="mb-0 ps-3">';
+            changes.forEach(function (c) {
+                var icon = c.isGranted ? '✅' : '❌';
+                var action = c.isGranted ? 'Verilecek' : 'Alınacak';
+                html += '<li>' + icon + ' <strong>' + c.permission + '</strong> - ' + action + '</li>';
+            });
+            html += '</ul>';
+
+            $('#changesContent').html(html);
+            $preview.removeClass('d-none');
+
+            // Changed işareti
+            $('.permission-checkbox').removeClass('changed');
+            changes.forEach(function (c) {
+                $('#perm_' + c.permission.replace(/\./g, '_')).addClass('changed');
+            });
+        }
+
+        function getChanges() {
+            var changes = [];
+            $('.permission-checkbox').each(function () {
+                var perm = $(this).data('permission');
+                var isChecked = $(this).is(':checked');
+                var wasChecked = originalPermissions.includes(perm);
+                if (isChecked !== wasChecked) {
+                    changes.push({ permission: perm, isGranted: isChecked });
+                }
+            });
+            return changes;
+        }
+
+        function selectAllPermissions() {
+            $('.permission-checkbox').prop('checked', true);
+            updateChangesPreview();
+        }
+
+        function deselectAllPermissions() {
+            $('.permission-checkbox').prop('checked', false);
+            updateChangesPreview();
+        }
+
+        // ==================== SAVE ====================
+        function savePermissions() {
+            var changes = getChanges();
+
+            if (changes.length === 0) {
+                toastr.info('Değişiklik yapılmadı.');
+                return;
+            }
+
+            toggleBtn('#savePermissionsBtn', true);
+
+            $.ajax({
+                url: '@Url.Action("UpdatePermissions", "Employee")',
+                type: 'POST',
+                contentType: 'application/json',
+                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                data: JSON.stringify({ userId: currentUserId, changes: changes }),
+                success: function (res) {
+                    if (res.success) {
+                        toastr.success(res.message);
+
+                        // Yeni permission listesi
+                        var newPerms = [];
+                        $('.permission-checkbox:checked').each(function () {
+                            newPerms.push($(this).data('permission'));
+                        });
+
+                        // Row güncelle
+                        currentRow.data('permissions', newPerms.join(','));
+                        var badge = currentRow.find('.permission-count-cell');
+                        badge.html(newPerms.length > 0
+                            ? '<span class="badge bg-info" style="border-radius:6px">' + newPerms.length + ' yetki</span>'
+                            : '<span class="text-muted small">-</span>');
+
+                        originalPermissions = newPerms;
+                        $('#permissionModal').modal('hide');
+                    } else {
+                        toastr.error(res.message);
+                        if (res.errors) res.errors.forEach(e => toastr.warning(e));
+                    }
+                },
+                error: function () { toastr.error('Bir hata oluştu.'); },
+                complete: function () { toggleBtn('#savePermissionsBtn', false); }
+            });
+        }
+
+        // Modal kapanırken uyarı
+        $('#permissionModal').on('hide.bs.modal', function (e) {
+            if (getChanges().length > 0 && !confirm('Kaydedilmemiş değişiklikler var. Çıkmak istiyor musunuz?')) {
+                e.preventDefault();
+            }
+        });
+
+        // ==================== HELPER ====================
+        function toggleBtn(selector, loading) {
+            var $btn = $(selector);
+            $btn.find('.btn-text').toggleClass('d-none', loading);
+            $btn.find('.btn-loading').toggleClass('d-none', !loading);
+            $btn.prop('disabled', loading);
+        }
+    </script>
+
+    @Html.AntiForgeryToken()
+}

@@ -1,0 +1,753 @@
+﻿@model ECommercePlatform.MvcAdmin.Models.Reviews.AllReviewsViewModel
+
+@{
+    ViewData["Title"] = "Tüm Yorumlar";
+    var reviews = Model.Reviews;
+}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active">Yorumlar</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">
+            <i class="fas fa-star me-2 text-warning"></i>Yorum Yönetimi
+        </h1>
+        <p class="page-subtitle mb-0">Tüm müşteri yorumlarını görüntüleyin, onaylayın veya yönetin</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="stat-value mb-0">@Model.TotalCount</h3>
+                        <span class="stat-label">Toplam Yorum</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="stat-value mb-0">@Model.ApprovedCount</h3>
+                        <span class="stat-label">Onaylı</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="stat-value mb-0">@Model.PendingCount</h3>
+                        <span class="stat-label">Bekleyen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon danger">
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="stat-value mb-0">@Model.AverageRating.ToString("0.0")</h3>
+                        <span class="stat-label">Ort. Puan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Card -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="All" id="filterForm">
+            <div class="row g-3 align-items-end">
+                <!-- Search -->
+                <div class="col-12 col-md-4 col-lg-3">
+                    <label class="form-label small fw-semibold">
+                        <i class="fas fa-search me-1 text-muted"></i>Arama
+                    </label>
+                    <input type="text"
+                           name="searchTerm"
+                           value="@Model.SearchTerm"
+                           class="form-control"
+                           placeholder="Müşteri, ürün veya yorum ara..."
+                           style="border-radius: 10px;" />
+                </div>
+
+                <!-- Approval Status -->
+                <div class="col-6 col-md-4 col-lg-2">
+                    <label class="form-label small fw-semibold">
+                        <i class="fas fa-filter me-1 text-muted"></i>Onay Durumu
+                    </label>
+                    <select name="isApproved" class="form-select" style="border-radius: 10px;">
+                        <option value="">Tümü</option>
+                        @if (Model.IsApproved == true)
+                        {
+                            <option value="true" selected>Onaylı</option>
+                        }
+                        else
+                        {
+                            <option value="true">Onaylı</option>
+                        }
+                        @if (Model.IsApproved == false)
+                        {
+                            <option value="false" selected>Bekleyen</option>
+                        }
+                        else
+                        {
+                            <option value="false">Bekleyen</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Min Rating -->
+                <div class="col-6 col-md-2 col-lg-1">
+                    <label class="form-label small fw-semibold">Min Puan</label>
+                    <select name="minRating" class="form-select" style="border-radius: 10px;">
+                        <option value="">-</option>
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            var isSelectedMin = Model.MinRating == i;
+                            if (isSelectedMin)
+                            {
+                                <option value="@i" selected>@i ★</option>
+                            }
+                            else
+                            {
+                                <option value="@i">@i ★</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Max Rating -->
+                <div class="col-6 col-md-2 col-lg-1">
+                    <label class="form-label small fw-semibold">Max Puan</label>
+                    <select name="maxRating" class="form-select" style="border-radius: 10px;">
+                        <option value="">-</option>
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            var isSelectedMax = Model.MaxRating == i;
+                            if (isSelectedMax)
+                            {
+                                <option value="@i" selected>@i ★</option>
+                            }
+                            else
+                            {
+                                <option value="@i">@i ★</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Sort By -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label class="form-label small fw-semibold">
+                        <i class="fas fa-sort me-1 text-muted"></i>Sıralama
+                    </label>
+                    <select name="sortBy" class="form-select" style="border-radius: 10px;">
+                        @{
+                            var sortOptions = new[] {
+                                                ("CreatedAt", "Tarih"),
+                                                ("Rating", "Puan"),
+                                                ("CustomerName", "Müşteri"),
+                                                ("ProductName", "Ürün")
+                                                };
+                        }
+                        @foreach (var (value, text) in sortOptions)
+                        {
+                            var isSelectedSort = Model.SortBy == value;
+                            if (isSelectedSort)
+                            {
+                                <option value="@value" selected>@text</option>
+                            }
+                            else
+                            {
+                                <option value="@value">@text</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Sort Direction -->
+                <div class="col-6 col-md-2 col-lg-1">
+                    <label class="form-label small fw-semibold">Yön</label>
+                    <select name="sortDescending" class="form-select" style="border-radius: 10px;">
+                        @if (Model.SortDescending)
+                        {
+                            <option value="true" selected>Azalan</option>
+                            <option value="false">Artan</option>
+                        }
+                        else
+                        {
+                            <option value="true">Azalan</option>
+                            <option value="false" selected>Artan</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-12 col-lg-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1" style="border-radius: 10px;">
+                            <i class="fas fa-filter me-1"></i>Filtrele
+                        </button>
+                        <a asp-action="All" class="btn btn-outline-secondary" style="border-radius: 10px;" title="Filtreleri Temizle">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reviews List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Yorum Listesi
+        </h5>
+        <span class="badge bg-primary rounded-pill">@reviews.TotalCount yorum</span>
+    </div>
+    <div class="card-body p-0">
+        @if (reviews.Items != null && reviews.Items.Any())
+        {
+            <div class="review-list">
+                @foreach (var review in reviews.Items)
+                {
+                    var initials = !string.IsNullOrEmpty(review.CustomerName)
+                    ? string.Join("", review.CustomerName.Split(' ').Take(2).Select(x => x.FirstOrDefault())).ToUpper()
+                    : "??";
+
+                    <div class="review-item p-4 border-bottom">
+                        <div class="d-flex gap-3">
+                            <!-- Avatar -->
+                            <div class="flex-shrink-0">
+                                <div class="avatar rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <span class="text-white fw-bold">@initials</span>
+                                </div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                            <h6 class="mb-0 fw-semibold">@review.CustomerName</h6>
+
+                                            <!-- Approval Badge -->
+                                            @if (review.IsApproved)
+                                            {
+                                                <span class="badge bg-success-subtle text-success" style="border-radius: 6px;">
+                                                    <i class="fas fa-check-circle me-1"></i>Onaylı
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning" style="border-radius: 6px;">
+                                                    <i class="fas fa-clock me-1"></i>Bekliyor
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <!-- Product Link -->
+                                        @if (!string.IsNullOrEmpty(review.ProductName))
+                                        {
+                                            <div class="mb-2">
+                                                <a asp-controller="Review" asp-action="Index"
+                                                   asp-route-productId="@review.ProductId"
+                                                   asp-route-productName="@review.ProductName"
+                                                   class="text-decoration-none small">
+                                                    <i class="fas fa-box me-1 text-muted"></i>
+                                                    <span class="text-primary">@review.ProductName</span>
+                                                </a>
+                                            </div>
+                                        }
+
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <!-- Rating Stars -->
+                                            <div class="rating-stars">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= review.Rating)
+                                                    {
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star text-muted"></i>
+                                                    }
+                                                }
+                                            </div>
+                                            <span class="badge bg-warning-subtle text-warning" style="border-radius: 8px;">
+                                                @review.Rating/5
+                                            </span>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                @review.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary action-btn"
+                                                style="border-radius: 8px; width: 36px; height: 36px;"
+                                                title="Yanıtla"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#replyModal"
+                                                onclick="setReplyData('@review.Id', '@review.CustomerName', '@review.ProductId', '@review.ProductName')">
+                                            <i class="fas fa-reply"></i>
+                                        </button>
+
+                                        @if (!review.IsApproved)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-success action-btn"
+                                                    style="border-radius: 8px; width: 36px; height: 36px;"
+                                                    title="Onayla"
+                                                    onclick="confirmApprove('@review.Id')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-warning action-btn"
+                                                    style="border-radius: 8px; width: 36px; height: 36px;"
+                                                    title="Onayı Kaldır"
+                                                    onclick="confirmReject('@review.Id')">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        }
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger action-btn"
+                                                style="border-radius: 8px; width: 36px; height: 36px;"
+                                                title="Sil"
+                                                onclick="confirmDelete('@review.Id')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Comment -->
+                                <div class="review-comment p-3 rounded-3 mb-3">
+                                    <p class="mb-0">@review.Comment</p>
+                                </div>
+
+                                <!-- Seller Reply -->
+                                @if (!string.IsNullOrEmpty(review.SellerReply))
+                                {
+                                    <div class="seller-reply ms-4 p-3 rounded-3">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <i class="fas fa-store text-primary"></i>
+                                            <strong class="text-primary">Satıcı Yanıtı</strong>
+                                            @if (review.SellerRepliedAt.HasValue)
+                                            {
+                                                <small class="text-muted">- @review.SellerRepliedAt.Value.ToString("dd MMM yyyy HH:mm")</small>
+                                            }
+                                        </div>
+                                        <p class="mb-0">@review.SellerReply</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (reviews.TotalPages > 1)
+            {
+                <div class="card-footer bg-transparent border-top">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="text-muted small">
+                            Toplam <strong>@reviews.TotalCount</strong> yorumdan
+                            <strong>@((reviews.PageNumber - 1) * reviews.PageSize + 1)</strong> -
+                            <strong>@Math.Min(reviews.PageNumber * reviews.PageSize, reviews.TotalCount)</strong> arası gösteriliyor
+                        </div>
+                        <nav aria-label="Sayfalama">
+                            <ul class="pagination pagination-sm mb-0">
+                                @if (reviews.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="All"
+                                           asp-route-page="@(reviews.PageNumber - 1)"
+                                           asp-route-isApproved="@Model.IsApproved"
+                                           asp-route-minRating="@Model.MinRating"
+                                           asp-route-maxRating="@Model.MaxRating"
+                                           asp-route-searchTerm="@Model.SearchTerm"
+                                           asp-route-sortBy="@Model.SortBy"
+                                           asp-route-sortDescending="@Model.SortDescending"
+                                           style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 8px 0 0 8px;">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </span>
+                                    </li>
+                                }
+
+                                @{
+                                    var startPage = Math.Max(1, reviews.PageNumber - 2);
+                                    var endPage = Math.Min(reviews.TotalPages, reviews.PageNumber + 2);
+                                }
+
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    var pageNum = i;
+                                    if (pageNum == reviews.PageNumber)
+                                    {
+                                        <li class="page-item active">
+                                            <span class="page-link">@pageNum</span>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="All"
+                                               asp-route-page="@pageNum"
+                                               asp-route-isApproved="@Model.IsApproved"
+                                               asp-route-minRating="@Model.MinRating"
+                                               asp-route-maxRating="@Model.MaxRating"
+                                               asp-route-searchTerm="@Model.SearchTerm"
+                                               asp-route-sortBy="@Model.SortBy"
+                                               asp-route-sortDescending="@Model.SortDescending">
+                                                @pageNum
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
+                                @if (reviews.HasNextPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           asp-action="All"
+                                           asp-route-page="@(reviews.PageNumber + 1)"
+                                           asp-route-isApproved="@Model.IsApproved"
+                                           asp-route-minRating="@Model.MinRating"
+                                           asp-route-maxRating="@Model.MaxRating"
+                                           asp-route-searchTerm="@Model.SearchTerm"
+                                           asp-route-sortBy="@Model.SortBy"
+                                           asp-route-sortDescending="@Model.SortDescending"
+                                           style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link" style="border-radius: 0 8px 8px 0;">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-comments fa-4x text-muted opacity-50"></i>
+                </div>
+                <h5 class="text-muted">Yorum Bulunamadı</h5>
+                <p class="text-muted mb-0">
+                    @if (Model.IsApproved.HasValue || Model.MinRating.HasValue || !string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span>Filtrelere uygun yorum bulunamadı. <a asp-action="All">Filtreleri temizleyin</a></span>
+                    }
+                    else
+                    {
+                        <span>Henüz hiç yorum yapılmamış.</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="replyModalLabel">
+                    <i class="fas fa-reply text-primary me-2"></i>Yoruma Yanıt Ver
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <form method="post" asp-action="Reply">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ReviewId" id="replyReviewId" />
+                <input type="hidden" name="ProductId" id="replyProductId" />
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        <strong id="replyCustomerName"></strong> adlı müşterinin yorumuna yanıt veriyorsunuz.
+                    </p>
+                    <div class="mb-3">
+                        <label for="replyText" class="form-label fw-semibold">Yanıtınız</label>
+                        <textarea id="replyText"
+                                  name="Reply"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Yanıtınızı yazın..."
+                                  required
+                                  minlength="10"
+                                  maxlength="1000"
+                                  style="border-radius: 10px;"></textarea>
+                        <small class="text-muted">Minimum 10, maksimum 1000 karakter</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary-gradient">
+                        <i class="fas fa-paper-plane me-2"></i>Yanıtı Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Forms for Actions -->
+<form id="approveForm" method="post" asp-action="Approve" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="approveId" />
+    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+</form>
+
+<form id="rejectForm" method="post" asp-action="Reject" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="rejectId" />
+    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+</form>
+
+<form id="deleteForm" method="post" asp-action="Delete" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="deleteId" />
+    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+</form>
+
+@section Styles {
+    <style>
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+        }
+
+            .btn-primary-gradient:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .review-item {
+            transition: all 0.2s ease;
+        }
+
+            .review-item:hover {
+                background: rgba(102, 126, 234, 0.03);
+            }
+
+            .review-item:last-child {
+                border-bottom: none !important;
+            }
+
+        .rating-stars {
+            font-size: 0.9rem;
+        }
+
+            .rating-stars i {
+                margin-right: 2px;
+            }
+
+        .review-comment {
+            background: var(--body-bg);
+            border-left: 3px solid var(--border-color);
+        }
+
+        .seller-reply {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667eea;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pagination .page-link {
+            border: 1px solid var(--border-color);
+            margin: 0 2px;
+            color: var(--text-secondary);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* Dark mode adjustments */
+        [data-bs-theme="dark"] .review-comment {
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: #334155;
+        }
+
+        [data-bs-theme="dark"] .seller-reply {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        [data-bs-theme="dark"] .modal-content {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        [data-bs-theme="dark"] .bg-success-subtle {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+        }
+
+        [data-bs-theme="dark"] .bg-warning-subtle {
+            background-color: rgba(245, 158, 11, 0.15) !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function setReplyData(reviewId, customerName, productId, productName) {
+            document.getElementById('replyReviewId').value = reviewId;
+            document.getElementById('replyProductId').value = productId || '';
+            document.getElementById('replyCustomerName').textContent = customerName;
+            document.getElementById('replyText').value = '';
+        }
+
+        function confirmApprove(id) {
+            Swal.fire({
+                title: 'Yorumu Onayla',
+                text: 'Bu yorumu onaylamak istediğinize emin misiniz? Yorum yayına alınacaktır.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-check me-2"></i>Onayla',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-success px-4',
+                    cancelButton: 'btn btn-secondary px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('approveId').value = id;
+                    document.getElementById('approveForm').submit();
+                }
+            });
+        }
+
+        function confirmReject(id) {
+            Swal.fire({
+                title: 'Onayı Kaldır',
+                text: 'Bu yorumun onayını kaldırmak istediğinize emin misiniz? Yorum yayından kaldırılacaktır.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-ban me-2"></i>Onayı Kaldır',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-warning px-4',
+                    cancelButton: 'btn btn-secondary px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('rejectId').value = id;
+                    document.getElementById('rejectForm').submit();
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Yorumu Sil',
+                text: 'Bu yorumu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>Sil',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-danger px-4',
+                    cancelButton: 'btn btn-secondary px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteId').value = id;
+                    document.getElementById('deleteForm').submit();
+                }
+            });
+        }
+    </script>
+}
