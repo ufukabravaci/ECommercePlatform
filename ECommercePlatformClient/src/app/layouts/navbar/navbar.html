@@ -8,7 +8,7 @@
             <i class="bi bi-bag-heart-fill"></i>
           </div>
           <span class="brand-text">
-            <span class="brand-name">Flavour</span>
+            <span class="brand-name">TellSell</span>
             <span class="brand-tagline">Premium Store</span>
           </span>
         </a>
@@ -36,6 +36,7 @@
             <i class="bi bi-search"></i>
           </button>
 
+
           <!-- Wishlist -->
           <a routerLink="/account/wishlist" class="action-btn d-none d-md-flex" title="Favoriler">
             <i class="bi bi-heart"></i>
@@ -43,10 +44,14 @@
           </a>
 
           <!-- Cart -->
-          <a routerLink="/cart" class="action-btn cart-btn" title="Sepet">
-            <i class="bi bi-bag"></i>
-            <span class="action-badge">0</span>
-          </a>
+          @if (isAuthenticated()) {
+            <a routerLink="/cart" class="action-btn cart-btn" title="Sepetim">
+              <i class="bi bi-bag"></i>
+              @if (cartItemCount() > 0) {
+                <span class="action-badge">{{ cartItemCount() }}</span>
+              }
+            </a>
+          }
 
           <!-- User -->
           @if (isAuthenticated()) {

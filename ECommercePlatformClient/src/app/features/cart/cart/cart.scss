@@ -1,44 +1,440 @@
+// ==========================================
+// SHOPPING CART PAGE - FINAL CLEAN
+// ==========================================
+
+// ==========================================
+// SHOPPING CART PAGE - DARK THEME
+// ==========================================
+
 .cart-page {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--color-bg-secondary); // product-list referansı
+  position: relative;
+  padding-bottom: 4rem;
+  overflow: hidden;
+
+  // GLOW GRADIENT
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(129, 140, 248, 0.10), transparent 55%),
+      radial-gradient(circle at 88% 22%, rgba(34, 211, 238, 0.06), transparent 60%);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  // Divider temizliği
+  .border-bottom { border-bottom: none !important; }
 }
 
-.empty-cart {
-  .empty-icon i {
-    font-size: 6rem;
-    color: #dee2e6;
+// ... (Geri kalan cart stilleri aynı kalacak) ...
+
+
+/* ==========================================
+   HEADER
+   ========================================== */
+.page-header {
+  background: transparent;
+  padding: 1.5rem 0;
+  border: none !important; // Kesin çözüm
+  margin-bottom: 1rem;
+}
+
+.cart-title {
+  color: white;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.cart-breadcrumb .breadcrumb {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-gray-500);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition-fast);
+
+  &:hover { color: var(--color-primary); }
+}
+
+.cart-header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+}
+
+/* Meta Info */
+.cart-header-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--color-gray-500);
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    
+    i { color: var(--color-success); font-size: 1rem; }
+  }
+
+  .meta-separator {
+    width: 1px;
+    height: 16px;
+    background: var(--color-border);
+    opacity: 0.4;
   }
 }
 
-.cart-item {
-  transition: background-color 0.15s ease;
+/* ==========================================
+   CART CARD & LAYOUT
+   ========================================== */
+.cart-card,
+.cart-summary {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.05); 
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* Card Header - Çizgisiz */
+.cart-card-header {
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cart-section-title {
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.cart-badge {
+  background: rgba(129, 140, 248, 0.1);
+  color: var(--color-primary-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.85rem;
+  border: 1px solid rgba(129, 140, 248, 0.15);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Temizle Butonu */
+.cart-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-500);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
 
   &:hover {
-    background-color: #f8f9fa;
+    color: var(--color-danger);
+    background: rgba(248, 113, 113, 0.08);
+  }
+}
+
+/* ==========================================
+   CART ITEMS
+   ========================================== */
+.cart-items-wrapper {
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* Ürünler arası boşluk */
+}
+
+/* Ürün Kartı - Ayrık, Çizgisiz */
+.cart-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 1.25rem;
+  padding: 1rem;
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent; /* Varsayılan border yok */
+  transition: all var(--transition-base);
+
+  /* Hover efekti */
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
   }
 
-  &:last-child {
-    border-bottom: none !important;
+  @media (max-width: 768px) {
+    grid-template-columns: 70px 1fr;
+    gap: 1rem;
+    position: relative;
+  }
+}
+
+/* Image */
+.item-image {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-lg);
+  background: white; 
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
   }
 
-  .item-image {
-    width: 100px;
-    height: 100px;
-    flex-shrink: 0;
+  .no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-tertiary);
+    color: var(--color-gray-600);
+    font-size: 1.5rem;
+  }
+}
 
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+/* Details */
+.item-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
 
-    .no-image {
-      width: 100%;
-      height: 100%;
+.item-title {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+}
 
-      i {
-        font-size: 2rem;
-      }
-    }
+.item-price-mobile {
+  font-size: 0.9rem;
+  color: var(--color-primary-light);
+  font-weight: 600;
+}
+
+/* Controls Container */
+.item-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* ==========================================
+   BUTTONS (CLEAN GHOST STYLE)
+   ========================================== */
+
+/* Quantity Wrapper */
+.quantity-input {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-bg-primary); 
+  border-radius: var(--radius-full);
+  padding: 0.2rem 0.4rem;
+  gap: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  height: 34px;
+}
+
+/* (+/-) Butonları */
+.btn-ghost {
+  all: unset; /* Bootstrap reset */
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  i { font-size: 0.9rem; }
+}
+
+.quantity-value {
+  min-width: 1.5rem;
+  text-align: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Kaldır Butonu (Kırmızı Text) */
+.btn-remove {
+  all: unset; /* Bootstrap reset */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-lg);
+
+  i { font-size: 0.95rem; }
+
+  &:hover {
+    background: rgba(248, 113, 113, 0.1);
+    color: #fca5a5;
+  }
+}
+
+/* Desktop Price */
+.item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: right;
+}
+
+.item-price {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.01em;
+}
+
+.item-subtotal-label {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+/* ==========================================
+   SUMMARY CARD
+   ========================================== */
+.cart-summary {
+  position: sticky;
+  top: 100px;
+  padding: 1.5rem;
+}
+
+.summary-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  
+  h5 {
+    color: white;
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.125rem;
+  }
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+
+  .label { color: var(--color-gray-500); }
+  .value { color: white; font-weight: 500; }
+
+  &.total {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.5rem;
+    
+    .label { color: white; font-size: 1.125rem; font-weight: 700; }
+    .value { color: var(--color-primary); font-size: 1.5rem; font-weight: 800; }
+  }
+}
+
+.summary-secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  margin-top: 1rem;
+  
+  i { color: var(--color-success); }
+}
+
+/* ==========================================
+   EMPTY STATE
+   ========================================== */
+.empty-cart {
+  padding: 4rem 0;
+  text-align: center;
+  
+  .empty-icon-circle {
+    width: 120px;
+    height: 120px;
+    background: var(--color-bg-tertiary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    color: var(--color-gray-600);
+    font-size: 3rem;
+    box-shadow: 0 0 30px rgba(0,0,0,0.2);
   }
 }

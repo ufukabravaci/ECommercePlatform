@@ -1,1 +1,96 @@
-<p>orders works!</p>
+<div class="orders-container">
+  
+  <!-- Header -->
+  <div class="orders-header mb-4">
+    <h2 class="h4 mb-1 text-white">Sipariş Geçmişi</h2>
+    <p class="text-muted small">Geçmiş siparişlerinizi ve durumlarını buradan takip edebilirsiniz.</p>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="d-flex justify-content-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Yükleniyor...</span>
+      </div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div>{{ error() }}</div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && !hasOrders()) {
+    <div class="empty-state text-center py-5">
+      <div class="empty-icon-circle mx-auto mb-3">
+        <i class="bi bi-bag-x"></i>
+      </div>
+      <h3 class="h5 text-white">Henüz Siparişiniz Yok</h3>
+      <p class="text-muted mb-4">Sipariş verdiğinizde burada listelenecektir.</p>
+      <a routerLink="/products" class="btn btn-primary">
+        <i class="bi bi-cart-plus me-2"></i>Alışverişe Başla
+      </a>
+    </div>
+  }
+
+  <!-- Orders List -->
+  @if (!loading() && hasOrders()) {
+    <div class="orders-list mb-4"> <!-- mb-4 eklendi -->
+      @for (order of orders(); track order.id) {
+        <div class="order-card mb-3"> <!-- mb-3 ile kartlar arası boşluk -->
+          <div class="card-body">
+            
+            <!-- Top Row: Order No & Date -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <div class="order-number">
+                  <i class="bi bi-hash text-muted"></i>
+                  {{ order.orderNumber }}
+                </div>
+                <div class="order-date">
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ order.orderDate | date:'dd MMMM yyyy HH:mm':'':'tr' }}
+                </div>
+              </div>
+              
+              <span class="status-badge status-{{ getStatusClass(order.status) }}">
+                {{ getStatusLabel(order.status) }}
+              </span>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Bottom Row: Amount & Actions -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div class="order-summary">
+                <span class="item-count text-muted">{{ order.itemCount }} Ürün</span>
+                <span class="total-amount">
+                  {{ order.totalAmount | currency:'TRY':'symbol':'1.2-2':'tr' }}
+                </span>
+              </div>
+
+              <a [routerLink]="['/account/orders', order.orderNumber]" class="btn-detail-custom">
+                Detaylar
+                <i class="bi bi-chevron-right ms-1"></i>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination Component -->
+    <div class="pagination-wrapper mt-4">
+       <app-pagination
+         [pagination]="pagination()"
+         (pageChange)="onPageChange($event)">
+       </app-pagination>
+    </div>
+  }
+
+</div>

@@ -44,7 +44,7 @@ public sealed class GetDashboardStatsQueryHandler(
             .SelectMany(o => o.Items)
             .SumAsync(item => item.Price.Amount * item.Quantity, cancellationToken);
 
-        // Son 5 Sipariş (Mapster ProjectToType Kullanımı)
+        // Son 5 Sipariş
         var recentOrders = await ordersQuery
             .OrderByDescending(o => o.OrderDate)
             .Take(5)

@@ -33,6 +33,10 @@ public class CreateProductViewModel
     [Display(Name = "Kategori")]
     public Guid CategoryId { get; set; }
 
+    [Required(ErrorMessage = "Marka seçimi zorunludur.")]
+    [Display(Name = "Marka")]
+    public Guid BrandId { get; set; }
+
     [Display(Name = "Ürün Resimleri (Max 5)")]
     public List<IFormFile>? Files { get; set; }
 
@@ -42,4 +46,7 @@ public class CreateProductViewModel
 
     [ValidateNever]
     public List<SelectListItem>? CurrencyList { get; set; }
+
+    [ValidateNever]
+    public List<SelectListItem>? BrandList { get; set; }
 }

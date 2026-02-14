@@ -1,1 +1,62 @@
-<p>account works!</p>
+<div class="account-page">
+  <!-- Header Section -->
+  <div class="account-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="header-icon">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <h1 class="header-title">Hesabım</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+    <div class="row g-4">
+      
+      <!-- LEFT: Sidebar Menu -->
+      <div class="col-md-4 col-lg-3">
+        <div class="account-sidebar">
+          <div class="menu-list">
+            
+            <!-- Profilim (Default Route) -->
+            <!-- routerLinkActiveOptions: {exact: true} -> Sadece /account olduğunda aktif olsun -->
+            <a routerLink="/account/profile" 
+               class="menu-item" 
+               routerLinkActive="active" 
+               [routerLinkActiveOptions]="{exact: true}">
+              <span class="menu-icon"><i class="bi bi-person"></i></span>
+              <span class="menu-text">Profil Bilgilerim</span>
+              <i class="bi bi-chevron-right menu-arrow"></i>
+            </a>
+            
+            <!-- Siparişlerim -->
+            <a routerLink="/account/orders" 
+               class="menu-item" 
+               routerLinkActive="active">
+              <span class="menu-icon"><i class="bi bi-bag"></i></span>
+              <span class="menu-text">Siparişlerim</span>
+              <i class="bi bi-chevron-right menu-arrow"></i>
+            </a>
+            
+            <!-- Favorilerim -->
+            <a routerLink="/account/wishlist" 
+               class="menu-item" 
+               routerLinkActive="active">
+              <span class="menu-icon"><i class="bi bi-heart"></i></span>
+              <span class="menu-text">Favorilerim</span>
+              <i class="bi bi-chevron-right menu-arrow"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Dynamic Content Area -->
+      <div class="col-md-8 col-lg-9">
+        <!-- KRİTİK NOKTA: Child routelar buraya yüklenecek -->
+        <router-outlet></router-outlet>
+      </div>
+
+    </div>
+  </div>
+</div>

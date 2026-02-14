@@ -29,6 +29,7 @@ export class AuthService {
   // Public readonly signals
   readonly isAuthenticated = this._isAuthenticated.asReadonly();
   readonly currentUser = this._currentUser.asReadonly();
+  readonly currentUserId = computed(() => this.currentUser()?.id);
   readonly loading = this._loading.asReadonly();
 
   // Computed

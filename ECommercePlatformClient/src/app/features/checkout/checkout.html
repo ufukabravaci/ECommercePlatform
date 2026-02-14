@@ -1,0 +1,207 @@
+<div class="checkout-page">
+  <div class="container">
+    
+    <!-- Page Header -->
+    <div class="checkout-header">
+      <div class="header-icon">
+        <i class="bi bi-credit-card-2-front"></i>
+      </div>
+      <div>
+        <h1 class="header-title">Ödeme ve Teslimat</h1>
+        <p class="header-subtitle">Güvenli ödeme altyapısı ile siparişinizi tamamlayın.</p>
+      </div>
+    </div>
+
+    <!-- Error Message (Eğer varsa) -->
+    @if (error()) {
+      <div class="alert alert-danger mb-4 d-flex align-items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+        <div>{{ error() }}</div>
+      </div>
+    }
+
+    @if (cartService.basket()?.items?.length === 0) {
+      <!-- Boş Sepet Koruması -->
+      <div class="empty-state-card">
+        <div class="empty-icon-circle">
+          <i class="bi bi-cart-x"></i>
+        </div>
+        <h3>Sepetiniz Boş</h3>
+        <p>Ödeme yapabilmek için önce sepetinize ürün eklemelisiniz.</p>
+        <a routerLink="/products" class="btn btn-primary btn-lg mt-3">
+          <i class="bi bi-grid me-2"></i>
+          Alışverişe Başla
+        </a>
+      </div>
+    } @else {
+      <div class="row g-4">
+        
+        <!-- LEFT: Forms -->
+        <div class="col-lg-8">
+          <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()">
+            
+            <!-- 1. Adres Bilgileri -->
+            <div class="form-card mb-4">
+              <div class="card-header-line">
+                <i class="bi bi-geo-alt text-primary"></i>
+                <h4>Teslimat Adresi</h4>
+              </div>
+              
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">İl</label>
+                  <input type="text" class="form-control" formControlName="city" placeholder="Örn: İstanbul" 
+                         [class.is-invalid]="checkoutForm.get('city')?.invalid && checkoutForm.get('city')?.touched">
+                  @if(checkoutForm.get('city')?.invalid && checkoutForm.get('city')?.touched) {
+                    <div class="invalid-feedback">Şehir bilgisi zorunludur.</div>
+                  }
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">İlçe</label>
+                  <input type="text" class="form-control" formControlName="district" placeholder="Örn: Kadıköy"
+                         [class.is-invalid]="checkoutForm.get('district')?.invalid && checkoutForm.get('district')?.touched">
+                </div>
+                
+                <div class="col-md-8">
+                  <label class="form-label">Sokak / Cadde</label>
+                  <input type="text" class="form-control" formControlName="street" placeholder="Örn: Bağdat Caddesi"
+                         [class.is-invalid]="checkoutForm.get('street')?.invalid && checkoutForm.get('street')?.touched">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Posta Kodu</label>
+                  <input type="text" class="form-control" formControlName="zipCode" placeholder="34000" maxlength="5"
+                         [class.is-invalid]="checkoutForm.get('zipCode')?.invalid && checkoutForm.get('zipCode')?.touched">
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Tam Adres</label>
+                  <textarea class="form-control" formControlName="fullAddress" rows="3" placeholder="Bina No, Daire No, Kat, Tarif..."
+                            [class.is-invalid]="checkoutForm.get('fullAddress')?.invalid && checkoutForm.get('fullAddress')?.touched"></textarea>
+                  @if(checkoutForm.get('fullAddress')?.invalid && checkoutForm.get('fullAddress')?.touched) {
+                    <div class="invalid-feedback">Lütfen tam adresinizi giriniz (en az 10 karakter).</div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Ödeme Bilgileri -->
+            <div class="form-card">
+              <div class="card-header-line">
+                <i class="bi bi-credit-card text-primary"></i>
+                <h4>Kart Bilgileri</h4>
+              </div>
+              
+              <div class="alert alert-soft-info border-0 d-flex align-items-center gap-3 mb-4">
+                <i class="bi bi-info-circle-fill fs-5 text-info"></i>
+                <div>
+                  <strong>Demo Modu:</strong> Gerçek ödeme alınmayacaktır. Test amaçlı herhangi bir geçerli kart bilgisi girebilirsiniz.
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Kart Üzerindeki İsim</label>
+                  <input type="text" class="form-control" formControlName="cardHolderName" placeholder="AD SOYAD"
+                         [class.is-invalid]="checkoutForm.get('cardHolderName')?.invalid && checkoutForm.get('cardHolderName')?.touched">
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Kart Numarası</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-credit-card-2-front text-muted"></i></span>
+                    <!-- FORMATLAMA EKLENDİ -->
+                    <input type="text" 
+                           class="form-control border-start-0 ps-0" 
+                           formControlName="cardNumber" 
+                           placeholder="0000 0000 0000 0000" 
+                           maxlength="19"
+                           (input)="formatCardNumber($event)"
+                           [class.is-invalid]="checkoutForm.get('cardNumber')?.invalid && checkoutForm.get('cardNumber')?.touched">
+                  </div>
+                  @if(checkoutForm.get('cardNumber')?.invalid && checkoutForm.get('cardNumber')?.touched) {
+                    <div class="text-danger small mt-1">Geçerli bir kart numarası giriniz (16 hane).</div>
+                  }
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Son Kullanma (AA/YY)</label>
+                  <!-- FORMATLAMA EKLENDİ -->
+                  <input type="text" 
+                         class="form-control" 
+                         formControlName="expiryDate" 
+                         placeholder="12/28" 
+                         maxlength="5"
+                         (input)="formatExpiryDate($event)"
+                         [class.is-invalid]="checkoutForm.get('expiryDate')?.invalid && checkoutForm.get('expiryDate')?.touched">
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">CVV</label>
+                  <!-- SADECE SAYI GİRİŞİ -->
+                  <input type="text" 
+                         class="form-control" 
+                         formControlName="cvv" 
+                         placeholder="***" 
+                         maxlength="4"
+                         (input)="allowOnlyNumbers($event)"
+                         [class.is-invalid]="checkoutForm.get('cvv')?.invalid && checkoutForm.get('cvv')?.touched">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- RIGHT: Summary -->
+        <div class="col-lg-4">
+          <div class="checkout-summary-card">
+            <h5 class="summary-title">Sipariş Özeti</h5>
+            
+            <div class="summary-items">
+              @for (item of cartService.basket()?.items; track item.productId) {
+                <div class="summary-item">
+                  <div class="item-info">
+                    <span class="item-qty">{{ item.quantity }}x</span>
+                    <span class="item-name">{{ item.productName }}</span>
+                  </div>
+                  <span class="item-price">{{ (item.priceAmount * item.quantity) | currency:'TRY':'symbol':'1.2-2':'tr' }}</span>
+                </div>
+              }
+            </div>
+            
+            <div class="summary-divider"></div>
+
+            <div class="summary-row">
+              <span class="label">Ara Toplam</span>
+              <span class="value">{{ totalAmount | currency:'TRY':'symbol':'1.2-2':'tr' }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="label">Kargo</span>
+              <span class="value text-success">Ücretsiz</span>
+            </div>
+            
+            <div class="summary-total">
+              <span class="label">Toplam Tutar</span>
+              <span class="value">{{ totalAmount | currency:'TRY':'symbol':'1.2-2':'tr' }}</span>
+            </div>
+
+            <button type="button" class="btn btn-primary w-100 py-3 fw-bold mt-4 shadow-lg" 
+                    [disabled]="checkoutForm.invalid || loading()" (click)="onSubmit()">
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                İşleniyor...
+              } @else {
+                <i class="bi bi-check-circle-fill me-2"></i>
+                Siparişi Onayla
+              }
+            </button>
+            
+            <div class="secure-badge">
+              <i class="bi bi-shield-lock-fill"></i>
+              <span>256-bit SSL ile güvenli ödeme</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

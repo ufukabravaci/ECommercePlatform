@@ -97,6 +97,7 @@ public sealed class GetAllReviewsQueryHandler(
             .Take(request.PageSize)
             .Select(x => new ReviewDetailDto(
                 x.Id,
+                x.CustomerId,
                 x.Customer.FirstName + " " + x.Customer.LastName,
                 x.Rating,
                 x.Comment,

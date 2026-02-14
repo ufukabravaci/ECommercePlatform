@@ -5,7 +5,7 @@ export interface ApiResponse<T> {
   statusCode: number;
 }
 
-export interface PaginatedResult<T> {
+export interface PageResult<T> {
   items: T[];
   pageNumber: number;
   pageSize: number;

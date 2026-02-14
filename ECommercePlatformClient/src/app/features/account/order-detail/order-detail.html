@@ -1,0 +1,127 @@
+<div class="order-detail-container">
+
+  <!-- Geri Dön Butonu -->
+  <a routerLink="/account/orders" class="btn-back">
+    <i class="bi bi-arrow-left"></i>
+    <span>Siparişlerime Dön</span>
+  </a>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p>Sipariş detayları yükleniyor...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="alert alert-danger d-flex align-items-center gap-3">
+      <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+      <div>{{ error() }}</div>
+    </div>
+  }
+
+  <!-- Content -->
+  @if (!loading() && order(); as o) {
+    
+    <!-- Header: Order Info -->
+    <div class="detail-header">
+      <div class="header-left">
+        <h1 class="page-title">Sipariş Detayı</h1>
+        <div class="order-meta">
+          <span class="order-number">#{{ o.orderNumber }}</span>
+          <span class="dot">•</span>
+          <span class="order-date">{{ o.orderDate | date:'dd MMMM yyyy, HH:mm':'':'tr' }}</span>
+        </div>
+      </div>
+      
+      <!-- Status Badge (Büyük) -->
+      <div class="status-badge-lg status-{{ getStatusClass(o.status) }}">
+        <i class="bi bi-circle-fill"></i>
+        {{ getStatusLabel(o.status) }}
+      </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+      
+      <!-- LEFT COLUMN: Products -->
+      <div class="col-lg-8">
+        <div class="detail-card">
+          <div class="card-header">
+            <h3>Sipariş İçeriği</h3>
+            <span class="item-count">{{ o.items.length }} Ürün</span>
+          </div>
+          
+          <div class="product-list">
+            @for (item of o.items; track item.productId) {
+              <div class="product-item">
+                <!-- Ürün Resmi (Varsa) -->
+                <!-- <div class="product-img">
+                  <img [src]="item.imageUrl || 'assets/placeholder.png'" alt="Product">
+                </div> -->
+                
+                <div class="product-info">
+                  <h4 class="product-name">{{ item.productName }}</h4>
+                  <div class="product-meta">
+                    <span class="price-unit">Birim: {{ item.priceAmount | currency:'TRY':'symbol':'1.2-2':'tr' }}</span>
+                    <span class="quantity">Adet: {{ item.quantity }}</span>
+                  </div>
+                </div>
+
+                <div class="product-total">
+                  {{ item.total | currency:'TRY':'symbol':'1.2-2':'tr' }}
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Summary & Address -->
+      <div class="col-lg-4">
+        
+        <!-- Summary Card -->
+        <div class="detail-card mb-4">
+          <div class="card-header">
+            <h3>Ödeme Özeti</h3>
+          </div>
+          <div class="summary-content">
+            <div class="summary-row">
+              <span>Ara Toplam</span>
+              <span>{{ o.totalAmount | currency:'TRY':'symbol':'1.2-2':'tr' }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Kargo</span>
+              <span class="text-success">Ücretsiz</span>
+            </div>
+            <div class="divider"></div>
+            <div class="summary-row total">
+              <span>Genel Toplam</span>
+              <span class="total-price">{{ o.totalAmount | currency:'TRY':'symbol':'1.2-2':'tr' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h3>Teslimat Adresi</h3>
+          </div>
+          <div class="address-content">
+            <div class="address-icon">
+              <i class="bi bi-geo-alt"></i>
+            </div>
+            <div class="address-text">
+              <p class="full-address">{{ o.shippingFullAddress }}</p>
+              <p class="city-info">{{ o.shippingDistrict }} / {{ o.shippingCity }}</p>
+              <p class="zip-code">{{ o.shippingZipCode }}</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  }
+</div>

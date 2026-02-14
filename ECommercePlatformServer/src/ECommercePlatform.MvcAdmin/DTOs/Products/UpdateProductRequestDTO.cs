@@ -7,5 +7,6 @@ public record UpdateProductRequestDto(
     decimal PriceAmount,
     string CurrencyCode,
     int Stock,
-    Guid CategoryId
+    Guid CategoryId,
+    Guid BrandId
 );

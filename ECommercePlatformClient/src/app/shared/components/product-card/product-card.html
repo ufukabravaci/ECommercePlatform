@@ -2,16 +2,16 @@
   <!-- Image Section -->
   <div class="product-image-wrapper">
     <a [routerLink]="['/products', product().id]" class="product-image-link">
-      @if (product().mainImageUrl) {
+      @if (imageUrl) {
         <img 
-          [src]="normalizeImageUrl(product().mainImageUrl)" 
+          [src]="imageUrl" 
           [alt]="product().name"
           class="product-image"
           loading="lazy"
         />
       } @else {
         <div class="product-image-placeholder">
-          <i class="bi bi-image"></i>
+          <i class="fa-regular fa-image"></i> <!-- FontAwesome class'ı -->
         </div>
       }
     </a>
@@ -19,19 +19,19 @@
     <!-- Badges -->
     <div class="product-badges">
       @if (stockStatus(); as status) {
-        <span class="badge" [class]="status.class">{{ status.label }}</span>
+        <span class="badge" [ngClass]="status.class">{{ status.label }}</span>
       }
     </div>
 
-    <!-- Quick Actions -->
-    <div class="product-actions">
+    <!-- Quick Actions (Hover) -->
+    <!-- <div class="product-actions">
       <button 
         type="button" 
         class="action-btn" 
         title="Favorilere Ekle"
         (click)="$event.preventDefault()"
       >
-        <i class="bi bi-heart"></i>
+        <i class="fa-regular fa-heart"></i>
       </button>
       <button 
         type="button" 
@@ -39,18 +39,18 @@
         title="Hızlı Bakış"
         (click)="$event.preventDefault()"
       >
-        <i class="bi bi-eye"></i>
+        <i class="fa-regular fa-eye"></i>
       </button>
-    </div>
+    </div> -->
 
-    <!-- Add to Cart Button -->
+    <!-- Add to Cart Button (Hover'da gelir) -->
     <button 
       type="button"
       class="add-to-cart-btn"
       [disabled]="isOutOfStock()"
       (click)="onAddToCart($event)"
     >
-      <i class="bi bi-bag-plus"></i>
+      <i class="fa-solid fa-cart-plus"></i> <!-- FontAwesome -->
       <span>Sepete Ekle</span>
     </button>
   </div>
@@ -67,11 +67,13 @@
 
     <div class="product-footer">
       <div class="product-price">
-        <span class="price-current">{{ formattedPrice() }}</span>
+        <span class="price-current">
+          {{ product().priceAmount | currency:product().currencyCode:'symbol-narrow':'1.2-2' }}
+        </span>
       </div>
 
       <div class="product-rating">
-        <i class="bi bi-star-fill"></i>
+        <i class="fa-solid fa-star text-warning"></i> <!-- FontAwesome -->
         <span>4.5</span>
       </div>
     </div>

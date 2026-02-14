@@ -3,7 +3,6 @@ using ECommercePlatform.MvcAdmin.DTOs.Category;
 using ECommercePlatform.MvcAdmin.DTOs.Products;
 using ECommercePlatform.MvcAdmin.Models.Products;
 using ECommercePlatform.MvcAdmin.Services;
-using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -41,7 +40,6 @@ public class ProductController : Controller
             return View(new ProductListViewModel());
         }
 
-        // API Base URL'ini ViewBag'e ekle
         ViewBag.ApiBaseUrl = GetApiBaseUrl();
 
         return View(new ProductListViewModel { Products = result.Data });
@@ -52,13 +50,20 @@ public class ProductController : Controller
     public async Task<IActionResult> Create()
     {
         var categories = await GetAllCategoriesAsync();
+        var brands = await GetAllBrandsAsync();
 
         var model = new CreateProductViewModel
         {
-            CurrencyList = GetCurrencySelectList()
+            CurrencyList = GetCurrencySelectList(),
+            BrandList = brands.Select(b => new SelectListItem
+            {
+                Text = b.Name,
+                Value = b.Id.ToString()
+            }).ToList()
         };
 
         ViewBag.AllCategories = categories;
+        ViewBag.AllBrands = brands;
 
         return View(model);
     }
@@ -71,7 +76,14 @@ public class ProductController : Controller
         if (!ModelState.IsValid)
         {
             model.CurrencyList = GetCurrencySelectList();
+            var brands = await GetAllBrandsAsync();
+            model.BrandList = brands.Select(b => new SelectListItem
+            {
+                Text = b.Name,
+                Value = b.Id.ToString()
+            }).ToList();
             ViewBag.AllCategories = await GetAllCategoriesAsync();
+            ViewBag.AllBrands = brands;
             return View(model);
         }
 
@@ -83,6 +95,7 @@ public class ProductController : Controller
         content.Add(new StringContent(model.CurrencyCode), nameof(model.CurrencyCode));
         content.Add(new StringContent(model.Stock.ToString()), nameof(model.Stock));
         content.Add(new StringContent(model.CategoryId.ToString()), nameof(model.CategoryId));
+        content.Add(new StringContent(model.BrandId.ToString()), nameof(model.BrandId));  // YENİ
 
         if (model.Files != null)
         {
@@ -104,7 +117,14 @@ public class ProductController : Controller
 
         TempData["ErrorMessage"] = result.ErrorMessages?.FirstOrDefault();
         model.CurrencyList = GetCurrencySelectList();
+        var brandsForError = await GetAllBrandsAsync();
+        model.BrandList = brandsForError.Select(b => new SelectListItem
+        {
+            Text = b.Name,
+            Value = b.Id.ToString()
+        }).ToList();
         ViewBag.AllCategories = await GetAllCategoriesAsync();
+        ViewBag.AllBrands = brandsForError;
         return View(model);
     }
 
@@ -122,6 +142,7 @@ public class ProductController : Controller
 
         var product = result.Data;
         var categories = await GetAllCategoriesAsync();
+        var brands = await GetAllBrandsAsync();
 
         var model = new UpdateProductViewModel
         {
@@ -132,14 +153,20 @@ public class ProductController : Controller
             CurrencyCode = product.CurrencyCode,
             Stock = product.Stock,
             CategoryId = product.CategoryId,
-            CurrencyList = GetCurrencySelectList()
+            BrandId = product.BrandId,  // YENİ
+            CurrencyList = GetCurrencySelectList(),
+            BrandList = brands.Select(b => new SelectListItem
+            {
+                Text = b.Name,
+                Value = b.Id.ToString(),
+                Selected = b.Id == product.BrandId
+            }).ToList()
         };
 
         ViewBag.AllCategories = categories;
+        ViewBag.AllBrands = brands;
         ViewBag.Images = product.Images;
         ViewBag.CategoryHierarchy = GetCategoryHierarchy(categories, product.CategoryId);
-
-        // ✅ API Base URL'ini ViewBag'e ekle
         ViewBag.ApiBaseUrl = GetApiBaseUrl();
 
         return View(model);
@@ -153,12 +180,30 @@ public class ProductController : Controller
         if (!ModelState.IsValid)
         {
             model.CurrencyList = GetCurrencySelectList();
+            var brands = await GetAllBrandsAsync();
+            model.BrandList = brands.Select(b => new SelectListItem
+            {
+                Text = b.Name,
+                Value = b.Id.ToString(),
+                Selected = b.Id == model.BrandId
+            }).ToList();
             ViewBag.AllCategories = await GetAllCategoriesAsync();
+            ViewBag.AllBrands = brands;
             ViewBag.ApiBaseUrl = GetApiBaseUrl();
             return View(model);
         }
 
-        var requestDto = model.Adapt<UpdateProductRequestDto>();
+        var requestDto = new UpdateProductRequestDto(
+            model.Id,
+            model.Name,
+            model.Description,
+            model.PriceAmount,
+            model.CurrencyCode,
+            model.Stock,
+            model.CategoryId,
+            model.BrandId  // YENİ
+        );
+
         var result = await _apiService.PutAsync<string>("api/products", requestDto);
 
         if (result.IsSuccessful)
@@ -169,7 +214,15 @@ public class ProductController : Controller
 
         TempData["ErrorMessage"] = result.ErrorMessages?.FirstOrDefault();
         model.CurrencyList = GetCurrencySelectList();
+        var brandsForError = await GetAllBrandsAsync();
+        model.BrandList = brandsForError.Select(b => new SelectListItem
+        {
+            Text = b.Name,
+            Value = b.Id.ToString(),
+            Selected = b.Id == model.BrandId
+        }).ToList();
         ViewBag.AllCategories = await GetAllCategoriesAsync();
+        ViewBag.AllBrands = brandsForError;
         ViewBag.ApiBaseUrl = GetApiBaseUrl();
         return View(model);
     }
@@ -249,6 +302,17 @@ public class ProductController : Controller
         return result.IsSuccessful && result.Data != null
             ? result.Data.OrderBy(c => c.Name).ToList()
             : new List<CategoryDto>();
+    }
+
+    private async Task<List<BrandDto>> GetAllBrandsAsync()
+    {
+        var result = await _apiService.GetAsync<PageResult<BrandDto>>("api/brands?pageNumber=1&pageSize=500");
+        if (result.IsSuccessful && result.Data?.Items != null)
+        {
+            return result.Data.Items.OrderBy(b => b.Name).ToList();
+        }
+
+        return new List<BrandDto>();
     }
 
     private List<SelectListItem> GetCurrencySelectList()

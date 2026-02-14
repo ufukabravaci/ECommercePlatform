@@ -3,12 +3,13 @@
 // ==========================================
 .hero {
   position: relative;
-  min-height: 100vh;
-  display: flex;
+  min-height: 100vh; // Yükseklik geri geldi
+  display: flex;     // Flex geri geldi
   align-items: center;
-  padding: 100px 0 60px;
+  padding: 0;
   overflow: hidden;
 }
+
 .hero-background {
   position: absolute;
   inset: 0;
@@ -59,10 +60,33 @@
 .hero-container {
   position: relative;
   z-index: 1;
+  width: 100%;
 }
 
 .hero-content {
   color: white;
+  position: relative;
+  z-index: 10;
+  padding-right: 2rem;
+}
+
+.fade-carousel {
+  // Carousel sadece sağ kolonda çalışacak
+  .carousel-item {
+    transition: opacity 0.6s ease-in-out; // Fade efekti
+  }
+}
+
+.carousel-caption {
+  text-align: left;
+}
+
+.text-gradient-accent {
+  background: var(--gradient-accent, linear-gradient(135deg, #fbbf24 0%, #d97706 100%));
+  background-clip: text; 
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .hero-title {
@@ -74,12 +98,12 @@
   letter-spacing: -0.02em;
 }
 //ESKİ
-.hero-title {
-  font-size: clamp(2.5rem, 4vw, 3.5rem);
-  font-weight: 800;
-  line-height: 1.1;
-  color: #fff;
-}
+// .hero-title {
+//   font-size: clamp(2.5rem, 4vw, 3.5rem);
+//   font-weight: 800;
+//   line-height: 1.1;
+//   color: #fff;
+// }
 
 .hero-description {
   font-size: 1.125rem;
@@ -306,6 +330,8 @@
     }
   }
 }
+
+
 
 // ==========================================
 // CATEGORIES SECTION - DARK

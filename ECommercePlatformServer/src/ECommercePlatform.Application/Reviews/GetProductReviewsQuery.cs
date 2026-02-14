@@ -32,7 +32,6 @@ public sealed class GetProductReviewsQueryHandler(
             .OrderByDescending(x => x.CreatedAt)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            // Mapster Config'e CustomerName mapping eklenmeli (Customer.FirstName + " " + Customer.LastName)
             .ProjectToType<ReviewDto>()
             .ToListAsync(cancellationToken);
 

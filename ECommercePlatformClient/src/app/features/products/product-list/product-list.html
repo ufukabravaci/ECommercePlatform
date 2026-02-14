@@ -1,0 +1,214 @@
+<div class="products-page">
+  <div class="container">
+    <!-- Header -->
+    <section class="page-header">
+      <nav class="breadcrumb-nav" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/"><i class="fa-solid fa-house"></i></a></li>
+          <li class="breadcrumb-item active" aria-current="page">Ürünler</li>
+        </ol>
+      </nav>
+      
+      <div class="page-header-content">
+        <h1 class="page-title">{{ currentCategoryName() }}</h1>
+        @if (pagination().totalCount > 0) {
+          <p class="page-subtitle">{{ pagination().totalCount }} ürün bulundu</p>
+        }
+      </div>
+    </section>
+
+    <div class="products-layout">
+      <!-- Sidebar Filters -->
+      <aside class="filters-sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <h3 class="sidebar-title"><i class="fa-solid fa-filter"></i> Filtreler</h3>
+            @if (searchQuery() || selectedCategory()) {
+              <button type="button" class="clear-btn" (click)="clearAllFilters()">Temizle</button>
+            }
+          </div>
+
+          <!-- Search Filter -->
+          <div class="filter-section">
+            <label class="filter-label">Arama</label>
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-search"></i>
+              <input 
+                type="text" 
+                class="search-input" 
+                placeholder="Ürün ara..." 
+                [value]="searchQuery()"
+                (input)="onSearchChange($event)">
+              @if (searchQuery()) {
+                <button type="button" class="clear-input" (click)="clearSearch()">
+                  <i class="fa-solid fa-times"></i>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="filter-section">
+            <label class="filter-label">Kategoriler</label>
+            <div class="filter-options">
+              <!-- All Categories Option -->
+              <label class="filter-option">
+                <input 
+                  type="radio" 
+                  name="category" 
+                  [checked]="!selectedCategory()" 
+                  (change)="clearCategory()">
+                <span class="option-label">Tüm Kategoriler</span>
+                <span class="option-check"><i class="fa-solid fa-check"></i></span>
+              </label>
+
+              <!-- Category List -->
+              @for (category of categories(); track category.id) {
+                <label class="filter-option">
+                  <input 
+                    type="radio" 
+                    name="category" 
+                    [value]="category.id"
+                    [checked]="selectedCategory() === category.id" 
+                    (change)="onCategoryChange(category.id)">
+                  <span class="option-label">{{ category.name }}</span>
+                  <span class="option-check"><i class="fa-solid fa-check"></i></span>
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="products-main">
+        <!-- Toolbar -->
+        <div class="products-toolbar">
+          <div class="toolbar-left">
+             <!-- Mobile Toggle -->
+            <button class="filter-toggle d-lg-none" (click)="toggleFilters()">
+              <i class="fa-solid fa-filter"></i> Filtrele
+            </button>
+
+            <!-- Sorting -->
+            <div class="sort-wrapper">
+              <select class="sort-select" [value]="sortBy()" (change)="onSortChange($event)">
+                <option value="newest">En Yeniler</option>
+                <option value="name-asc">İsim (A-Z)</option>
+                <option value="name-desc">İsim (Z-A)</option>
+                <option value="price-asc">Fiyat (Düşük > Yüksek)</option>
+                <option value="price-desc">Fiyat (Yüksek > Düşük)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="toolbar-right">
+            <!-- Page Size -->
+            <div class="page-size-wrapper d-none d-md-block">
+              <select class="page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
+                <option [value]="12">12</option>
+                <option [value]="24">24</option>
+                <option [value]="48">48</option>
+              </select>
+            </div>
+
+            <!-- View Mode -->
+            <div class="view-toggle">
+              <button 
+                type="button" 
+                class="view-btn" 
+                [class.active]="viewMode() === 'grid'" 
+                (click)="setViewMode('grid')"
+                title="Izgara Görünümü">
+                <i class="fa-solid fa-border-all"></i>
+              </button>
+              <button 
+                type="button" 
+                class="view-btn" 
+                [class.active]="viewMode() === 'list'" 
+                (click)="setViewMode('list')"
+                title="Liste Görünümü">
+                <i class="fa-solid fa-list-ul"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Filters Tags -->
+        @if (searchQuery() || selectedCategory()) {
+          <div class="active-filters">
+            @if (searchQuery()) {
+              <span class="filter-tag">
+                Arama: {{ searchQuery() }}
+                <button type="button" (click)="clearSearch()"><i class="fa-solid fa-times"></i></button>
+              </span>
+            }
+            @if (selectedCategory()) {
+              <span class="filter-tag">
+                Kategori: {{ currentCategoryName() }}
+                <button type="button" (click)="clearCategory()"><i class="fa-solid fa-times"></i></button>
+              </span>
+            }
+          </div>
+        }
+
+        <!-- Loading State -->
+        @if (loading()) {
+          <div class="loading-container">
+            <app-loading-spinner message="Ürünler yükleniyor..."></app-loading-spinner>
+          </div>
+        }
+
+        <!-- Error State -->
+        @if (error()) {
+          <div class="error-state">
+            <div class="error-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h4>Bir hata oluştu</h4>
+            <p>{{ error() }}</p>
+            <button class="btn btn-primary" (click)="loadProducts(1)">
+              <i class="fa-solid fa-rotate-right"></i> Tekrar Dene
+            </button>
+          </div>
+        }
+
+        <!-- Empty State -->
+        @if (isEmpty()) {
+          <div class="empty-state">
+            <div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <h4>Ürün Bulunamadı</h4>
+            <p>
+              @if (searchQuery()) {
+                "{{ searchQuery() }}" araması için sonuç bulunamadı.
+              } @else {
+                Bu kriterlere uygun ürün bulunmuyor.
+              }
+            </p>
+            <button class="btn btn-primary" (click)="clearAllFilters()">
+              <i class="fa-solid fa-filter-circle-xmark"></i> Filtreleri Temizle
+            </button>
+          </div>
+        }
+
+        <!-- Product Grid -->
+        @if (hasProducts() && !loading()) {
+          <div class="products-grid" [class.list-view]="viewMode() === 'list'">
+            @for (product of products(); track product.id) {
+              <div class="product-item">
+                <app-product-card 
+                  [product]="product" 
+                  (addToCart)="onAddToCart($event)">
+                </app-product-card>
+              </div>
+            }
+          </div>
+
+          <app-pagination
+            [pagination]="pagination()"
+            (pageChange)="onPageChange($event)">
+          </app-pagination>
+
+        }
+      </main>
+    </div>
+  </div>
+</div>

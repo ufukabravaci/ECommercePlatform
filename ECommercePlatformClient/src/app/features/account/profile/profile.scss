@@ -1,0 +1,99 @@
+.account-content-card {
+  // Global'den gelen stil, burada override gerekirse ekleyin
+  animation: fadeInUp 0.5s ease-out;
+   opacity: 1;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-group {
+  position: relative;
+  
+  // Opsiyonel: Grupları ayırmak için hafif arka plan
+  // background: rgba(255,255,255,0.01);
+  // border-radius: var(--radius-lg);
+  // padding: 1.5rem;
+}
+
+.form-label {
+  color: var(--color-gray-400); // Daha soluk label
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  background-color: rgba(0, 0, 0, 0.2); // Çok koyu input arka planı
+  border: 1px solid var(--color-border); // Hafif border
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  
+  &:focus {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--color-primary-subtle);
+    outline: none;
+  }
+  
+  &:disabled {
+    background-color: rgba(255, 255, 255, 0.02);
+    color: var(--color-gray-500);
+    cursor: not-allowed;
+    border-color: transparent;
+  }
+
+  &::placeholder {
+    color: var(--color-gray-600);
+  }
+}
+
+// Input Group düzenlemeleri
+.input-group-text {
+  border-color: var(--color-border);
+  color: var(--color-gray-500);
+}
+
+// Focus durumunda input group icon rengi
+.input-group:focus-within {
+  .input-group-text {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    
+    i { color: var(--color-primary); }
+  }
+  
+  .form-control {
+    border-left-color: var(--color-primary) !important; // Border birleşim yerini düzelt
+  }
+}
+
+.btn-glow {
+  box-shadow: 0 0 15px rgba(129, 140, 248, 0.4);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 0 25px rgba(129, 140, 248, 0.6);
+    transform: translateY(-2px);
+  }
+  
+  &:disabled {
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.btn-glass {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+  
+  &:hover {
+    background: rgba(255,255,255,0.1);
+  }
+}

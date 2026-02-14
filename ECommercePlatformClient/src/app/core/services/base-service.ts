@@ -1,8 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PaginationParams, ApiResponse, PaginatedResult } from '../models/api-response';
+import { PaginationParams, ApiResponse, PageResult } from '../models/api-response';
 
 export abstract class BaseService<T> {
   protected readonly http = inject(HttpClient);
@@ -13,7 +13,7 @@ export abstract class BaseService<T> {
   }
 
   protected buildParams(params: PaginationParams): HttpParams {
-    let httpParams = new HttpParams()
+    let httpParams = new HttpParams() 
       .set('pageNumber', params.pageNumber.toString())
       .set('pageSize', params.pageSize.toString());
 
@@ -36,8 +36,8 @@ export abstract class BaseService<T> {
     return httpParams;
   }
 
-  getAll(params: PaginationParams): Observable<ApiResponse<PaginatedResult<T>>> {
-    return this.http.get<ApiResponse<PaginatedResult<T>>>(this.apiUrl, { 
+  getAll(params: PaginationParams): Observable<ApiResponse<PageResult<T>>> {
+    return this.http.get<ApiResponse<PageResult<T>>>(this.apiUrl, { 
       params: this.buildParams(params) 
     });
   }
@@ -45,4 +45,16 @@ export abstract class BaseService<T> {
   getById(id: string): Observable<ApiResponse<T>> {
     return this.http.get<ApiResponse<T>>(`${this.apiUrl}/${id}`);
   }
+
+  protected handleError(error: any): string {
+  if (error?.error?.errorMessages?.length) {
+    return error.error.errorMessages.join(', ');
+  }
+
+  if (error?.message) {
+    return error.message;
+  }
+
+  return 'Beklenmeyen bir hata oluştu';
+}
 }

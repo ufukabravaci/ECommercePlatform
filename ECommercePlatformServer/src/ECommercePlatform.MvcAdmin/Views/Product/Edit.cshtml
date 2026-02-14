@@ -97,6 +97,49 @@
                 </div>
             </div>
 
+            <!-- Marka Seçimi -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tag me-2 text-purple"></i>Marka Seçimi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @{
+                        var brands = ViewBag.AllBrands as List<ECommercePlatform.MvcAdmin.DTOs.BrandDto>
+                        ?? new List<ECommercePlatform.MvcAdmin.DTOs.BrandDto>();
+                    }
+
+                    @if (!brands.Any())
+                    {
+                        <div class="alert alert-warning" style="border-radius: 10px;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Henüz marka bulunmuyor. Önce <a href="@Url.Action("Create", "Brand")">marka oluşturun</a>.
+                        </div>
+                    }
+                    else
+                    {
+                        <label asp-for="BrandId" class="form-label fw-medium">Marka <span class="text-danger">*</span></label>
+                        <select asp-for="BrandId" class="form-select" style="border-radius: 10px;">
+                            <option value="">-- Marka Seçin --</option>
+                            @foreach (var brand in brands)
+                            {
+                                var isSelected = brand.Id == Model.BrandId;
+                                if (isSelected)
+                                {
+                                    <option value="@brand.Id" selected>@brand.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@brand.Id">@brand.Name</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="BrandId" class="text-danger small"></span>
+                    }
+                </div>
+            </div>
+
             <!-- Fiyat ve Stok -->
             <div class="card mb-4">
                 <div class="card-header">

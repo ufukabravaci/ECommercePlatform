@@ -1,6 +1,7 @@
 ﻿using ECommercePlatform.Application.Attributes;
 using ECommercePlatform.Application.Services;
 using ECommercePlatform.Domain.Constants;
+using ECommercePlatform.Domain.Orders;
 using ECommercePlatform.Domain.Products;
 using ECommercePlatform.Domain.Reviews;
 using FluentValidation;
@@ -31,6 +32,7 @@ public sealed class CreateReviewCommandValidator : AbstractValidator<CreateRevie
 public sealed class CreateReviewCommandHandler(
     IRepository<Review> reviewRepository,
     IRepository<Product> productRepository,
+    IRepository<Order> orderRepository,
     IUnitOfWork unitOfWork,
     IUserContext userContext
 ) : IRequestHandler<CreateReviewCommand, Result<Guid>>
@@ -41,13 +43,18 @@ public sealed class CreateReviewCommandHandler(
         var product = await productRepository.AsQueryable()
             .FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken);
 
+        var userId = userContext.GetUserId();
+
         if (product is null)
             return Result<Guid>.Failure("Ürün bulunamadı.");
 
-        // TODO Opsiyonel: Müşteri bu ürünü satın almış mı kontrolü eklenebilir. (OrderRepository check)
-        // Şimdilik herkes yorum yapabilir varsayıyoruz.
+        var hasPurchased = await orderRepository.AsQueryable()
+            .AnyAsync(o => o.CustomerId == userId &&
+                   o.Items.Any(i => i.ProductId == request.ProductId), cancellationToken);
 
-        var userId = userContext.GetUserId();
+        if (!hasPurchased)
+            return Result<Guid>.Failure("Bu ürüne yorum yapmak için önce satın almalısınız.");
+
 
         // 2. Review Oluştur
         var review = new Review(

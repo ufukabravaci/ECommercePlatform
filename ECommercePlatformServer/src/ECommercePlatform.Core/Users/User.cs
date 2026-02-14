@@ -39,6 +39,17 @@ public sealed class User : IdentityUser<Guid>, IAuditableEntity
 
     // Metodlar (Behavior)
     #region Methods
+
+    public void UpdateProfile(string firstName, string lastName, string? phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(firstName)) throw new ArgumentException("İsim boş olamaz");
+        if (string.IsNullOrWhiteSpace(lastName)) throw new ArgumentException("Soyisim boş olamaz");
+
+        FirstName = firstName;
+        LastName = lastName;
+        PhoneNumber = phoneNumber;
+    }
+
     public void SetAddress(Address address)
     {
         Address = address ?? throw new ArgumentNullException(nameof(address));

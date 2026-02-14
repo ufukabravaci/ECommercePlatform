@@ -134,8 +134,8 @@ public sealed class CreateProductCommandHandler(
             request.Description,
             price,
             request.Stock,
-            request.BrandId,
             companyId.Value,
+            request.BrandId,
             request.CategoryId
         );
 

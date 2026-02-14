@@ -2,6 +2,7 @@
 
 public sealed record ReviewDetailDto(
     Guid Id,
+    Guid CustomerId,
     string CustomerName,
     int Rating,
     string Comment,

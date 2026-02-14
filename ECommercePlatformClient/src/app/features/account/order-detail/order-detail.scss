@@ -1,0 +1,368 @@
+// ==========================================
+// ORDER DETAIL - DARK THEME (IMPROVED)
+// ==========================================
+
+.order-detail-container {
+  padding-bottom: 6rem; // Footer ile çakışmayı önler
+  animation: fadeIn 0.4s ease-out;
+}
+
+// Back Button
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-gray-300); // Daha parlak
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  transition: all 0.2s;
+
+  &:hover {
+    color: var(--color-primary);
+    i { transform: translateX(-3px); }
+  }
+
+  i { transition: transform 0.2s; font-size: 1.1rem; }
+}
+
+// Header Section
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .order-meta {
+    margin-top: 0.5rem;
+    color: var(--color-gray-400);
+    font-size: 1rem;
+    
+    .order-number { 
+      font-family: 'Courier New', monospace; 
+      color: var(--color-gray-500); 
+      font-weight: 700;
+    }
+    .dot { margin: 0 0.75rem; opacity: 0.5; }
+    .order-date { color: var(--color-gray-400); }
+  }
+}
+
+// Status Badge (Large)
+.status-badge-lg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  i { font-size: 0.65rem; }
+
+  &.status-info { // Confirmed
+    background: rgba(34, 211, 238, 0.15);
+    color: #22d3ee;
+    border-color: rgba(34, 211, 238, 0.3);
+    box-shadow: 0 4px 15px rgba(34, 211, 238, 0.2);
+  }
+  
+  &.status-warning { // Pending
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.3);
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
+  }
+
+  &.status-primary { // Shipped
+    background: rgba(129, 140, 248, 0.15);
+    color: #818cf8;
+    border-color: rgba(129, 140, 248, 0.3);
+    box-shadow: 0 4px 15px rgba(129, 140, 248, 0.2);
+  }
+
+  &.status-success { // Delivered
+    background: rgba(52, 211, 153, 0.15);
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.3);
+    box-shadow: 0 4px 15px rgba(52, 211, 153, 0.2);
+  }
+
+  &.status-danger { // Cancelled
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+
+  &.status-secondary { // Refunded
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+    border-color: rgba(148, 163, 184, 0.3);
+  }
+}
+
+// Cards
+.detail-card {
+  background: rgba(255, 255, 255, 0.04); // Hafif açıldı
+  border: 1px solid rgba(255, 255, 255, 0.1); // Daha belirgin
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); // Derinlik
+}
+
+.card-header {
+  padding: 1.5rem 1.75rem; // Padding artırıldı
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02); // Hafif vurgu
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.01em;
+  }
+
+  .item-count {
+    font-size: 0.875rem;
+    color: white;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+}
+
+// Product List
+.product-list {
+  padding: 0 1.75rem 1rem; // Alt padding eklendi
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); // Çizgi biraz daha belirgin
+
+  &:last-child { border-bottom: none; }
+
+  .product-info {
+    flex: 1;
+  }
+
+  .product-name {
+    font-size: 1.15rem; // Biraz daha büyük
+    font-weight: 700;
+    color: white;
+    margin: 0 0 0.6rem;
+    line-height: 1.3;
+  }
+
+  .product-meta {
+    font-size: 0.95rem;
+    // color: var(--color-gray-300); // SİLDİM
+    color: #e2e8f0; // Tailwind slate-200 (Çok açık gri/beyazımsı) - YENİ
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    
+    .price-unit {
+      // color: var(--color-gray-300); // SİLDİM
+      color: #ffffff; // Tam Beyaz - YENİ
+      background: rgba(255, 255, 255, 0.08); // Arka plan biraz daha belirgin
+      padding: 0.35rem 0.75rem; // Padding artırıldı
+      border-radius: 6px;
+      font-weight: 600; // Kalınlık artırıldı
+      border: 1px solid rgba(255, 255, 255, 0.1); // Hafif çerçeve
+      
+      span { // Etiket kısmı (Birim:)
+         color: #94a3b8; // Tailwind slate-400 (Okunabilir gri) - YENİ
+         font-weight: 500;
+         margin-right: 0.4rem;
+      }
+    }
+
+    .quantity {
+      color: #ffffff; // Tam Beyaz
+      font-weight: 700; // Daha kalın
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      
+      span { // Etiket kısmı (Adet:)
+         color: #94a3b8; // Okunabilir gri
+         font-weight: 500;
+         margin-right: 0.4rem;
+      }
+    }
+  }
+
+  .product-total {
+    font-weight: 800;
+    color: var(--color-primary);
+    font-size: 1.35rem; // Total daha büyük
+    margin-left: 2rem;
+    text-shadow: 0 0 10px rgba(129, 140, 248, 0.2); // Hafif glow
+  }
+}
+
+// Summary Content (GÜNCELLENDİ)
+.summary-content {
+  padding: 1.75rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; // Dikey hizalama
+  margin-bottom: 1.25rem; // Satır araları açıldı
+  color: var(--color-gray-200); // Daha parlak
+  font-size: 1.05rem; // Font büyütüldü
+
+  span:first-child { // Label (Sol taraf)
+    color: var(--color-gray-400);
+    font-weight: 500;
+  }
+  
+  span:last-child { // Value (Sağ taraf)
+    font-weight: 600;
+    color: white;
+    font-family: 'Roboto', sans-serif; // Sayılar için temiz font
+  }
+
+  &.total {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    span:first-child { // Label "Genel Toplam"
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .total-price {
+      color: var(--color-primary);
+      font-size: 1.75rem; // Çok daha büyük
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+  }
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255,255,255,0.15) 50%, 
+    transparent
+  );
+  margin: 1.25rem 0;
+}
+
+// Address Content
+.address-content {
+  padding: 1.75rem;
+  display: flex;
+  gap: 1.25rem;
+}
+
+.address-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(129, 140, 248, 0.1); // Primary ton
+  border: 1px solid rgba(129, 140, 248, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.address-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-gray-200); // Daha parlak
+
+  p { margin: 0 0 0.4rem; }
+  
+  .full-address { 
+    margin-bottom: 0.5rem; 
+    color: white;
+  }
+  
+  .city-info { 
+    font-weight: 700; 
+    color: white; 
+    font-size: 1.05rem;
+  }
+  
+  .zip-code { 
+    color: var(--color-gray-500); 
+    font-size: 0.9rem; 
+    margin-top: 0.25rem;
+  }
+}
+
+// Loading
+.loading-state {
+  text-align: center;
+  padding: 5rem 0;
+  color: var(--color-gray-400);
+  
+  .spinner-border {
+    margin-bottom: 1.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  p {
+    font-size: 1.05rem;
+    color: var(--color-gray-400);
+  }
+}
+
+// Responsive
+@media (max-width: 991px) {
+  .detail-header {
+    .page-title { font-size: 1.5rem; }
+  }
+
+  .product-item {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .product-total {
+      margin-left: 0;
+      margin-top: 0.75rem;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}

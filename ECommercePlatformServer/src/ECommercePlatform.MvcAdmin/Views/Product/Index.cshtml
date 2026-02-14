@@ -162,6 +162,7 @@
                             <th>Ürün</th>
                             <th>SKU</th>
                             <th>Kategori</th>
+                            <th>Marka</th>
                             <th>Fiyat</th>
                             <th>Stok</th>
                             <th>Durum</th>
@@ -227,6 +228,18 @@
                                     else
                                     {
                                         <span class="text-muted small">Kategorisiz</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(product.BrandName))
+                                    {
+                                        <span class="badge-brand">
+                                            <i class="fas fa-tag me-1"></i>@product.BrandName
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Markasız</span>
                                     }
                                 </td>
                                 <td>
@@ -425,6 +438,37 @@
 
 @section Styles {
     <style>
+        .badge-brand {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: rgba(139, 92, 246, 0.15);
+            color: #7c3aed;
+        }
+
+        [data-bs-theme="dark"] .badge-brand {
+            background: rgba(139, 92, 246, 0.25);
+            color: #a78bfa;
+        }
+        /* Özel Renkler */
+        .text-purple {
+            color: #8b5cf6 !important;
+        }
+
+        .bg-purple {
+            background-color: #8b5cf6 !important;
+        }
+
+        .bg-opacity-15 {
+            --bs-bg-opacity: 0.15;
+        }
+
+        [data-bs-theme="dark"] .text-purple {
+            color: #a78bfa !important;
+        }
         /* Clickable Row */
         .clickable-row {
             cursor: pointer;

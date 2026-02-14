@@ -28,10 +28,16 @@ public class UpdateProductViewModel
     [Required]
     public Guid CategoryId { get; set; }
 
+    [Required(ErrorMessage = "Marka seçimi zorunludur.")]
+    public Guid BrandId { get; set; }
+
     // Dropdown verileri
     [ValidateNever]
     public List<SelectListItem>? CategoryList { get; set; }
 
     [ValidateNever]
     public List<SelectListItem>? CurrencyList { get; set; }
+
+    [ValidateNever]
+    public List<SelectListItem>? BrandList { get; set; }
 }

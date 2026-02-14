@@ -1,0 +1,91 @@
+// ==========================================
+// WISHLIST PAGE
+// ==========================================
+
+.wishlist-page {
+  min-height: 100vh;
+  background: var(--color-bg-secondary);
+  position: relative;
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+  overflow: hidden;
+
+  // GLOW GRADIENT
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(129, 140, 248, 0.10), transparent 55%),
+      radial-gradient(circle at 88% 22%, rgba(34, 211, 238, 0.06), transparent 60%);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.page-header-simple {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+
+  .header-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(248, 113, 113, 0.1);
+    color: var(--color-danger);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+  }
+}
+
+.empty-state-card {
+  background: var(--color-bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-2xl);
+  padding: 5rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  
+  .empty-icon-circle {
+    width: 100px;
+    height: 100px;
+    background: var(--color-bg-tertiary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--color-gray-600);
+    font-size: 2.5rem;
+  }
+
+  h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+  }
+
+  p {
+    color: var(--color-gray-500);
+    margin-bottom: 2rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

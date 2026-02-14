@@ -9,6 +9,8 @@ public record ProductDto(
     string CurrencyCode,
     int Stock,
     Guid CategoryId,
+    Guid BrandId,
+    string? BrandName,
     string? CategoryName,
     string? MainImageUrl,
     List<ProductImageDto> Images

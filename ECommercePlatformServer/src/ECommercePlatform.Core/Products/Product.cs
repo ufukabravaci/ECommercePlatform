@@ -37,6 +37,8 @@ public sealed class Product : Entity, IMultiTenantEntity
     }
 
     // Properties
+    // Concurrency / Oversell engellemek için RowVersion eklenebilir.
+    // Fakat bu proje ölçeği gereği eklemedim.
     public string Name { get; private set; } = default!;
     public string Sku { get; private set; } = default!; // Stok Kodu
     public string Description { get; private set; } = default!;

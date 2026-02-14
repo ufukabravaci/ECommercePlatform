@@ -1,0 +1,166 @@
+<div class="reviews-section mt-5">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h3 class="mb-0 text-white">Değerlendirmeler ({{ pagination().totalCount }})</h3>
+    
+    <!-- Yorum Yap Butonu (Giriş Yapmışsa) -->
+    @if (isLoggedIn()) {
+      <button class="btn btn-outline-primary btn-sm" (click)="toggleForm()">
+        <i class="bi bi-pencil-square me-2"></i>
+        {{ showForm() ? 'İptal Et' : 'Değerlendirme Yap' }}
+      </button>
+    }
+  </div>
+
+  <!-- Yorum Yap Formu -->
+  @if (isLoggedIn() && showForm()) {
+    <div class="card review-form-card mb-4 border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="card-title text-white mb-3">Deneyimini Paylaş</h5>
+        
+        <form [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+          <!-- Rating Seçimi -->
+          <div class="mb-4">
+            <label class="form-label text-gray-400 small text-uppercase fw-bold">Puanınız</label>
+            <div class="rating-stars interactable">
+              @for (star of [1,2,3,4,5]; track star) {
+                <i class="bi" 
+                   [class.bi-star-fill]="reviewForm.get('rating')?.value! >= star"
+                   [class.bi-star]="reviewForm.get('rating')?.value! < star"
+                   [class.text-warning]="reviewForm.get('rating')?.value! >= star"
+                   [class.text-muted]="reviewForm.get('rating')?.value! < star"
+                   (click)="reviewForm.patchValue({rating: star})">
+                </i>
+              }
+              <span class="ms-2 fw-bold text-white">{{ reviewForm.get('rating')?.value }} / 5</span>
+            </div>
+          </div>
+
+          <!-- Yorum Alanı -->
+          <div class="mb-4">
+            <label class="form-label text-gray-400 small text-uppercase fw-bold">Yorumunuz</label>
+            <textarea 
+              class="form-control bg-dark text-white border-secondary" 
+              rows="4" 
+              formControlName="comment" 
+              placeholder="Ürün hakkında neler düşünüyorsunuz?">
+            </textarea>
+            @if (reviewForm.get('comment')?.touched && reviewForm.get('comment')?.errors?.['minlength']) {
+              <small class="text-danger mt-1 d-block">Lütfen en az 10 karakter yazın.</small>
+            }
+          </div>
+
+          <!-- Aksiyonlar -->
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-glass text-white" (click)="toggleForm()">Vazgeç</button>
+            <button type="submit" class="btn btn-primary px-4" [disabled]="reviewForm.invalid || isSubmitting()">
+              @if(isSubmitting()) { 
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Gönderiliyor...
+              } @else {
+                Gönder
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  } @else if (!isLoggedIn()) {
+    <div class="alert alert-dark border-secondary d-flex align-items-center gap-3 mb-4">
+      <i class="bi bi-info-circle text-primary fs-4"></i>
+      <div>
+        <span class="text-gray-300">Bu ürüne yorum yapmak için giriş yapmalısınız.</span>
+        <a routerLink="/login" class="text-primary fw-bold ms-2 text-decoration-none">Giriş Yap</a>
+      </div>
+    </div>
+  }
+
+  <!-- Yorum Listesi -->
+  <div class="review-list">
+    @if (loading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+      </div>
+    } @else if (reviews().length === 0) {
+      <div class="empty-state text-center py-5">
+        <div class="empty-icon mb-3">
+          <i class="bi bi-chat-square-dots text-gray-600 fs-1"></i>
+        </div>
+        <h5 class="text-white">Henüz yorum yok</h5>
+        <p class="text-gray-500">Bu ürün hakkında ilk yorumu siz yapın!</p>
+      </div>
+    } @else {
+      <div class="reviews-container d-flex flex-column gap-3">
+        @for (review of reviews(); track review.id) {
+          <div class="review-item p-3 rounded">
+            
+            <!-- Üst Kısım: Kullanıcı & Meta -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <!-- Kullanıcı Bilgisi -->
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar-circle">
+                  {{ review.customerName.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <div class="fw-bold text-white">{{ review.customerName }}</div>
+                  <div class="rating-display text-warning small">
+                     @for (star of [1,2,3,4,5]; track star) {
+                       <i class="bi" [class.bi-star-fill]="review.rating >= star" [class.bi-star]="review.rating < star"></i>
+                     }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tarih ve Sil Butonu -->
+              <div class="d-flex flex-column align-items-end gap-1">
+                <span class="text-muted small">{{ review.createdAt | date:'dd MMM yyyy' }}</span>
+                
+                @if (currentUserId()?.toLowerCase() === review.customerId.toLowerCase()) {
+                  <button 
+                    type="button"
+                    class="btn btn-link text-danger p-0 text-decoration-none border-0 small-btn" 
+                    (click)="deleteReview(review.id)"
+                    [disabled]="isDeleting() === review.id"
+                    title="Yorumu Sil">
+                    @if (isDeleting() === review.id) {
+                      <i class="bi bi-hourglass-split fa-spin"></i>
+                    } @else {
+                      <i class="bi bi-trash3 me-1"></i> Sil
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+            
+            <!-- Yorum Metni -->
+            <p class="review-text text-gray-300 mb-0">{{ review.comment }}</p>
+
+            <!-- Satıcı Cevabı -->
+            @if (review.sellerReply) {
+               <div class="seller-reply mt-3 ms-4">
+                  <div class="reply-header">
+                    <i class="bi bi-shop"></i>
+                    <span class="reply-title">Satıcı Yanıtı</span>
+                    @if (review.sellerRepliedAt) {
+                      <span class="reply-date">
+                        {{ review.sellerRepliedAt | date:'dd MMM yyyy' }}
+                      </span>
+                    }
+                  </div>
+                  <p>{{ review.sellerReply }}</p>
+               </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (pagination().totalCount > 5) {
+     <div class="mt-4">
+       <app-pagination [pagination]="pagination()" (pageChange)="loadReviews($event)"></app-pagination>
+     </div>
+  }
+</div>

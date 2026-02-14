@@ -1,5 +1,6 @@
 <!-- Hero Section -->
-<section class="hero">
+<!-- Hero Section -->
+<section class="hero p-0">
   <div class="hero-background">
     <div class="hero-gradient"></div>
     <div class="hero-glow hero-glow-1"></div>
@@ -7,38 +8,41 @@
     <div class="hero-grid"></div>
   </div>
 
-  <div class="container hero-container">
-    <div class="row align-items-center">
-      <div class="col-lg-7">
-        <div class="hero-content">
-          <div class="hero-badge animate-fade-in-up">
+  <div class="container hero-container h-100">
+    <div class="row h-100 align-items-center">
+      
+      <!-- SOL TARAF: STATİK İÇERİK (Değişmiyor) -->
+      <div class="col-lg-6 col-xl-6">
+        <div class="hero-content ps-2 ps-lg-0">
+          <div class="hero-badge animate-fade-in-up mb-3">
             <span class="badge-dot"></span>
             <span>Yeni Sezon Koleksiyonu</span>
-            <i class="bi bi-arrow-right"></i>
+            <i class="bi bi-arrow-right ms-2"></i>
           </div>
 
-          <h1 class="hero-title animate-fade-in-up animate-delay-1">
+          <h1 class="hero-title animate-fade-in-up animate-delay-1 mb-3">
             Premium Kalite,<br />
             <span class="text-gradient-accent">Eşsiz Stil</span>
           </h1>
 
-          <p class="hero-description animate-fade-in-up animate-delay-2">
+          <p class="hero-description animate-fade-in-up animate-delay-2 mb-4">
             Özenle seçilmiş koleksiyonlar, benzersiz tasarımlar. Tarzını yansıtan ürünleri keşfet,
             farkını ortaya koy.
           </p>
 
-          <div class="hero-actions animate-fade-in-up animate-delay-3">
-            <a routerLink="/products" class="btn btn-accent btn-lg">
-              <i class="bi bi-bag"></i>
+          <div class="hero-actions animate-fade-in-up animate-delay-3 d-flex gap-3">
+            <a routerLink="/products" class="btn btn-accent btn-lg px-4">
+              <i class="bi bi-bag me-2"></i>
               Alışverişe Başla
             </a>
-            <a routerLink="/categories" class="btn btn-glass btn-lg">
-              <i class="bi bi-collection"></i>
+            <a routerLink="/categories" class="btn btn-glass btn-lg px-4">
+              <i class="bi bi-collection me-2"></i>
               Keşfet
             </a>
           </div>
 
-          <div class="hero-stats animate-fade-in-up animate-delay-4">
+          <!-- Stats -->
+          <div class="hero-stats animate-fade-in-up animate-delay-4 mt-5 d-none d-md-flex">
             <div class="stat-item">
               <span class="stat-value">10K<span class="stat-plus">+</span></span>
               <span class="stat-label">Mutlu Müşteri</span>
@@ -51,56 +55,84 @@
             <div class="stat-divider"></div>
             <div class="stat-item">
               <span class="stat-value">4.9</span>
-              <span class="stat-label"> <i class="bi bi-star-fill"></i> Puan </span>
+              <span class="stat-label"> <i class="bi bi-star-fill text-warning"></i> Puan </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="col-lg-5 d-none d-lg-block">
-        <div class="hero-visual">
-          <!-- <img
-            src="images/hero-shopping.png"
-            alt=""
-            class="hero-illustration-bg"
-            aria-hidden="true"
-          /> -->
-          <div class="hero-card hero-card-1">
-            <div class="card-icon">
-              <i class="bi bi-bag-check"></i>
-            </div>
-            <div class="card-content">
-              <span class="card-title">Hızlı Teslimat</span>
-              <span class="card-text">1-3 iş günü</span>
-            </div>
-          </div>
+      <!-- SAĞ TARAF: DİNAMİK BANNER SLIDER (Carousel Burada) -->
+      <div class="col-lg-6 col-xl-6 d-none d-lg-block">
+        <div class="hero-visual animate-fade-in-up animate-delay-2 h-100 d-flex align-items-center justify-content-center">
+          
+          @if (loadingBanners()) {
+             <div class="spinner-border text-primary" role="status"></div>
+          } @else if (banners().length > 0) {
+            
+            <!-- Sadece Resimler İçin Carousel -->
+            <div id="bannerCarousel" class="carousel slide fade-carousel w-100" data-bs-ride="carousel" data-bs-interval="4000">
+              
+              <!-- Indicators (Resmin altında küçük noktalar) -->
+              <div class="carousel-indicators" style="bottom: -40px;">
+                @for (banner of banners(); track banner.id; let i = $index) {
+                  <button type="button" data-bs-target="#bannerCarousel" [attr.data-bs-slide-to]="i" [class.active]="i === 0"></button>
+                }
+              </div>
 
-          <div class="hero-card hero-card-2">
-            <div class="card-icon card-icon-accent">
-              <i class="bi bi-shield-check"></i>
-            </div>
-            <div class="card-content">
-              <span class="card-title">Güvenli Ödeme</span>
-              <span class="card-text">256-bit SSL</span>
-            </div>
-          </div>
+              <div class="carousel-inner" style="border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                @for (banner of banners(); track banner.id; let i = $index) {
+                  <div class="carousel-item" [class.active]="i === 0">
+                    <!-- Görsel -->
+                    <div class="position-relative">
+                        <img 
+                          [src]="getBannerImageUrl(banner.imageUrl)" 
+                          class="d-block w-100" 
+                          [alt]="banner.title"
+                          style="height: 500px; object-fit: contain; background: transparent;">
+                        
+                        <!-- Görsel Üzerindeki Başlık (Opsiyonel - Eğer bannerda yazı yoksa buraya koyabiliriz) -->
+                        <div class="carousel-caption d-none d-md-block p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); bottom: 0; left: 0; right: 0; width: 100%;">
+                          <h5 class="fw-bold mb-1">{{ banner.title }}</h5>
+                          <p class="mb-0 small text-white-50">{{ banner.description }}</p>
+                          @if(banner.targetUrl) {
+                             <a [routerLink]="banner.targetUrl" class="btn btn-sm btn-light mt-2 rounded-pill px-3">İncele</a>
+                          }
+                        </div>
+                    </div>
+                  </div>
+                }
+              </div>
+              
+              <!-- Kontrol Okları -->
+              <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev" style="width: 10%;">
+                <span class="carousel-control-prev-icon p-2 bg-dark rounded-circle bg-opacity-50" aria-hidden="true"></span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next" style="width: 10%;">
+                <span class="carousel-control-next-icon p-2 bg-dark rounded-circle bg-opacity-50" aria-hidden="true"></span>
+              </button>
 
-          <div class="hero-card hero-card-3">
-            <div class="card-icon card-icon-success">
-              <i class="bi bi-arrow-repeat"></i>
             </div>
-            <div class="card-content">
-              <span class="card-title">Kolay İade</span>
-              <span class="card-text">14 gün garanti</span>
-            </div>
-          </div>
 
-          <div class="hero-orb"></div>
+          } @else {
+             <!-- Banner yoksa eski statik yapı -->
+             <div class="hero-card hero-card-1">
+                 <div class="card-icon"><i class="bi bi-bag-check"></i></div>
+                 <div class="card-content">
+                     <span class="card-title">Hızlı Teslimat</span>
+                     <span class="card-text">1-3 iş günü</span>
+                 </div>
+             </div>
+             <!-- ... diğer kartlar ... -->
+             <div class="hero-orb"></div>
+          }
+          
         </div>
       </div>
+
     </div>
   </div>
 </section>
+
 
 <!-- Categories Section - Dark Theme -->
 <section class="categories-section section-padding">
@@ -113,6 +145,7 @@
       <h2 class="section-title">Popüler Kategoriler</h2>
       <p class="section-subtitle">İhtiyacınız olan her şey tek bir yerde</p>
     </div>
+
 
     @if (categories().length > 0) {
     <div class="categories-grid">
@@ -136,6 +169,7 @@
   </div>
 </section>
 
+
 <!-- Featured Products Section -->
 <section class="products-section section-padding">
   <div class="container">
@@ -151,6 +185,7 @@
         Tümünü Gör <i class="bi bi-arrow-right"></i>
       </a>
     </div>
+
 
     @if (initialLoading()) {
     <app-loading-spinner />
@@ -184,6 +219,7 @@
   </div>
 </section>
 
+
 <!-- Features Section -->
 <section class="features-section section-padding">
   <div class="container">
@@ -195,6 +231,7 @@
       <h2 class="section-title">Neden Bizi Tercih Etmelisiniz?</h2>
     </div>
 
+
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">
@@ -204,6 +241,7 @@
         <p class="feature-description">150 TL ve üzeri siparişlerde ücretsiz kargo fırsatı</p>
       </div>
 
+
       <div class="feature-card">
         <div class="feature-icon feature-icon-accent">
           <i class="bi bi-shield-check"></i>
@@ -212,6 +250,7 @@
         <p class="feature-description">256-bit SSL şifreleme ile güvenli ödeme altyapısı</p>
       </div>
 
+
       <div class="feature-card">
         <div class="feature-icon feature-icon-success">
           <i class="bi bi-arrow-repeat"></i>
@@ -219,6 +258,7 @@
         <h4 class="feature-title">Kolay İade</h4>
         <p class="feature-description">14 gün içinde ücretsiz ve kolay iade garantisi</p>
       </div>
+
 
       <div class="feature-card">
         <div class="feature-icon feature-icon-info">
@@ -230,6 +270,7 @@
     </div>
   </div>
 </section>
+
 
 <!-- CTA Section -->
 <section class="cta-section">

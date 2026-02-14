@@ -1,0 +1,176 @@
+// ==========================================
+// ORDERS LIST - DARK THEME
+// ==========================================
+
+.orders-container {
+  animation: fadeIn 0.4s ease-out;
+}
+
+// Order Card
+.order-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  // Hover Effect
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(129, 140, 248, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+
+    .btn-detail {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: white;
+    }
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+// Order Info
+.order-number {
+  font-family: var(--font-monospace, monospace);
+  font-weight: 700;
+  color: white;
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.order-date {
+  color: var(--color-gray-500);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+}
+
+// Divider
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0;
+}
+
+// Summary Section
+.order-summary {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-count {
+  font-size: 0.8rem;
+}
+
+.total-amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+// orders.component.scss
+
+// Mevcut .order-card içindeki hover efektini kaldırıyoruz çünkü butonun kendi efekti olacak.
+// .order-card:hover .btn-detail { ... } kısmını SİL veya yorum satırına al.
+
+.btn-detail-custom {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-400); // Normalde silik renk
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.05);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  i {
+    transition: transform 0.3s ease;
+  }
+
+  // Hover Durumu
+  &:hover {
+    background: rgba(129, 140, 248, 0.15); // Primary rengin şeffaf hali
+    border-color: var(--color-primary);
+    color: white; // Yazı beyazlaşır
+    box-shadow: 0 0 15px rgba(129, 140, 248, 0.3); // Hafif parlama
+
+    i {
+      transform: translateX(3px); // Ok işareti sağa kayar
+    }
+  }
+}
+
+
+// Status Badges
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  &.status-warning { // Pending
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.2);
+  }
+  
+  &.status-info { // Approved
+    background: rgba(34, 211, 238, 0.15);
+    color: #22d3ee;
+    border: 1px solid rgba(34, 211, 238, 0.2);
+  }
+  
+  &.status-primary { // Shipped
+    background: rgba(129, 140, 248, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(129, 140, 248, 0.2);
+  }
+  
+  &.status-success { // Delivered
+    background: rgba(52, 211, 153, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+  }
+  
+  &.status-danger { // Cancelled
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.2);
+  }
+  
+  &.status-secondary { // Refunded
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+}
+
+// Empty State
+.empty-icon-circle {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--color-gray-500);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

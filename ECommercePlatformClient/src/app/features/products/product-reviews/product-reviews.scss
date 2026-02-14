@@ -1,0 +1,101 @@
+.review-form-card {
+  background-color: var(--color-bg-tertiary); // Koyu kart rengi
+  border-radius: var(--radius-xl);
+}
+
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1.25rem;
+  
+  &.interactable {
+    i {
+      cursor: pointer;
+      transition: transform 0.2s;
+      
+      &:hover {
+        transform: scale(1.2);
+        color: var(--color-warning);
+      }
+    }
+  }
+}
+
+.review-item {
+  background-color: var(--color-bg-card); // Kart rengi
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary); // Hafif hover efekti
+  }
+}
+
+.avatar-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--color-bg-elevated);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.review-text {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  white-space: pre-wrap; // Satır sonlarını korur
+}
+
+.small-btn {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  
+  &:hover {
+    opacity: 1;
+    text-decoration: underline !important;
+  }
+}
+
+// Satıcı Yanıtı Alanı (Düzeltilmiş)
+.seller-reply {
+  background-color: rgba(0, 0, 0, 0.2); // Çok koyu transparan
+  border-left: 3px solid var(--color-primary); // Vurgu
+  padding: 1rem;
+  border-radius: 0 8px 8px 8px;
+  
+  .reply-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    
+    i { color: var(--color-primary); }
+    
+    .reply-title {
+      font-weight: 700;
+      color: var(--color-primary-light);
+      font-size: 0.85rem;
+    }
+    
+    .reply-date {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--color-gray-500);
+    }
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--color-primary-light); // Okunabilir gri
+  }
+}

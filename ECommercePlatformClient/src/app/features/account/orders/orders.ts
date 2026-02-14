@@ -1,22 +1,54 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core'; // signal eklendi
 import { RouterLink } from '@angular/router';
+import { OrderService } from '../../../core/services/order-service';
+import { CommonModule } from '@angular/common';
+import { PaginationParams } from '../../../core/models';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination'; // Import Eklendi
 
 @Component({
   selector: 'app-orders',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
-  template: `
-    <div class="orders-page py-5">
-      <div class="container">
-        <h1 class="h3 mb-4"><i class="bi bi-bag me-2"></i>Siparişlerim</h1>
-        <div class="text-center py-5">
-          <i class="bi bi-bag-x display-1 text-muted"></i>
-          <p class="text-muted mt-3">Henüz siparişiniz bulunmuyor.</p>
-          <a routerLink="/products" class="btn btn-primary">Alışverişe Başla</a>
-        </div>
-      </div>
-    </div>
-  `
+  imports: [CommonModule, RouterLink, PaginationComponent], // Component Eklendi
+  templateUrl: './orders.html',
+  styleUrls: ['./orders.scss']
 })
-export class OrdersComponent {}
+export class OrdersComponent implements OnInit {
+  private orderService = inject(OrderService);
+
+  // Signals
+  orders = this.orderService.myOrders;
+  loading = this.orderService.loading;
+  error = this.orderService.error;
+  hasOrders = this.orderService.hasOrders;
+  pagination = this.orderService.pagination; // Pagination signal eklendi
+
+  // Local State
+  currentPage = signal(1);
+
+  ngOnInit() {
+    this.loadOrders(1);
+  }
+
+  loadOrders(page: number) {
+    this.currentPage.set(page);
+    
+    const params: PaginationParams = {
+      pageNumber: page,
+      pageSize: 10,
+      sortBy: 'OrderDate',
+      sortDirection: 'desc'
+    };
+    
+    this.orderService.loadMyOrders(params).subscribe();
+  }
+  
+  // Pagination Event
+  onPageChange(page: number): void {
+    this.loadOrders(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ... (getStatusClass ve getStatusLabel aynı kalacak) ...
+  getStatusClass(status: string): string { /* ... */ return ''; }
+  getStatusLabel(status: string): string { /* ... */ return ''; }
+}

@@ -1,0 +1,199 @@
+// ==========================================
+// ACCOUNT PAGE - DARK THEME
+// ==========================================
+
+// ==========================================
+// ACCOUNT PAGE - DARK THEME
+// ==========================================
+
+.account-page {
+  min-height: 100vh;
+  background: var(--color-bg-secondary); // product-list referansı
+  position: relative;
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+  overflow: hidden;
+
+  // GLOW GRADIENT (Product List'ten alındı)
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(129, 140, 248, 0.10), transparent 55%),
+      radial-gradient(circle at 88% 22%, rgba(34, 211, 238, 0.06), transparent 60%);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+/* Header */
+.account-header {
+  margin-bottom: 2rem;
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .header-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-lg);
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 15px rgba(129, 140, 248, 0.3);
+  }
+
+  .header-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Sidebar Menu */
+.account-sidebar {
+  background: var(--color-bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  position: sticky;
+  top: 100px;
+}
+
+.menu-list {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  color: var(--color-gray-500);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+
+  /* Icon */
+  .menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    font-size: 1.1rem;
+    transition: color var(--transition-fast);
+  }
+
+  .menu-text {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.9375rem;
+  }
+
+  .menu-arrow {
+    font-size: 0.8rem;
+    opacity: 0;
+    transform: translateX(-5px);
+    transition: all var(--transition-fast);
+  }
+
+  /* Hover State */
+  &:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: white;
+    
+    .menu-icon { color: var(--color-primary); }
+    .menu-arrow { opacity: 0.5; transform: translateX(0); }
+  }
+
+  /* Active State */
+  &.active {
+    background: rgba(129, 140, 248, 0.1);
+    color: var(--color-primary);
+    font-weight: 600;
+
+    .menu-icon { color: var(--color-primary); }
+    .menu-arrow { opacity: 1; color: var(--color-primary); transform: translateX(0); }
+  }
+
+  /* Danger Item (Logout) */
+  &.text-danger {
+    color: var(--color-danger);
+    
+    &:hover {
+      background: rgba(248, 113, 113, 0.1);
+      color: #fca5a5;
+    }
+  }
+}
+
+.menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0.5rem 1rem;
+}
+
+/* Content Area */
+.account-content-card {
+  background: var(--color-bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  min-height: 400px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Empty State Placeholder */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 3rem 0;
+
+  .empty-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--color-bg-tertiary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    color: var(--color-gray-600);
+    font-size: 2rem;
+  }
+
+  h3 {
+    color: white;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var(--color-gray-500);
+  }
+}

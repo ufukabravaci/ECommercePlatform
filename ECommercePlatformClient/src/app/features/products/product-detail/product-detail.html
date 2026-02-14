@@ -131,7 +131,7 @@
                 <i class="bi bi-star-half"></i>
               </div>
               <span class="rating-value">4.5</span>
-              <span class="rating-count">(128 değerlendirme)</span>
+              <span class="rating-count">({{ reviewCount() }} değerlendirme)</span>
             </div>
 
             <!-- Price -->
@@ -290,7 +290,7 @@
             >
               <i class="bi bi-chat-square-text"></i>
               <span>Yorumlar</span>
-              <span class="tab-badge">128</span>
+              <span class="tab-badge">{{ reviewCount() }}</span>
             </button>
           </div>
 
@@ -338,17 +338,9 @@
 
             @if (activeTab() === 'reviews') {
               <div class="tab-pane">
-                <div class="reviews-empty">
-                  <div class="empty-icon">
-                    <i class="bi bi-chat-square-text"></i>
-                  </div>
-                  <h4>Henüz yorum yapılmamış</h4>
-                  <p>Bu ürün hakkında ilk yorumu siz yapın!</p>
-                  <button type="button" class="btn btn-primary">
-                    <i class="bi bi-pencil"></i>
-                    Yorum Yaz
-                  </button>
-                </div>
+                <!-- ProductReviewsComponent Kullanımı -->
+                <!-- productId input olarak gönderiliyor -->
+                <app-product-reviews [productId]="p.id"></app-product-reviews>
               </div>
             }
           </div>

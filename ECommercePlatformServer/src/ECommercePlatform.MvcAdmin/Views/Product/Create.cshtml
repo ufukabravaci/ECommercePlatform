@@ -131,6 +131,41 @@
                 </div>
             </div>
 
+            <!-- Marka Seçimi -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tag me-2 text-purple"></i>Marka Seçimi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @{
+                        var brands = ViewBag.AllBrands as List<ECommercePlatform.MvcAdmin.DTOs.BrandDto>
+                        ?? new List<ECommercePlatform.MvcAdmin.DTOs.BrandDto>();
+                    }
+
+                    @if (!brands.Any())
+                    {
+                        <div class="alert alert-warning" style="border-radius: 10px;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Henüz marka bulunmuyor. Önce <a href="@Url.Action("Create", "Brand")">marka oluşturun</a>.
+                        </div>
+                    }
+                    else
+                    {
+                        <label asp-for="BrandId" class="form-label fw-medium">Marka <span class="text-danger">*</span></label>
+                        <select asp-for="BrandId" class="form-select" style="border-radius: 10px;" id="brandSelect">
+                            <option value="">-- Marka Seçin --</option>
+                            @foreach (var brand in brands)
+                            {
+                                <option value="@brand.Id">@brand.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="BrandId" class="text-danger small"></span>
+                    }
+                </div>
+            </div>
+
             <!-- Ürün Görselleri -->
             <div class="card">
                 <div class="card-header">
@@ -193,6 +228,10 @@
                     <div class="summary-item d-flex justify-content-between">
                         <span class="text-muted">Görseller</span>
                         <span class="fw-medium" id="summaryImages">0 adet</span>
+                    </div>
+                    <div class="summary-item d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Marka</span>
+                        <span class="fw-medium text-truncate ms-2" style="max-width: 150px;" id="summaryBrand">-</span>
                     </div>
                 </div>
             </div>
@@ -643,7 +682,7 @@
         }
 
         // ==================== SUMMARY UPDATE ====================
-        function initSummaryUpdate() {
+                function initSummaryUpdate() {
             function updateSummary() {
                 $('#summaryName').text($('#Name').val() || '-');
                 $('#summarySku').text($('#Sku').val() || '-');
@@ -654,10 +693,16 @@
 
                 const stock = $('#Stock').val();
                 $('#summaryStock').text(stock ? `${stock} adet` : '-');
+
+                // Marka özeti
+                const brandSelect = $('#brandSelect');
+                const brandText = brandSelect.find('option:selected').text();
+                $('#summaryBrand').text(brandSelect.val() ? brandText : '-');
             }
 
-            $('#Name, #Sku, #PriceAmount, #CurrencyCode, #Stock').on('input change', updateSummary);
+            $('#Name, #Sku, #PriceAmount, #CurrencyCode, #Stock, #brandSelect').on('input change', updateSummary);
         }
+
 
         // Form submit öncesi validasyon
         $('#createProductForm').on('submit', function(e) {

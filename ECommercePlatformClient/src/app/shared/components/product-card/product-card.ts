@@ -1,53 +1,61 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ProductListItem } from '../../../core/models';
-import { formatCurrency } from '../../../core/utils/helper';
+import { CommonModule } from '@angular/common';
+import { Product } from '../../../core/models'; // ProductListItem -> Product oldu
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [RouterLink],
+  imports: [CommonModule, RouterLink], // CommonModule eklendi (ngClass, currency vb için)
   templateUrl: './product-card.html',
   styleUrl: './product-card.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCardComponent {
-  readonly product = input.required<ProductListItem>();
-  readonly addToCart = output<ProductListItem>();
+  // Input Signal (ProductListItem -> Product)
+  readonly product = input.required<Product>();
+  
+  // Output Event
+  readonly addToCart = output<Product>();
 
-  readonly formattedPrice = computed(() =>
-    formatCurrency(this.product().priceAmount, this.product().currencyCode)
-  );
-  readonly isOutOfStock = computed(() => this.product()?.stock <= 0)
+  // Computed Values
+  readonly isOutOfStock = computed(() => (this.product().stock ?? 0) <= 0);
+
   readonly stockStatus = computed(() => {
-    const stock = this.product()?.stock ?? 0;
-
+    const stock = this.product().stock ?? 0;
     if (stock <= 0) {
-      return { label: 'Stokta Yok', class: 'bg-danger' };
+      return { label: 'TÜKENDİ', class: 'badge-danger' };
     }
     if (stock <= 5) {
-      return { label: `Son ${stock} Adet`, class: 'bg-warning text-dark' };
+      return { label: `SON ${stock} ADET`, class: 'badge-warning' };
     }
-    return null;
+    // İndirim varsa onu gösterelim, yoksa YENİ etiketi vs. (Sizin badge mantığına göre)
+    return null; 
   });
 
+  // Action Method
   onAddToCart(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    if (this.product().stock > 0) {
+    if (!this.isOutOfStock()) {
       this.addToCart.emit(this.product());
     }
   }
 
-  normalizeImageUrl(url: string | null): string | null {
-  if (!url) return null;
-  // Zaten absolute ise hiç elleme
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
+  // Image URL Helper
+  get imageUrl(): string {
+    const url = this.product().mainImageUrl;
+    // 1. Resim yoksa placeholder
+    if (!url) return 'assets/images/placeholder.jpg';
+    // 2. Tam URL ise (http/https) dokunma (CDN vb.)
+    if (url.startsWith('http')) return url;
+    // 3. Base64 ise dokunma
+    if (url.startsWith('data:image')) return url;
+    const apiUrl = environment.apiUrl; // "http://localhost:5000/api"
+    const baseUrl = apiUrl.replace('/api', ''); // "http://localhost:5000"
+    // Eğer url "/" ile başlamıyorsa ekle
+    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${baseUrl}${normalizedUrl}`;
   }
-  // Eski kayıtlar için
-   const baseUrl = environment.apiUrl.replace('/api', '');
-  return `${baseUrl}${url}`;
-}
 }
