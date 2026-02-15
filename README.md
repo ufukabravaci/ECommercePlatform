@@ -334,13 +334,13 @@ npm start
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=ECommerceDB;Trusted_Connection=True;TrustServerCertificate=True;",
+    "DefaultConnection": "...",
     "Redis": "localhost:6379"
   },
   "JwtOptions": {
     "Issuer": "ECommercePlatform",
     "Audience": "ECommerceClients",
-    "SecretKey": "your-secret-key-min-32-characters-long",
+    "SecretKey": "...",
     "AccessTokenExpirationMinutes": 15,
     "RefreshTokenExpirationDays": 30
   },
