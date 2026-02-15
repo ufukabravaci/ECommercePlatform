@@ -147,19 +147,16 @@
                   </button>
                 </div>
                 
-                @if (form.hasError('passwordsMismatch')) {
-                  <span class="form-error">
-                    <i class="bi bi-exclamation-circle"></i>
-                    Şifreler eşleşmiyor
-                  </span>
-                }
+                @if (form.controls.confirmPassword.hasError('passwordMismatch') && form.controls.confirmPassword.touched) {
+  <span class="form-error">Şifreler eşleşmiyor</span>
+}
               </div>
 
               <!-- Submit Button -->
               <button
                 type="submit"
                 class="btn btn-accent btn-lg w-100"
-                [disabled]="loading || form.invalid"
+                [disabled]="loading() || form.invalid"
               >
                 @if (loading()) {
                   <span class="spinner"></span>

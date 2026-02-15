@@ -2,6 +2,7 @@
 using ECommercePlatform.Domain.Brands;
 using ECommercePlatform.Domain.Categories;
 using ECommercePlatform.Domain.Companies;
+using ECommercePlatform.Domain.Constants;
 using ECommercePlatform.Domain.Orders;
 using ECommercePlatform.Domain.Products;
 using ECommercePlatform.Domain.Reviews;
@@ -70,7 +71,12 @@ public sealed class GetDashboardStatsQueryHandler(
         // ==================== DİĞERLERİ ====================
         var totalCategories = await categoryRepository.AsQueryable().CountAsync(cancellationToken);
         var totalBrands = await brandRepository.AsQueryable().CountAsync(cancellationToken);
-        var totalCustomers = await companyUserRepository.AsQueryable().CountAsync(cancellationToken);
+        // 1. Önce şirkete ait tüm CompanyUser'ları çekiyoruz.
+        var currentCompanyUsers = await companyUserRepository.AsQueryable()
+            .ToListAsync(cancellationToken);
+        // 2. Bellekte (In-memory) müşteri rolüne sahip olanları sayıyoruz.
+        var totalCustomers = currentCompanyUsers
+            .Count(cu => cu.Roles.Contains(RoleConsts.Customer));
 
         // ==================== YORUMLAR ====================
         var reviewsQuery = reviewRepository.AsQueryable();

@@ -3,7 +3,7 @@ using ECommercePlatform.Domain.Users;
 
 namespace ECommercePlatform.Domain.Companies;
 
-public sealed class CompanyUser : Entity
+public sealed class CompanyUser : Entity, IMultiTenantEntity
 {
     private CompanyUser() { }
 

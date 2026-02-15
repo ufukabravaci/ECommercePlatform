@@ -109,30 +109,30 @@ public sealed class TenantLoginCommandHandler(
         }
 
         // 6️⃣ Email confirmation
-        if (!user.EmailConfirmed)
-        {
-            var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            await mailService.SendAsync(
-                user.Email!,
-                "Email Doğrulama",
-                $"Doğrulama kodunuz: <b>{code}</b>",
-                cancellationToken);
+        //if (!user.EmailConfirmed)
+        //{
+        //    var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        //    await mailService.SendAsync(
+        //        user.Email!,
+        //        "Email Doğrulama",
+        //        $"Doğrulama kodunuz: <b>{code}</b>",
+        //        cancellationToken);
 
-            return new LoginResponse(null, null, false, true, "Email doğrulaması gerekli.");
-        }
+        //    return new LoginResponse(null, null, false, true, "Email doğrulaması gerekli.");
+        //}
 
         // 7️⃣ 2FA
-        if (user.TwoFactorEnabled)
-        {
-            var code = await userManager.GenerateTwoFactorTokenAsync(user, "SixDigit");
-            await mailService.SendAsync(
-                user.Email!,
-                "2FA Doğrulama",
-                $"Doğrulama kodunuz: <b>{code}</b>",
-                cancellationToken);
+        //if (user.TwoFactorEnabled)
+        //{
+        //    var code = await userManager.GenerateTwoFactorTokenAsync(user, "SixDigit");
+        //    await mailService.SendAsync(
+        //        user.Email!,
+        //        "2FA Doğrulama",
+        //        $"Doğrulama kodunuz: <b>{code}</b>",
+        //        cancellationToken);
 
-            return new LoginResponse(null, null, true, false, "2FA doğrulaması gerekli.");
-        }
+        //    return new LoginResponse(null, null, true, false, "2FA doğrulaması gerekli.");
+        //}
 
         // 8️⃣ Token Üretimi (CreateTenantTokenAsync)
         var accessToken = await jwtProvider.CreateTenantTokenAsync(

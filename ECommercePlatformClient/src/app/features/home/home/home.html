@@ -95,8 +95,12 @@
                           <h5 class="fw-bold mb-1">{{ banner.title }}</h5>
                           <p class="mb-0 small text-white-50">{{ banner.description }}</p>
                           @if(banner.targetUrl) {
-                             <a [routerLink]="banner.targetUrl" class="btn btn-sm btn-light mt-2 rounded-pill px-3">İncele</a>
-                          }
+  @if(isExternalLink(banner.targetUrl)) {
+    <a [href]="banner.targetUrl" class="btn btn-sm btn-light mt-2 rounded-pill px-3">İncele</a>
+  } @else {
+    <a [routerLink]="banner.targetUrl" class="btn btn-sm btn-light mt-2 rounded-pill px-3">İncele</a>
+  }
+}
                         </div>
                     </div>
                   </div>

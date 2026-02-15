@@ -22,19 +22,32 @@ public sealed class GetEmployeesQueryHandler(
         if (tenantContext.CompanyId is null)
             return Result<List<EmployeeDto>>.Failure("Şirket bilgisi bulunamadı.");
 
-        // Şirkete ait CompanyUser'ları, User bilgisiyle beraber çekiyoruz
-        var employees = await companyUserRepository.GetAll()
-            .Include(x => x.User) // User tablosuyla Join
+        var rawData = await companyUserRepository.GetAll()
             .Where(x => x.CompanyId == tenantContext.CompanyId)
-            .Select(x => new EmployeeDto(
+            .Select(x => new
+            {
                 x.UserId,
                 x.User.FirstName,
                 x.User.LastName,
-                x.User.Email!,
+                x.User.Email,
+                x.Roles,
+                x.Permissions
+            })
+            .ToListAsync(cancellationToken);
+
+        // Belleğe gelen (zaten sadece o şirketin adamları) veri içinden 
+        // Customer olanları süzüyoruz.
+        var employees = rawData
+            .Where(x => !x.Roles.Contains(RoleConsts.Customer))
+            .Select(x => new EmployeeDto(
+                x.UserId,
+                x.FirstName,
+                x.LastName,
+                x.Email!,
                 x.Roles.ToList(),
                 x.Permissions.ToList()
             ))
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         return Result<List<EmployeeDto>>.Succeed(employees);
     }

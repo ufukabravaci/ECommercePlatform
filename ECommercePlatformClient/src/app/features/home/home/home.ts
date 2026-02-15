@@ -101,4 +101,8 @@ export class HomeComponent implements OnInit {
     const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
     return `${baseUrl}${normalizedUrl}`;
   }
+  isExternalLink(url: string): boolean {
+  // Eğer url http:// veya https:// ile başlıyorsa dış bağlantıdır
+  return url.startsWith('http://') || url.startsWith('https://');
+}
 }

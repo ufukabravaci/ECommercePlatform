@@ -22,26 +22,32 @@ public sealed class GetCustomersQueryHandler(
 {
     public async Task<Result<PageResult<CustomerDto>>> Handle(GetCustomersQuery request, CancellationToken cancellationToken)
     {
-        // 1. Sorgu: CompanyUser üzerinden User'a gidiyoruz.
-        // Global Filter (CompanyId) otomatik çalışır, sadece bu şirketin verileri gelir.
-        var query = companyUserRepository.AsQueryable()
-            .Include(cu => cu.User) // User bilgilerini çekmek için
-            .Where(cu => cu.Roles.Contains(RoleConsts.Customer)); // SADECE MÜŞTERİLER
+        // 1. ADIM: Dashboard'da yaptığın gibi veriyi ÖNCE çekiyoruz.
+        // Include(cu => cu.User) ile User bilgilerini de aldık.
+        var allCompanyUsers = await companyUserRepository.AsQueryable()
+            .Include(cu => cu.User)
+            .ToListAsync(cancellationToken);
 
-        // 2. Arama
+        // 2. ADIM: Bellekte (C# tarafında) filtreleme yapıyoruz.
+        // Dashboard'daki .Contains(RoleConsts.Customer) mantığı burada devreye giriyor.
+        var customerList = allCompanyUsers
+            .Where(cu => cu.Roles.Contains(RoleConsts.Customer))
+            .ToList();
+
+        // 3. ADIM: Arama filtresi (Search)
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            query = query.Where(cu =>
-                cu.User.FirstName.Contains(request.Search) ||
-                cu.User.LastName.Contains(request.Search) ||
-                cu.User.Email!.Contains(request.Search));
+            var search = request.Search.ToLower();
+            customerList = customerList.Where(cu =>
+                (cu.User.FirstName + " " + cu.User.LastName).ToLower().Contains(search) ||
+                cu.User.Email!.ToLower().Contains(search)
+            ).ToList();
         }
 
-        // 3. Toplam Sayı
-        int totalCount = await query.CountAsync(cancellationToken);
+        // 4. ADIM: Toplam Sayı ve Sayfalama
+        int totalCount = customerList.Count;
 
-        // 4. Veriyi Çek ve DTO'ya Çevir (Manuel Select daha performanslıdır burda)
-        var items = await query
+        var items = customerList
             .OrderByDescending(cu => cu.User.CreatedAt)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -52,10 +58,9 @@ public sealed class GetCustomersQueryHandler(
                 cu.User.Email!,
                 cu.User.CreatedAt,
                 cu.User.IsActive
-            ))
-            .ToListAsync(cancellationToken);
+            )).ToList();
 
-        // 5. Result
+        // 5. ADIM: Sayfalanmış Sonucu Dön
         return new PageResult<CustomerDto>
         {
             Items = items,
