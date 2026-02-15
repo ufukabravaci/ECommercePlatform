@@ -30,8 +30,10 @@ Secrets/
 appsettings.Production.json
 appsettings.Staging.json
 appsettings.local.json
-appsettings.json
-appsettings.Development.json
+
+# Environment specific settings
+**/appsettings.Development.json
+**/appsettings.Production.json
 
 ## Environment variables
 .env
