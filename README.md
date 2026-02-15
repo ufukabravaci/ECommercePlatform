@@ -169,12 +169,12 @@ readonly hasProducts = computed(() => this._products().length > 0);
 Tüm servisler **BaseService**'den türer:
 - Pagination desteği
 - Generic CRUD operasyonları
-- Merkezi hata yönetimi
+- Ortak HTTP konfigürasyonu ve hata işleme altyapısı
 
-### Smart/Dumb Component Pattern
+### Container / Presentational Component Pattern
 
-- **Smart Components** - State yönetimi ve business logic
-- **Dumb Components** - Sadece görüntüleme (ProductCard, LoadingSpinner)
+- **Container (Smart) Components** - Servislerle iletişim kurar, state yönetir ve business logic içerir
+- **Presentational (Dumb) Components** - Sadece @Input / @Output ile çalışır ve UI render eder (ProductCard, LoadingSpinner, Pagination)
 
 ### Interceptors
 
