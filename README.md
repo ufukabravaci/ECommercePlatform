@@ -426,35 +426,6 @@ oluşturulur.
 - **Lazy loading** ile bundle size optimizasyonu
 - **ChangeDetection.OnPush** ile render optimizasyonu
 
-### Maintenance
-
-- **Background Jobs** ile temizlik işlemleri
-- **Structured logging** ile hata takibi
-- **Health checks** endpoint'leri
-- **Database migrations** ile versiyon kontrolü
-
-## 🚦 Endpoint'ler
-
-### Public Endpoints
-- `POST /api/auth/register` - Kayıt olma
-- `POST /api/auth/login` - Giriş yapma
-- `POST /api/auth/refresh-token` - Token yenileme
-- `GET /api/products` - Ürünleri listele
-- `GET /api/categories` - Kategorileri listele
-
-### Protected Endpoints (Authentication Required)
-- `POST /api/basket/add` - Sepete ürün ekle
-- `GET /api/orders/my-orders` - Siparişlerim
-- `POST /api/orders/create` - Sipariş oluştur
-- `PUT /api/profile/update` - Profil güncelle
-
-### Admin Endpoints (Permission Required)
-- `POST /api/products/create` - Ürün ekle
-- `PUT /api/products/{id}` - Ürün güncelle
-- `DELETE /api/products/{id}` - Ürün sil (soft delete)
-- `GET /api/users` - Kullanıcıları listele
-- `POST /api/permissions/assign` - Yetki ata
-
 ## 🌐 Multi-Tenant Yapı
 
 ### Tenant (Şirket) Mantığı
@@ -488,22 +459,6 @@ docker run -p 3000:80 -p 25:25 rnwood/smtp4dev
 ```
 
 Web arayüzü: `http://localhost:3000`
-
-### E-posta Senaryoları
-
-- Kayıt onay e-postası
-- Şifre sıfırlama
-- Sipariş onay e-postası
-- Çalışan davet e-postası
-
-## 🎁 Bonus Özellikler
-
-- **Banner yönetimi** ile dinamik anasayfa içeriği
-- **Kategori ağacı** ile hiyerarşik kategori yapısı
-- **Stok takibi** ve otomatik stok güncellemesi
-- **Sipariş durumu** takibi (Pending, Processing, Shipped, Delivered)
-- **Yorum sistemi** ile ürün değerlendirme
-- **Responsive tasarım** ile mobil uyumluluk
 
 ## 📄 Lisans
 
