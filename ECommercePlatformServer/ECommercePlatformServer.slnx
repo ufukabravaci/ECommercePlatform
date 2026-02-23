@@ -6,5 +6,7 @@
     <Project Path="src/ECommercePlatform.MvcAdmin/ECommercePlatform.MvcAdmin.csproj" />
     <Project Path="src/ECommercePlatform.WebAPI/ECommercePlatform.WebAPI.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="ECommercePlatform.Application.Tests/ECommercePlatform.Application.Tests.csproj" Id="e898d43b-c63d-47e0-9e69-9f8173eda4d7" />
+  </Folder>
 </Solution>

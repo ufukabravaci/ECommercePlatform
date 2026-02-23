@@ -18,7 +18,8 @@ Designed to simulate a real-world production backend system.
 ## 🏗️ Architecture Highlights
 
 - Multi-tenant global query filters for data isolation
-- JWT authentication with role-based and dynamic permission-based authorization
+- ASP.NET Core Identity integrated with JWT authentication
+- Role-based and dynamic permission-based authorization using Identity RoleClaims
 - Redis-backed basket system with sliding expiration
 - Unit of Work pattern for transactional consistency
 - Soft delete strategy with global query filters
@@ -34,11 +35,11 @@ Designed to simulate a real-world production backend system.
 
 ## 🛠 Tech Stack
 
-Backend: .NET 10, EF Core, CQRS, Minimal API
-Database: MSSQL
-Caching: Redis
-Authentication: JWT
-Frontend: Angular 21, Angular Signals, OnPush Change Detection
+- Backend: .NET 10, EF Core, ASP.NET Core Identity, CQRS, Minimal API
+- Database: MSSQL
+- Caching: Redis
+- Authentication: JWT
+- Frontend: Angular 21, Angular Signals, OnPush Change Detection
 
 ## 🎯 Core Features
 
@@ -52,10 +53,12 @@ Entities encapsulate their own behaviors and business rules.
 
 - A user can belong to multiple companies with different roles
 - CompanyUser entity manages company-based authorization
+- Identity users associated with multiple companies via CompanyUser entity
 - Tenant isolation enforced via Global Query Filters
 
 ### Permission-Based Authentication
-
+- Built on top of ASP.NET Core Identity
+- Identity roles and RoleClaims used for dynamic permission model
 - Every request passes through **PermissionBehavior**
 - Permissions are cached in Redis (1 hour TTL)
 - Tokens include role and company context

@@ -16,19 +16,4 @@ public static class RoleConsts
     // --- Atanabilir Çalışan Rolleri ---
     [Description("Çalışan")]
     public const string Employee = "Employee";
-    //Şimdilik gerek yok
-    //[Description("Yönetici")]
-    //public const string Manager = "Manager";
-
-    //[Description("Muhasebeci")]
-    //public const string Accountant = "Accountant";
-
-    //[Description("Müşteri Destek")]
-    //public const string Support = "Support";
-
-    //[Description("Mağaza Yöneticisi")]
-    //public const string StoreManager = "StoreManager";
-
-    //[Description("Depo Sorumlusu")]
-    //public const string WarehouseStaff = "WarehouseStaff";
 }
