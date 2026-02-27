@@ -35,7 +35,7 @@ public static class OrderModule
         {
             var result = await sender.Send(query, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 3. GET MY ORDERS (Müşteri)
         // Query: ?pageNumber=1&pageSize=10
@@ -47,7 +47,7 @@ public static class OrderModule
         {
             var result = await sender.Send(query, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 4. GET ORDER BY ID (Ortak)
         // URL: /api/orders/{id}
@@ -58,7 +58,7 @@ public static class OrderModule
         {
             var result = await sender.Send(new GetOrderByIdQuery(orderNumber), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.NotFound(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 5. UPDATE STATUS (Mağaza Sahibi / Personel)
         // URL: /api/orders/{id}/status
@@ -74,7 +74,7 @@ public static class OrderModule
             var result = await sender.Send(command, cancellationToken);
 
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 6. DELETE / CANCEL ORDER (Mağaza Sahibi / Personel)
         // URL: /api/orders/{id}
@@ -87,7 +87,7 @@ public static class OrderModule
             var result = await sender.Send(command, cancellationToken);
 
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 7-) REFUND
         group.MapPatch("/{orderNumber}/refund", async (
@@ -97,7 +97,7 @@ public static class OrderModule
         {
             var result = await sender.Send(new RefundOrderCommand(orderNumber), ct);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 8-) TRACKING NUMBER EKLEME
         // Body: { "trackingNumber": "123456" }
@@ -110,6 +110,6 @@ public static class OrderModule
             var command = new AddTrackingNumberCommand(orderNumber, trackingNumber);
             var result = await sender.Send(command, ct);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
     }
 }

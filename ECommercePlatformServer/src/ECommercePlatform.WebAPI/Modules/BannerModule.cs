@@ -21,7 +21,7 @@ public static class BannerModule
         {
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).Accepts<CreateBannerCommand>("multipart/form-data");
+        }).Accepts<CreateBannerCommand>("multipart/form-data").RequireRateLimiting("fixed");
 
         // 2. UPDATE (Form Data)
         group.MapPut("/", async (
@@ -31,7 +31,7 @@ public static class BannerModule
         {
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).Accepts<UpdateBannerCommand>("multipart/form-data");
+        }).Accepts<UpdateBannerCommand>("multipart/form-data").RequireRateLimiting("fixed");
 
         // 3. DELETE
         group.MapDelete("/{id}", async (
@@ -41,7 +41,7 @@ public static class BannerModule
         {
             var result = await sender.Send(new DeleteBannerCommand(id), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 4. GET ALL
         group.MapGet("/", async (
@@ -50,6 +50,6 @@ public static class BannerModule
         {
             var result = await sender.Send(new GetAllBannersQuery(), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
     }
 }

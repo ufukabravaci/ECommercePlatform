@@ -17,26 +17,26 @@ public static class CategoryModule
         {
             var result = await sender.Send(new GetAllCategoriesQuery());
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         group.MapPost("/", async (ISender sender, [FromBody] CreateCategoryCommand command) =>
         {
             var result = await sender.Send(command);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // id command içinde var
         group.MapPut("/", async (ISender sender, [FromBody] UpdateCategoryCommand command) =>
         {
             var result = await sender.Send(command);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         //soft delete
         group.MapDelete("/{id}", async (Guid id, ISender sender) =>
         {
             var result = await sender.Send(new DeleteCategoryCommand(id));
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
     }
 }

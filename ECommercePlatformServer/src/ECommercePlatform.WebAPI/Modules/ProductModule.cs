@@ -23,7 +23,7 @@ public static class ProductModule
             var result = await sender.Send(apiRequest);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         }).Accepts<CreateProductCommand>("multipart/form-data")
-            .Produces<Result<string>>();
+            .Produces<Result<string>>().RequireRateLimiting("fixed");
 
         // GET ALL (Pagination)
         // Örn: GET /api/products?pageNumber=1&pageSize=10&search=kalem
@@ -34,7 +34,7 @@ public static class ProductModule
         {
             var result = await sender.Send(query, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // UPDATE  /api/products
         group.MapPut("/", async (
@@ -44,7 +44,7 @@ public static class ProductModule
         {
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // DELETE /api/products/{id}
         group.MapDelete("/{id}", async (
@@ -55,7 +55,7 @@ public static class ProductModule
             var command = new DeleteProductCommand(id);
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
         // GET BY ID
         group.MapGet("/{id}", async (
             Guid id,
@@ -64,7 +64,7 @@ public static class ProductModule
         {
             var result = await sender.Send(new GetProductByIdQuery(id), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.NotFound(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 1. Add Image /api/products/{id}/images
         group.MapPost("/{id}/images", async (
@@ -77,7 +77,7 @@ public static class ProductModule
             var command = new AddProductImageCommand(id, file, isMain);
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).Accepts<AddProductImageCommand>("multipart/form-data"); // Swagger için önemli
+        }).Accepts<AddProductImageCommand>("multipart/form-data").RequireRateLimiting("fixed");
 
         // 2. Remove Image /api/products/{id}/images/{imageId}
         group.MapDelete("/{id}/images/{imageId}", async (
@@ -89,7 +89,7 @@ public static class ProductModule
             var command = new RemoveProductImageCommand(id, imageId);
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 3. Set Main Image /api/products/{id}/images/{imageId}/set-main
         group.MapPatch("/{id}/images/{imageId}/set-main", async (
@@ -101,6 +101,6 @@ public static class ProductModule
             var command = new SetMainProductImageCommand(id, imageId);
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
     }
 }

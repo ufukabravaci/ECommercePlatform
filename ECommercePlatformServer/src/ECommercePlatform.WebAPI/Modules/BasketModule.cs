@@ -20,7 +20,7 @@ public static class BasketModule
         {
             var result = await sender.Send(new GetBasketQuery(), cancellationToken);
             return Results.Ok(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 2. UPDATE BASKET (Add/Remove Item mantığı burada döner)
         // Body: { "items": [ { "productId": "...", "quantity": 1, ... } ] }
@@ -31,7 +31,7 @@ public static class BasketModule
         {
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 3. DELETE BASKET
         group.MapDelete("/", async (
@@ -40,6 +40,6 @@ public static class BasketModule
         {
             var result = await sender.Send(new DeleteBasketCommand(), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
     }
 }

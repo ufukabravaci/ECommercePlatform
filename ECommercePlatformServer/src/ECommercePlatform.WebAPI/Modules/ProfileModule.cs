@@ -18,13 +18,13 @@ public static class ProfileModule
         {
             var result = await sender.Send(new GetMyProfileQuery(), ct);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // UPDATE ME
         group.MapPut("/", async (UpdateMyProfileCommand command, ISender sender, CancellationToken ct) =>
         {
             var result = await sender.Send(command, ct);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
     }
 }

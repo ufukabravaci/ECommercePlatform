@@ -18,6 +18,6 @@ public static class DashboardModule
         {
             var result = await sender.Send(new GetDashboardStatsQuery(), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
     }
 }

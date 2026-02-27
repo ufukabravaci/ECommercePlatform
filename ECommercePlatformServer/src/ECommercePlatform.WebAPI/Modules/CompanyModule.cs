@@ -17,21 +17,21 @@ public static class CompanyModule
         {
             var result = await sender.Send(new GetCompanyQuery());
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // PUT: api/companies/me
         group.MapPut("me", async (ISender sender, [FromBody] UpdateCompanyCommand command) =>
         {
             var result = await sender.Send(command);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // DELETE: api/companies/me
         group.MapDelete("me", async (ISender sender) =>
         {
             var result = await sender.Send(new DeleteCompanyCommand());
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         group.MapPut("/shipping-settings", async (
             [FromBody] UpdateShippingSettingsCommand command,
@@ -40,7 +40,7 @@ public static class CompanyModule
         {
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).RequireAuthorization();
+        }).RequireAuthorization().RequireRateLimiting("fixed");
 
         // 2. GET SETTINGS
         // GET /api/companies/shipping-settings
@@ -50,6 +50,6 @@ public static class CompanyModule
         {
             var result = await sender.Send(new GetShippingSettingsQuery(), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }); // Tenant Header'ı olduğu sürece Anonymous olabilir, ama güvenli olsun diye şimdilik Auth'lu kalsın.
+        }).RequireRateLimiting("fixed"); // Tenant Header'ı olduğu sürece Anonymous olabilir, ama güvenli olsun diye şimdilik Auth'lu kalsın.
     }
 }

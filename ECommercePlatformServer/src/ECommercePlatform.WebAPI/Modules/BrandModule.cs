@@ -21,7 +21,7 @@ public static class BrandModule
         {
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 2. UPDATE
         group.MapPut("/", async (
@@ -31,7 +31,7 @@ public static class BrandModule
         {
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 3. DELETE
         group.MapDelete("/{id}", async (
@@ -41,7 +41,7 @@ public static class BrandModule
         {
             var result = await sender.Send(new DeleteBrandCommand(id), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 4. GET ALL
         group.MapGet("/", async (
@@ -51,6 +51,6 @@ public static class BrandModule
         {
             var result = await sender.Send(query, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        });
+        }).RequireRateLimiting("fixed");
     }
 }

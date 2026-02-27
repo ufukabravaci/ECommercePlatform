@@ -32,4 +32,22 @@ public static class IdentityMocks
             logger.Object
         );
     }
+
+    public static Mock<RoleManager<TRole>> CreateMockRoleManager<TRole>() where TRole : class
+    {
+        var roleStore = new Mock<IRoleStore<TRole>>();
+        var roleValidators = new List<IRoleValidator<TRole>>();
+        var normalizer = new Mock<ILookupNormalizer>();
+        var identityErrorDescriber = new IdentityErrorDescriber();
+        var logger = new Mock<ILogger<RoleManager<TRole>>>();
+
+        return new Mock<RoleManager<TRole>>(
+            roleStore.Object,
+            roleValidators,
+            normalizer.Object,
+            identityErrorDescriber,
+            logger.Object
+        );
+    }
+
 }

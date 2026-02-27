@@ -23,7 +23,7 @@ public static class EmployeeModule
             var result = await sender.Send(new GetEmployeesQuery(), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         })
-        .RequireAuthorization();
+        .RequireAuthorization().RequireRateLimiting("fixed");
 
         // 2. SEND INVITATION
         // Yeni çalışan davet etme.
@@ -36,7 +36,7 @@ public static class EmployeeModule
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         })
-        .RequireAuthorization();
+        .RequireAuthorization().RequireRateLimiting("fixed");
 
         // 3. UPDATE PERMISSIONS
         // Çalışana özel yetki verme/alma.
@@ -49,7 +49,7 @@ public static class EmployeeModule
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         })
-        .RequireAuthorization();
+        .RequireAuthorization().RequireRateLimiting("fixed");
 
         // 4. ACCEPT INVITATION (Mevcut Kullanıcılar İçin)
         // Zaten hesabı olan birinin davet linkine tıklayıp kabul etmesi.
@@ -62,7 +62,7 @@ public static class EmployeeModule
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         })
-        .RequireAuthorization();
+        .RequireAuthorization().RequireRateLimiting("fixed");
 
         // 5. REGISTER EMPLOYEE (Yeni Kullanıcılar İçin)
         // Hesabı olmayan birinin davet linkiyle sıfırdan kayıt olması.
@@ -75,7 +75,7 @@ public static class EmployeeModule
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         })
-        .AllowAnonymous(); // <--- ÖNEMLİ: Login gerekmez
+        .AllowAnonymous().RequireRateLimiting("fixed");
 
         // 6. GET ALL SYSTEM PERMISSIONS
         // Sistemsel tüm yetki tanımlarını getirir (Checkbox listesi oluşturmak için)
@@ -86,7 +86,7 @@ public static class EmployeeModule
             var result = await sender.Send(new GetAllPermissionsQuery(), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         })
-        .RequireAuthorization();
+        .RequireAuthorization().RequireRateLimiting("fixed");
 
         // 7. GET ASSIGNABLE ROLES (Dropdown için)
         group.MapGet("/roles", async (
@@ -96,6 +96,6 @@ public static class EmployeeModule
             var result = await sender.Send(new GetAssignableRolesQuery(), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
         })
-        .RequireAuthorization();
+        .RequireAuthorization().RequireRateLimiting("fixed");
     }
 }

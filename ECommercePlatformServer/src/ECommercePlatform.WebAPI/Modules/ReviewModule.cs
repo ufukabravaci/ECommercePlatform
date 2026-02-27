@@ -19,7 +19,7 @@ public static class ReviewModule
         {
             var result = await sender.Send(query, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).RequireAuthorization();
+        }).RequireAuthorization().RequireRateLimiting("fixed");
 
         // 1. CREATE (Müşteri)
         group.MapPost("/", async (
@@ -29,7 +29,7 @@ public static class ReviewModule
         {
             var result = await sender.Send(command, cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).RequireAuthorization(); // Token şart
+        }).RequireAuthorization().RequireRateLimiting("fixed"); // Token şart
 
         // 2. REPLY (Satıcı)
         group.MapPost("/{id}/reply", async (
@@ -43,7 +43,7 @@ public static class ReviewModule
             var result = await sender.Send(command, cancellationToken);
 
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).RequireAuthorization();
+        }).RequireAuthorization().RequireRateLimiting("fixed");
 
         // 3. GET BY PRODUCT (Public - Ürün Detay)
         group.MapGet("/product/{productId}", async (
@@ -56,7 +56,7 @@ public static class ReviewModule
             query = query with { ProductId = productId };
             var result = await sender.Send(query, cancellationToken);
             return Results.Ok(result);
-        });
+        }).RequireRateLimiting("fixed");
 
         // 4. APPROVE (Satıcı)
         group.MapPatch("/{id}/approve", async (
@@ -66,7 +66,7 @@ public static class ReviewModule
         {
             var result = await sender.Send(new ApproveReviewCommand(id), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).RequireAuthorization();
+        }).RequireAuthorization().RequireRateLimiting("fixed");
 
         // 5. REJECT (Satıcı)
         group.MapPatch("/{id}/reject", async (
@@ -76,7 +76,7 @@ public static class ReviewModule
         {
             var result = await sender.Send(new RejectReviewCommand(id), cancellationToken);
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).RequireAuthorization();
+        }).RequireAuthorization().RequireRateLimiting("fixed");
 
         group.MapDelete("/{id}", async (
         Guid id,
@@ -87,6 +87,6 @@ public static class ReviewModule
             var result = await sender.Send(command, cancellationToken);
 
             return result.IsSuccessful ? Results.Ok(result) : Results.BadRequest(result);
-        }).RequireAuthorization();
+        }).RequireAuthorization().RequireRateLimiting("fixed");
     }
 }
