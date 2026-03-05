@@ -7,6 +7,7 @@ using ECommercePlatform.Domain.Users;
 using FluentAssertions;
 using GenericRepository;
 using Microsoft.AspNetCore.Identity;
+using MockQueryable;
 using Moq;
 
 namespace ECommercePlatform.Application.Tests.Auth.Register;
@@ -15,6 +16,7 @@ public class RegisterCustomerCommandHandlerTests
 {
     private readonly Mock<UserManager<User>> _userManagerMock;
     private readonly Mock<ICompanyUserRepository> _companyUserRepositoryMock;
+    private readonly Mock<ICompanyRepository> _companyRepositoryMock;
     private readonly Mock<ITenantContext> _tenantContextMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly RegisterCustomerCommandHandler _handler;
@@ -23,22 +25,31 @@ public class RegisterCustomerCommandHandlerTests
     {
         _userManagerMock = IdentityMocks.CreateMockUserManager<User>();
         _companyUserRepositoryMock = new Mock<ICompanyUserRepository>();
+        _companyRepositoryMock = new Mock<ICompanyRepository>();
         _tenantContextMock = new Mock<ITenantContext>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
 
         _handler = new RegisterCustomerCommandHandler(
             _userManagerMock.Object,
             _companyUserRepositoryMock.Object,
+            _companyRepositoryMock.Object,
             _tenantContextMock.Object,
             _unitOfWorkMock.Object
         );
+    }
+
+    // Projendeki standart ID set metodu (Entity üzerinden reflection)
+    private void SetEntityId(ECommercePlatform.Domain.Abstractions.Entity entity, Guid id)
+    {
+        var prop = typeof(ECommercePlatform.Domain.Abstractions.Entity).GetProperty("Id");
+        prop?.SetValue(entity, id);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnFailure_When_TenantIdIsNull()
     {
         // Arrange
-        _tenantContextMock.Setup(x => x.CompanyId).Returns((Guid?)null); // Mağaza bilgisi yok
+        _tenantContextMock.Setup(x => x.CompanyId).Returns((Guid?)null);
 
         // Act
         var result = await _handler.Handle(ValidCommand(), CancellationToken.None);
@@ -49,12 +60,36 @@ public class RegisterCustomerCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldReturnFailure_When_CompanyDoesNotExist()
+    {
+        // Arrange
+        var command = ValidCommand();
+        var companyId = Guid.NewGuid();
+        _tenantContextMock.Setup(x => x.CompanyId).Returns(companyId);
+
+        // Şirket veritabanında YOK
+        _companyRepositoryMock.Setup(x => x.GetAll()).Returns(new List<Company>().BuildMock());
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccessful.Should().BeFalse();
+        result.ErrorMessages.Should().Contain($"Geçersiz Mağaza Kimliği. (ID: {companyId}) veritabanında bulunamadı.");
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnFailure_When_UserExistsAndAlreadyMemberOfCompany()
     {
         // Arrange
         var command = ValidCommand();
         var companyId = Guid.NewGuid();
         _tenantContextMock.Setup(x => x.CompanyId).Returns(companyId);
+
+        // Şirket veritabanında VAR
+        var company = new Company("Test Şirket", "1234567890");
+        SetEntityId(company, companyId);
+        _companyRepositoryMock.Setup(x => x.GetAll()).Returns(new List<Company> { company }.BuildMock());
 
         var existingUser = new User("Ahmet", "Yılmaz", command.Email, command.Email);
         _userManagerMock.Setup(x => x.FindByEmailAsync(command.Email)).ReturnsAsync(existingUser);
@@ -80,6 +115,11 @@ public class RegisterCustomerCommandHandlerTests
         var companyId = Guid.NewGuid();
         _tenantContextMock.Setup(x => x.CompanyId).Returns(companyId);
 
+        // Şirket veritabanında VAR
+        var company = new Company("Test Şirket", "1234567890");
+        SetEntityId(company, companyId);
+        _companyRepositoryMock.Setup(x => x.GetAll()).Returns(new List<Company> { company }.BuildMock());
+
         var existingUser = new User("Ahmet", "Yılmaz", command.Email, command.Email);
         _userManagerMock.Setup(x => x.FindByEmailAsync(command.Email)).ReturnsAsync(existingUser);
 
@@ -103,6 +143,11 @@ public class RegisterCustomerCommandHandlerTests
         var command = ValidCommand();
         var companyId = Guid.NewGuid();
         _tenantContextMock.Setup(x => x.CompanyId).Returns(companyId);
+
+        // Şirket veritabanında VAR
+        var company = new Company("Test Şirket", "1234567890");
+        SetEntityId(company, companyId);
+        _companyRepositoryMock.Setup(x => x.GetAll()).Returns(new List<Company> { company }.BuildMock());
 
         // Globalde böyle bir kullanıcı yok
         _userManagerMock.Setup(x => x.FindByEmailAsync(command.Email)).ReturnsAsync((User?)null);

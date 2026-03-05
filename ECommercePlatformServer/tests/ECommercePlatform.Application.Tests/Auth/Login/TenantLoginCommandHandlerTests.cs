@@ -15,7 +15,6 @@ public class TenantLoginCommandHandlerTests
 {
     private readonly Mock<UserManager<User>> _userManagerMock;
     private readonly Mock<IJwtProvider> _jwtProviderMock;
-    private readonly Mock<IEmailService> _mailServiceMock;
     private readonly Mock<IUserRefreshTokenRepository> _refreshTokenRepositoryMock;
     private readonly Mock<ITenantContext> _tenantContextMock;
     private readonly Mock<ICompanyUserRepository> _companyUserRepositoryMock;
@@ -25,18 +24,16 @@ public class TenantLoginCommandHandlerTests
     public TenantLoginCommandHandlerTests()
     {
         _userManagerMock = IdentityMocks.CreateMockUserManager<User>();
-        // IJwtProvider sendeki projeye özel bir arayüz, mockunu boş oluşturuyoruz
         _jwtProviderMock = new Mock<IJwtProvider>();
-        _mailServiceMock = new Mock<IEmailService>();
         _refreshTokenRepositoryMock = new Mock<IUserRefreshTokenRepository>();
         _tenantContextMock = new Mock<ITenantContext>();
         _companyUserRepositoryMock = new Mock<ICompanyUserRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
 
+        // mailServiceMock silindi çünkü Handler'da artık kullanılmıyor
         _handler = new TenantLoginCommandHandler(
             _userManagerMock.Object,
             _jwtProviderMock.Object,
-            _mailServiceMock.Object,
             _refreshTokenRepositoryMock.Object,
             _tenantContextMock.Object,
             _companyUserRepositoryMock.Object,

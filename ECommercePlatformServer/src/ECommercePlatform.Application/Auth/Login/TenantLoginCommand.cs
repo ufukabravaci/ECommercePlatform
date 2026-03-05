@@ -30,7 +30,7 @@ public sealed class TenantLoginCommandValidator : AbstractValidator<TenantLoginC
 public sealed class TenantLoginCommandHandler(
     UserManager<User> userManager,
     IJwtProvider jwtProvider,
-    IEmailService mailService,
+    //IEmailService mailService,
     IUserRefreshTokenRepository refreshTokenRepository,
     ITenantContext tenantContext,
     ICompanyUserRepository companyUserRepository,

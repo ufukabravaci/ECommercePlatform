@@ -110,7 +110,7 @@ public class RegisterTenantCommandHandlerTests
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        result.Data.Should().Be("Şirket kaydı başarılı. Email doğrulaması bekleniyor.");
+        result.Data.Should().Be("Şirket kaydı başarılı. Email doğrulaması ve kurulum bilgileri adresinize gönderildi.");
 
         _companyRepositoryMock.Verify(x => x.Add(It.IsAny<Company>()), Times.Once);
         _companyUserRepositoryMock.Verify(x => x.Add(It.IsAny<CompanyUser>()), Times.Once);
