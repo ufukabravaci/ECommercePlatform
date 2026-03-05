@@ -1,0 +1,39 @@
+services:
+  ecommerceplatform.webapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      # Localhost ayarlarını Docker Container isimleriyle eziyoruz:
+      - ConnectionStrings__SqlServer=Server=sqldata;Database=ECommercePlatform;User Id=sa;Password=UfukPassword123!;TrustServerCertificate=True;
+      - ConnectionStrings__Redis=redis:6379
+      - MailSettings__Smtp=smtp4dev
+      - MailSettings__Port=25
+      - ClientSettings__Url=http://localhost:5010
+    ports:
+      - "8080:8080" # Artık Visual Studio API'yi http://localhost:8080 portundan açacak
+      - "8081:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+  ecommerceplatform.mvcadmin:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ApiSettings__BaseUrl=https://ecommerceplatform.webapi:8081
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5010:8080" # Senin girmek istediğin HTTP Portu
+      - "5011:8081" # HTTPS Yönlendirmesinin Gideceği Port (Kritik!)
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+  # angularclient:
+  #   ports:
+  #     - "4200:80" # Senin bilgisayarında 4200'den, içeride Nginx'in 80 portuna gidecek

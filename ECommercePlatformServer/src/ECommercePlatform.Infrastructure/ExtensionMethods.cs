@@ -1,4 +1,5 @@
 ﻿using ECommercePlatform.Domain.Abstractions;
+using ECommercePlatform.Infrastructure.Context;
 using ECommercePlatform.Infrastructure.Seeding;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,9 @@ public static class ExtensionMethods
     public static async Task ApplySeedDataAsync(this IApplicationBuilder app)
     {
         using var scope = app.ApplicationServices.CreateScope();
+        // 1.ADIM: VERİTABANINI VE MIGRATION'LARI OLUŞTUR
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await context.Database.MigrateAsync();
         await RoleSeeder.SeedAsync(scope.ServiceProvider);
         await FirstUserSeeder.SeedAsync(scope.ServiceProvider);
     }

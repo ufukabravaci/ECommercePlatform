@@ -5,6 +5,7 @@ using ECommercePlatform.Domain.Users;
 using FluentValidation;
 using GenericRepository;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using TS.MediatR;
 using TS.Result;
 
@@ -49,6 +50,7 @@ public sealed class RegisterCustomerCommandValidator : AbstractValidator<Registe
 public sealed class RegisterCustomerCommandHandler(
     UserManager<User> userManager,
     ICompanyUserRepository companyUserRepository,
+    ICompanyRepository companyRepository,
     ITenantContext tenantContext, // Hangi mağazaya kayıt olduğunu buradan alacağız
     IUnitOfWork unitOfWork
 ) : IRequestHandler<RegisterCustomerCommand, Result<string>>
@@ -65,6 +67,15 @@ public sealed class RegisterCustomerCommandHandler(
 
         // 2. Kullanıcı Global Olarak Var mı?
         var user = await userManager.FindByEmailAsync(request.Email);
+
+        bool companyExists = await companyRepository.GetAll()
+        .IgnoreQueryFilters()
+        .AnyAsync(c => c.Id == currentCompanyId, cancellationToken);
+
+        if (!companyExists)
+        {
+            return Result<string>.Failure($"Geçersiz Mağaza Kimliği. (ID: {currentCompanyId}) veritabanında bulunamadı.");
+        }
 
         // Senaryo A: Kullanıcı sistemde hiç yok -> Oluştur ve Mağazaya Bağla
         if (user is null)

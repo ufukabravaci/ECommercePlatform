@@ -1,0 +1,55 @@
+services:
+  # 1. VERİTABANI (SQL SERVER)
+  sqldata:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=UfukPassword123!
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlvolume:/var/opt/mssql
+
+  # 2. CACHE (REDIS)
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  # 3. LOCAL SAHTE MAIL SUNUCUSU (SMTP4DEV)
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    ports:
+      - "5002:80"    # Tarayıcıdan mailleri görmek için (localhost:5002)
+      - "2525:2525"  # SMTP portu
+
+  # 4. BACKEND (WEB API)
+  ecommerceplatform.webapi:
+    image: ${DOCKER_REGISTRY-}ecommerceplatformwebapi
+    build:
+      context: .
+      dockerfile: src/ECommercePlatform.WebAPI/Dockerfile
+    depends_on:
+      - sqldata
+      - redis
+      - smtp4dev
+
+  # 5. ADMIN PANEL (MVC)
+  ecommerceplatform.mvcadmin:
+    image: ${DOCKER_REGISTRY-}ecommerceplatformmvcadmin
+    build:
+      context: .
+      dockerfile: src/ECommercePlatform.MvcAdmin/Dockerfile
+    depends_on:
+      - ecommerceplatform.webapi
+
+    # 6. FRONTEND (ANGULAR)
+  # angularclient:
+  #   image: ${DOCKER_REGISTRY-}angularclient
+  #   build:
+  #     context: ../ECommercePlatformClient
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - ecommerceplatform.webapi
+volumes:
+    sqlvolume:

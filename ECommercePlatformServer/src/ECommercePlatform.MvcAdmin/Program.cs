@@ -9,6 +9,19 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IApiService, ApiService>(opt =>
 {
     opt.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var handler = new HttpClientHandler();
+
+    // Eğer ortam Geliştirme (Development) ise, sahte/geçersiz Docker SSL sertifikalarını yoksay!
+    if (builder.Environment.IsDevelopment())
+    {
+        handler.ServerCertificateCustomValidationCallback =
+            (httpRequestMessage, cert, cetChain, policyErrors) => true;
+    }
+
+    return handler;
 });
 //redis & session
 builder.Services.AddStackExchangeRedisCache(opt =>

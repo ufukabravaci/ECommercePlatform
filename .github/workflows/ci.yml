@@ -1,0 +1,64 @@
+name: E-Commerce CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # ==========================================
+  # 1. BACKEND (.NET 10) BUILD & TEST GÖREVİ
+  # ==========================================
+  backend-build-and-test:
+    name: Backend Build & Test (.NET 10)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Kodu Çek (Checkout)
+      uses: actions/checkout@v4
+      
+    - name: .NET 10 Kurulumu
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x' # Projenin .NET 10 gereksinimine ayarlandı
+
+    - name: Paketleri Yükle (Restore)
+      # .slnx (veya .sln) ECommercePlatformServer içinde olduğu için o klasöre giriyoruz
+      run: dotnet restore
+      working-directory: ./ECommercePlatformServer
+
+    - name: Projeyi Derle (Build)
+      run: dotnet build --no-restore --configuration Release
+      working-directory: ./ECommercePlatformServer
+
+    - name: Testleri Çalıştır (Test)
+      # Sadece tests klasörünün altındaki projeleri bulup çalıştırır
+      run: dotnet test ./tests/**/*.csproj --no-build --configuration Release --verbosity normal
+      working-directory: ./ECommercePlatformServer
+
+  # ==========================================
+  # 2. FRONTEND (ANGULAR) BUILD GÖREVİ
+  # ==========================================
+  frontend-build:
+    name: Frontend Build (Angular)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Kodu Çek (Checkout)
+      uses: actions/checkout@v4
+
+    - name: Node.js Kurulumu (v22)
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+
+    - name: Bağımlılıkları Kur (npm install)
+      run: npm install
+      working-directory: ./ECommercePlatformClient
+
+    - name: Angular Projesini Derle (Build)
+      # Eğer projede 'build' komutu package.json'da tanımlıysa bu çalışır. 
+      # (Örn: "build": "ng build")
+      run: npm run build
+      working-directory: ./ECommercePlatformClient

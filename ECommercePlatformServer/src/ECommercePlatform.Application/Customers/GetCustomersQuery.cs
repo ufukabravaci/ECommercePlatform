@@ -22,14 +22,14 @@ public sealed class GetCustomersQueryHandler(
 {
     public async Task<Result<PageResult<CustomerDto>>> Handle(GetCustomersQuery request, CancellationToken cancellationToken)
     {
-        // 1. ADIM: Dashboard'da yaptığın gibi veriyi ÖNCE çekiyoruz.
+        // veriyi ÖNCE çekiyoruz.global filter aktif. roller string dizisi olması sebebiyle veritabanında filtreleme yapamıyoruz.
+        // bu yüzden tüm companyuserları çekip bellekte filtreleme yapacağız.
         // Include(cu => cu.User) ile User bilgilerini de aldık.
         var allCompanyUsers = await companyUserRepository.AsQueryable()
             .Include(cu => cu.User)
             .ToListAsync(cancellationToken);
 
         // 2. ADIM: Bellekte (C# tarafında) filtreleme yapıyoruz.
-        // Dashboard'daki .Contains(RoleConsts.Customer) mantığı burada devreye giriyor.
         var customerList = allCompanyUsers
             .Where(cu => cu.Roles.Contains(RoleConsts.Customer))
             .ToList();

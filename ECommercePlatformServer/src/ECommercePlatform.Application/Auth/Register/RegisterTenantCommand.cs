@@ -49,13 +49,13 @@ public sealed class RegisterTenantCommandHandler(
     ICompanyRepository companyRepository,
     ICompanyUserRepository companyUserRepository,
     IUnitOfWork unitOfWork,
-    IEmailService mailService,
+    IEmailService mailService, // IEmailService'de SendAsync metodu kullanılıyor
     ILogger<RegisterTenantCommandHandler> logger
 ) : IRequestHandler<RegisterTenantCommand, Result<string>>
 {
     public async Task<Result<string>> Handle(RegisterTenantCommand request, CancellationToken cancellationToken)
     {
-        // 1. Company kontrol
+        // 1. Company kontrol (Transaction dışı, hızlı kontrol)
         if (await companyRepository.AnyAsync(
                 c => c.TaxNumber == request.TaxNumber,
                 cancellationToken))
@@ -64,91 +64,133 @@ public sealed class RegisterTenantCommandHandler(
         }
 
         User? user = null;
-        Company? company = null;
+        string? emailToken = null;
+        Guid? createdCompanyId = null; // Mail'de kullanmak üzere ID'yi dışarıya alıyoruz
 
-        try
+        // A. BÜYÜK İŞLEM (TRANSACTION) BAŞLANGICI
+        using (var transaction = new System.Transactions.TransactionScope(
+                   System.Transactions.TransactionScopeOption.Required,
+                   new System.Transactions.TransactionOptions { IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted },
+                   System.Transactions.TransactionScopeAsyncFlowOption.Enabled))
         {
-            // 2. User var mı?
-            user = await userManager.FindByEmailAsync(request.Email);
-
-            if (user is null)
+            try
             {
-                user = new User(
-                    request.FirstName,
-                    request.LastName,
-                    request.Email,
-                    request.Email
-                );
+                // 2. User var mı?
+                user = await userManager.FindByEmailAsync(request.Email);
 
-                var createUserResult = await userManager.CreateAsync(user, request.Password);
-                if (!createUserResult.Succeeded)
+                if (user is null)
                 {
-                    return Result<string>.Failure(
-                        createUserResult.Errors.Select(x => x.Description).ToList()
+                    user = new User(
+                        request.FirstName,
+                        request.LastName,
+                        request.Email,
+                        request.Email
                     );
+
+                    var createUserResult = await userManager.CreateAsync(user, request.Password);
+                    if (!createUserResult.Succeeded)
+                    {
+                        return Result<string>.Failure(createUserResult.Errors.Select(x => x.Description).ToList());
+                    }
                 }
+
+                // 3. Company oluştur
+                var company = new Company(request.CompanyName, request.TaxNumber);
+
+                if (!string.IsNullOrWhiteSpace(request.City))
+                {
+                    var address = new Address(request.City, request.District, request.Street, request.ZipCode, request.FullAddress);
+                    company.UpdateAddress(address);
+                }
+
+                companyRepository.Add(company);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                // Mail'de kullanmak üzere atama yapıyoruz
+                createdCompanyId = company.Id;
+
+                // 4. CompanyUser oluştur (kritik bağ)
+                var companyUser = new CompanyUser(user.Id, company.Id);
+                companyUser.AddRole(RoleConsts.CompanyOwner);
+                companyUserRepository.Add(companyUser);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                // 5. Identity Role (platform genel rol)
+                if (!await userManager.IsInRoleAsync(user, RoleConsts.CompanyOwner))
+                {
+                    var roleResult = await userManager.AddToRoleAsync(user, RoleConsts.CompanyOwner);
+                    if (!roleResult.Succeeded)
+                        return Result<string>.Failure("Rol ataması başarısız oldu.");
+                }
+
+                // Mail için token oluştur (ama maili henüz atma!)
+                if (!user.EmailConfirmed)
+                {
+                    emailToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                }
+
+                // HER ŞEY BAŞARILI OLURSA VERİTABANINA YAZ (COMMIT)
+                transaction.Complete();
             }
-
-            // 3. Company oluştur
-            company = new Company(request.CompanyName, request.TaxNumber);
-
-            if (!string.IsNullOrWhiteSpace(request.City))
+            catch (Exception ex)
             {
-                var address = new Address(
-                    request.City,
-                    request.District,
-                    request.Street,
-                    request.ZipCode,
-                    request.FullAddress
-                );
-
-                company.UpdateAddress(address);
+                logger.LogError(ex, "RegisterTenant failed in database transaction. Email: {Email}", request.Email);
+                return Result<string>.Failure("Veritabanı işlemleri sırasında bir hata oluştu ve kayıt iptal edildi.");
             }
+        }
 
-            companyRepository.Add(company);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-
-            // 4. CompanyUser oluştur (kritik bağ)
-            var companyUser = new CompanyUser(user.Id, company.Id);
-            companyUser.AddRole(RoleConsts.CompanyOwner);
-            companyUserRepository.Add(companyUser);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-
-            // 5. Identity Role (platform genel rol)
-            if (!await userManager.IsInRoleAsync(user, RoleConsts.CompanyOwner))
+        // B. MAİL GÖNDERİMİ (TRANSACTION DIŞINDA YAPILMALI)
+        if (user != null && !user.EmailConfirmed && emailToken != null && createdCompanyId != null)
+        {
+            try
             {
-                var roleResult = await userManager.AddToRoleAsync(user, RoleConsts.CompanyOwner);
-                if (!roleResult.Succeeded)
-                    throw new ApplicationException("Rol ataması başarısız.");
-            }
+                // HTML formatında şık bir mail içeriği oluşturuyoruz
+                string mailBody = $@"
+                    <div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                        <h2 style='color: #0056b3;'>E-Ticaret Platformuna Hoş Geldiniz!</h2>
+                        <p>Sayın {request.FirstName} {request.LastName},</p>
+                        <p><strong>{request.CompanyName}</strong> firması için platformumuzda başarıyla hesap oluşturdunuz. Hesabınızı aktifleştirmek için lütfen aşağıdaki doğrulama kodunu kullanın:</p>
+                        
+                        <div style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #28a745; margin: 20px 0; font-size: 18px; font-weight: bold;'>
+                            Doğrulama Kodunuz: {emailToken}
+                        </div>
 
-            // 6. Email confirmation
-            if (!user.EmailConfirmed)
-            {
-                var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                        <hr style='border: 1px solid #eee; margin: 30px 0;' />
+
+                        <h3 style='color: #0056b3;'>API Entegrasyon Bilgileri (Geliştiriciler İçin)</h3>
+                        <p>Sistemi kullanmaya başlamak ve Frontend (Angular) uygulamasını backend'e bağlamak için size özel oluşturulan <strong>Company ID (Tenant ID)</strong> bilginiz aşağıdadır:</p>
+                        
+                        <div style='background-color: #f4f4f4; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0; font-family: monospace; font-size: 16px;'>
+                            {createdCompanyId}
+                        </div>
+
+                        <h4>Frontend Uygulamasında Nasıl Kullanılır?</h4>
+                        <ul style='margin-bottom: 20px;'>
+                            <li>Angular projenizde <code>src/environments/environment.ts</code> dosyasını açın.</li>
+                            <li><code>defaultTenantId</code> alanına yukarıdaki ID'yi yapıştırın.</li>
+                            <li>Yaptığınız tüm isteklerde HTTP Interceptor (<code>tenantInterceptor</code>) bu ID'yi otomatik olarak <code>tenant-id</code> header'ı ile WebAPI'ye gönderecektir.</li>
+                        </ul>
+                        
+                        <p><em>Bu ID'yi aynı zamanda Admin Panelinizdeki Şirket Ayarları menüsünden de kopyalayabilirsiniz.</em></p>
+                        <br/>
+                        <p>İyi çalışmalar dileriz,</p>
+                        <p><strong>E-Ticaret Platformu Ekibi</strong></p>
+                    </div>";
 
                 await mailService.SendAsync(
                     user.Email!,
-                    "E-Ticaret Platformu - Kayıt Onayı",
-                    $"<b>Doğrulama Kodunuz:</b> {token}",
+                    "E-Ticaret Platformu - Kayıt Onayı ve Kurulum Bilgileri",
+                    mailBody,
                     cancellationToken
                 );
             }
-
-            return "Şirket kaydı başarılı. Email doğrulaması bekleniyor.";
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "RegisterTenant failed. Email: {Email}", request.Email);
-
-            // Company sil (user silinmez, başka tenant'larda olabilir)
-            if (company is not null)
+            catch (Exception ex)
             {
-                company.Delete();
-                await unitOfWork.SaveChangesAsync(cancellationToken);
+                logger.LogWarning(ex, "Kullanıcı başarıyla kaydedildi ama mail gönderilemedi. Email: {Email}", request.Email);
+                return "Şirket kaydı başarılı ancak doğrulama maili gönderilemedi. Lütfen sistem yöneticisine başvurun.";
             }
-
-            return Result<string>.Failure("Kayıt sırasında beklenmeyen bir hata oluştu.");
         }
+
+        return "Şirket kaydı başarılı. Email doğrulaması ve kurulum bilgileri adresinize gönderildi.";
     }
 }

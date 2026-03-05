@@ -25,13 +25,16 @@ public sealed class AddProductImageCommandValidator : AbstractValidator<AddProdu
         RuleFor(x => x.ProductId).NotEmpty();
         RuleFor(x => x.File).NotNull().WithMessage("Dosya seçilmelidir.");
 
-        RuleFor(x => x.File)
-            .Must(f => f.Length <= 5 * 1024 * 1024)
-            .WithMessage("Dosya boyutu 5MB'dan büyük olamaz.")
-            .Must(f => f.ContentType.StartsWith("image/"))
-            .WithMessage("Sadece resim dosyası yüklenebilir.")
-            .Must(f => _allowedExtensions.Contains(Path.GetExtension(f.FileName).ToLowerInvariant()))
-            .WithMessage("Geçersiz dosya uzantısı.");
+        When(x => x.File != null, () =>
+        {
+            RuleFor(x => x.File)
+                .Must(f => f.Length <= 5 * 1024 * 1024)
+                .WithMessage("Dosya boyutu 5MB'dan büyük olamaz.")
+                .Must(f => f.ContentType.StartsWith("image/"))
+                .WithMessage("Sadece resim dosyası yüklenebilir.")
+                .Must(f => _allowedExtensions.Contains(Path.GetExtension(f.FileName).ToLowerInvariant()))
+                .WithMessage("Geçersiz dosya uzantısı.");
+        });
     }
 }
 

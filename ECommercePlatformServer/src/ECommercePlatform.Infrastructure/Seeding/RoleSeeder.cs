@@ -135,9 +135,9 @@ public static class RoleSeeder
             isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.CreateReview);
             isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.ManageReview);
             isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.ReadReview);
-            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadCustomer);
-            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.DeleteCustomer);
-            isAdded |= await AddPermissionToRole(roleManager, employeeRole, PermissionConsts.ReadCompany);
+            isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.ReadCustomer);
+            isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.DeleteCustomer);
+            isAdded |= await AddPermissionToRole(roleManager, customerRole, PermissionConsts.ReadCompany);
             if (isAdded)
             {
                 await cache.RemoveAsync($"Role_{RoleConsts.Customer}_Permissions");

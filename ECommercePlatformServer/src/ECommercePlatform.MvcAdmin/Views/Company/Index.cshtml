@@ -43,7 +43,6 @@
 
     <!-- Sağ İçerik -->
     <div class="col-lg-9">
-
         @* ==================== GENEL BİLGİLER ==================== *@
         @if (Model.ActiveTab == "general")
         {
@@ -62,6 +61,29 @@
                 <div class="card-body">
                     @if (Model.Company != null)
                     {
+                        <!-- COMPANY ID BÖLÜMÜ (YENİ EKLENEN KISIM) -->
+                        <div class="alert alert-primary d-flex flex-column gap-2 mb-4" style="border-radius: 12px; border-left: 4px solid #667eea; background-color: var(--bs-primary-bg-subtle);">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-key text-primary"></i>
+                                <strong class="text-primary">Company ID (Tenant ID)</strong>
+                            </div>
+                            <p class="mb-1 small text-body">
+                                Bu ID, Frontend (Angular) uygulamanızın API ile haberleşebilmesi için gereklidir.
+                                <code>src/environments/environment.ts</code> içerisine kopyalayınız.
+                            </p>
+                            <div class="input-group mt-1">
+                                <span class="input-group-text bg-body border-end-0">
+                                    <i class="fas fa-fingerprint text-muted"></i>
+                                </span>
+                                <input type="text" id="companyIdInput" class="form-control bg-body border-start-0"
+                                       value="@Model.Company.Id" readonly style="font-family: monospace; font-size: 1.1rem; color: var(--bs-body-color);">
+                                <button class="btn btn-primary" type="button" onclick="copyCompanyId()" style="border-radius: 0 8px 8px 0;">
+                                    <i class="fas fa-copy me-1"></i> Kopyala
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /COMPANY ID BÖLÜMÜ BİTİŞ -->
+
                         <form asp-action="Update" method="post">
                             <div class="row g-3">
                                 <!-- Şirket Adı -->
@@ -163,8 +185,7 @@
             </div>
         }
 
-        @* ==================== KARGO AYARLARI ==================== *@
-        @if (Model.ActiveTab == "shipping")
+               @if (Model.ActiveTab == "shipping")
         {
             <div class="card" style="border-radius: 16px;">
                 <div class="card-header bg-transparent">
@@ -640,6 +661,35 @@
         $('#thresholdInput, #flatRateInput').on('input', function() {
             updateExampleCalculation();
         });
+
+                // ==================== COMPANY ID KOPYALAMA ====================
+        function copyCompanyId() {
+            var input = document.getElementById("companyIdInput");
+
+            // Seçimi yap ve panoya kopyala
+            input.select();
+            input.setSelectionRange(0, 99999); // Mobil uyumluluk için
+
+            navigator.clipboard.writeText(input.value).then(function() {
+                // Eğer projende Toastr yüklü değilse Swal.fire da kullanabilirsin.
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Company ID başarıyla kopyalandı!', 'Başarılı');
+                } else {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Company ID kopyalandı',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+                }
+            }).catch(function(err) {
+                console.error('Kopyalama başarısız: ', err);
+            });
+        }
+
 
         // ==================== HESAP SİLME ONAYI ====================
         // "SİL" yazıldığında butonu aktif et
