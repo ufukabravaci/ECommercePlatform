@@ -12,6 +12,9 @@ This project demonstrates:
 - Redis-backed distributed caching
 - Soft delete with auditing
 - Rich domain modeling with value objects
+- Dockerized infrastructure for seamless developer experience
+- Automated CI/CD pipelines via GitHub Actions
+- Comprehensive Unit Testing
 
 Designed to simulate a real-world production backend system.
 
@@ -25,21 +28,29 @@ Designed to simulate a real-world production backend system.
 - Soft delete strategy with global query filters
 - Domain entities encapsulating business behaviors
 - Rate limiting applied to authentication endpoints
+- Unit tests for Application layer (Commands, Validators and business rules)
+- Containerized backend services (MSSQL, Redis, Smtp4Dev, WebAPI, MVC Admin)
+- Continuous Integration (CI)** pipeline testing backend and frontend on every push
 
-## 🧠 Architectural Decisions
+## 🧩 Design Patterns Used
 
-- Multi-tenant architecture to simulate SaaS environment
-- Permission-based authorization instead of role-only model
-- Redis caching to reduce database load on high-traffic endpoints
-- Domain-driven design to encapsulate business logic inside entities
+- Clean Architecture
+- CQRS
+- Pipeline Behaviors (Decorator pattern)
+- Result Pattern
+- Repository + Unit of Work
+- Domain Driven Design
 
 ## 🛠 Tech Stack
 
 - Backend: .NET 10, EF Core, ASP.NET Core Identity, CQRS, Minimal API
-- Database: MSSQL
-- Caching: Redis
+- Database: MSSQL (Docker)
+- Caching: Redis (Docker)
 - Authentication: JWT
 - Frontend: Angular 21, Angular Signals, OnPush Change Detection
+- Containerization: Docker, Docker Compose
+- Testing: xUnit, Moq, FluentAssertions, MockQueryable
+- CI/CD: GitHub Actions
 
 ## 🎯 Core Features
 
@@ -86,7 +97,7 @@ Centralized error handling using **TS.Result**, ensuring consistent API response
 
 ### Exception Handling
 
-Global **ExceptionHandler** middleware ve result pattern ile tutarlı responselarla hata yönetimi
+Centralized error handling using a global ExceptionHandler middleware combined with the Result pattern.
 
 ### Service Registration Pattern
 
@@ -95,6 +106,85 @@ Each layer manages its own service registrations:
 services.AddApplicationServices();
 services.AddInfrastructureServices();
 ```
+
+## 🚀 Performance & Scalability
+
+### Redis Caching
+
+Redis is used to reduce database load on frequently accessed data.
+
+Caching scenarios include:
+
+- Shopping basket storage
+- Permission caching for authorization checks
+
+This significantly reduces database queries for frequently accessed authorization and user-specific data.
+
+### Rate Limiting
+
+Authentication endpoints are protected using ASP.NET Core Rate Limiting middleware.
+
+Example policy:
+
+- Fixed window limiter
+- 3 requests per second
+
+This prevents brute-force attacks on authentication endpoints.
+
+## 🧪 Testing
+
+The **Application layer** is covered with unit tests.
+
+Tests focus on:
+
+- Command handlers
+- Validation rules
+- Business logic
+- Domain constraints
+
+Libraries used:
+
+- **xUnit** – test framework
+- **Moq + MockQueryable** – mocking dependencies
+- **FluentAssertions** – expressive assertions
+- **FluentValidation.TestHelper** – validator testing
+
+## ⚙️ CI/CD Pipeline (GitHub Actions)
+
+The project uses **GitHub Actions** for Continuous Integration.
+
+On every push or pull request:
+
+- Backend solution is restored
+- Backend is built
+- Unit tests are executed
+- Angular frontend build is validated
+
+This ensures that new commits do not break the build or existing functionality.
+
+## 🐳 Docker Support
+
+The backend services are fully **containerized using Docker**.
+
+Services included in Docker environment:
+
+- Web API
+- MSSQL Database
+- Redis Cache
+- Smtp4Dev
+- MVC Admin
+
+### Why Frontend Runs Locally
+
+Initially the Angular application was also containerized and served via Nginx.
+
+However, the application requires changing the **CompanyId environment variable** when running different tenants locally.
+
+Because the Angular build produces static bundled assets, Nginx caching could sometimes serve stale frontend bundles.
+This caused the application to run with outdated configuration values (such as an incorrect CompanyId).
+
+To avoid stale configuration issues during development and ensure reliable environment changes, the Angular application runs locally using Node.js while backend services run in Docker.
+
 
 ## 🎨 Frontend Architecture (Angular 21)
 
@@ -199,34 +289,71 @@ services.AddInfrastructureServices();
 
 </details>
 
-## 📦 Setup
+## 📦 Setup (Local Development)
 
-### Backend
+Backend is fully dockerized (no IDE required).
+Frontend is run locally via Node.js for the best hot-reload experience and to avoid Docker/Nginx caching issues.
+
+### Prerequisites
+- Docker + Docker Compose
+- Node.js (v22+ recommended)
+
+### 1) Start Backend (Docker)
+
+`docker-compose.yml` is located under `ECommercePlatformServer/`.
 
 ```bash
 cd ECommercePlatformServer
-
-dotnet restore
-dotnet ef database update --project ECommercePlatform.Infrastructure
-dotnet run --project ECommercePlatform.WebAPI
-# Admin panel
-dotnet run --project ECommercePlatform.MvcAdmin
+docker-compose up -d --build
 ```
 
-### Frontend
+Useful URLs:
+- API (Scalar): https://localhost:8081/scalar/v1
+- Mail UI (Smtp4Dev): http://localhost:5002
+- Admin Panel (MVC): http://localhost:5010
 
-```bash
-cd ECommercePlatformClient/.angular
-npm install
-npm start
-### environment.ts (Angular)
+### 2) Create Company + Get CompanyId
+
+1. Open Scalar: https://localhost:8081/scalar/v1
+2. Call `RegisterTenant` and create your company.
+3. Open Smtp4Dev UI: http://localhost:5002
+4. Copy your **Company ID (Tenant ID)** from the welcome / confirmation email (or use the Admin Panel Company Settings page if available).
+
+### 3) Configure Frontend Tenant
+
+Edit both environment.ts and environment.prod.ts files under `ECommercePlatformClient/src/environments/` and set your Company ID:
 
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5000/api',
-  defaultTenantId: 'your-company-guid-here'
+  apiUrl: 'http://localhost:8080/api',
+  defaultTenantId: 'YOUR-COMPANY-ID-HERE'
 };
+```
+
+### 4) Start Frontend (Angular Local)
+
+```bash
+cd ECommercePlatformClient
+npm install
+npm start
+```
+
+Open:
+- Storefront: http://localhost:4200
+
+### Stop / Reset
+
+Stop containers:
+```bash
+cd ECommercePlatformServer
+docker-compose down
+```
+
+Full reset (removes volumes / DB data):
+```bash
+cd ECommercePlatformServer
+docker-compose down -v
 ```
 
 ## 📝 Seed Data
@@ -244,3 +371,12 @@ Backend Developer (.NET)
 - LinkedIn: https://linkedin.com/in/ufukabravaci
 - GitHub: https://github.com/ufukabravaci
 - Email: ufukabravaci@gmail.com
+
+## 📌 Project Purpose
+
+This project was built as a **portfolio project** to demonstrate production-grade backend architecture including:
+
+- Multi-tenant SaaS design
+- Clean Architecture
+- Advanced authorization models
+- Scalable infrastructure components
